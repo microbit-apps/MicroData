@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     /**
      * See modules.lightLevel1.lightLevel sensor from pxt-jacdac/jacdac-light-level.
      * Overrides .isJacdac()

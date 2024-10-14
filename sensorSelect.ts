@@ -1,4 +1,5 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
     /** 
      * Limit to how many sensors you may record from & read from at once. Neccessary to prevent egregious lag in live-data-viewer.
      * Inclusively, only one Jacdac sensor may be selected at once.

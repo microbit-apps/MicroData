@@ -1,4 +1,7 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
+
     export class Home extends CursorScene {
         private liveDataBtn: Button
         private recordDataBtn: Button
@@ -117,7 +120,7 @@ namespace microcode {
                         ((Screen.WIDTH + wordLogo.width) >> 1) 
                         + dy
                         -
-                        microcode.font.charWidth * tagline.length,
+                        microdata.font.charWidth * tagline.length,
                     Screen.TOP_EDGE +
                         OFFSET +
                         wordLogo.height +
@@ -125,7 +128,7 @@ namespace microcode {
                         this.yOffset +
                         1,
                     0xb,
-                    microcode.font
+                    microdata.font
                 )
             }
 

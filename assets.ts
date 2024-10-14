@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     let extraImage: Bitmap = null
 
     //% shim=TD_NOOP

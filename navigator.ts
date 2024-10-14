@@ -1,4 +1,7 @@
-namespace microcode {
+namespace microdata {
+    import Bounds = user_interface_base.Bounds
+    import Vec2 = user_interface_base.Vec2
+
     export interface INavigator {
         clear: () => void
         addButtons: (btns: Button[]) => void

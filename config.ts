@@ -7,7 +7,7 @@ namespace userconfig {
     // export const ARCADE_SCREEN_HEIGHT = 180
 }
 
-namespace microcode {
+namespace microdata {
     export const ERROR_NOT_INTEGER = 101
     export const ERROR_DOUBLE_BACKGROUND_CAPTURE = 102 
     export const CAR_TILES = true

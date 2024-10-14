@@ -1,4 +1,6 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
     /** The colours that will be used for the lines & sensor information boxes */
     const SENSOR_COLORS: number[] = [2,3,4,6,7,9]
 

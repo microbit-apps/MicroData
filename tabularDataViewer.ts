@@ -1,4 +1,5 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
     /**
      * Display limits
      * Data in excess will require scrolling to view

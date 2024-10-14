@@ -1,4 +1,10 @@
-namespace microcode {
+namespace microdata {
+    import Affine = user_interface_base.Affine
+    import Bounds = user_interface_base.Bounds
+    import Screen = user_interface_base.Screen
+    import IPlaceable = user_interface_base.IPlaceable
+    import Vec2 = user_interface_base.Vec2
+
     // TODO: functionalize the Picker to reduce memory pressure
     // 1. a function to get image from col, row
     // 2. a function to set image from col, row
@@ -219,7 +225,7 @@ namespace microcode {
                     w.x + this.panel.left + 2,
                     w.y + this.panel.top + 4,
                     1,
-                    microcode.font
+                    microdata.font
                 )
             }
             if (this.group) this.group.draw()

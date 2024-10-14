@@ -1,4 +1,6 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
     /**
      * Used to control the flow between scenes,
      * The SensorSelect scene is used to set the sensors before the RecordData, DistributedLogging and LiveDataViewer scenes

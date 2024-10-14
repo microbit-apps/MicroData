@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     export function assert(cond: boolean, msg?: string) {
         if (!cond) {
             if (msg == null) msg = "Assertion failed"

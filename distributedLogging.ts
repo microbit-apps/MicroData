@@ -1,4 +1,6 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
     /**
      * Is this Microbit sending commands to others or is it being instructed by a Commander? 
      */

@@ -1,4 +1,8 @@
-namespace microcode {
+namespace microdata {
+    import Affine = user_interface_base.Affine
+    import Screen = user_interface_base.Screen
+    import IComponent = user_interface_base.IComponent
+
     const INPUT_PRIORITY = 10
     const UPDATE_PRIORITY = 20
     const RENDER_PRIORITY = 30

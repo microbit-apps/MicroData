@@ -1,6 +1,6 @@
 
 // Auto-generated file: do not edit.
-namespace microcode {
+namespace microdata {
     /**
      * Version of the package 
      */
