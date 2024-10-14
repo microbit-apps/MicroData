@@ -1,4 +1,6 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
     /**
      * Choose between:
      *      Resetting Datalogger

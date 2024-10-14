@@ -1,4 +1,7 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
+
     /** Number of sensor information boxes that can fit onto the screen at once*/
     const MAX_SENSORS_ON_SCREEN: number = 5
     /** The colours that will be used for the lines & sensor information boxes */

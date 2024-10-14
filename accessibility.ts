@@ -42,6 +42,6 @@ namespace accessibility {
     }
 
     export function ariaToTooltip(ariaId: string) {
-        return microcode.resolveTooltip(ariaId).replaceAll("_", " ")
+        return microdata.resolveTooltip(ariaId).replaceAll("_", " ")
     }
 }

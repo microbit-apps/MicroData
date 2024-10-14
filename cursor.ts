@@ -1,4 +1,11 @@
-namespace microcode {
+namespace microdata {
+    import Affine = user_interface_base.Affine
+    import Bounds = user_interface_base.Bounds
+    import Screen = user_interface_base.Screen
+    import IPlaceable = user_interface_base.IPlaceable
+    import Vec2 = user_interface_base.Vec2
+    import IComponent = user_interface_base.IComponent
+
     /**
      * See .setOutlineColour()
      */
@@ -140,7 +147,7 @@ namespace microcode {
             if (text) {
                 const pos = this.ariaPos || this.xfrm.localPos
                 const n = text.length
-                const font = microcode.font
+                const font = microdata.font
                 const w = font.charWidth * n
                 const h = font.charHeight
                 const x = Math.max(

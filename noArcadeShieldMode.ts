@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     /**
      * This is presently unused on this /main branch due to memory constraints. The distributedLoggingProtocol is used in its stead.
      * The no-jacdac-mode uses this feature fully, but with no Jacdac support.

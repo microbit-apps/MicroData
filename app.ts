@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     // Auto-save slot
     export const SAVESLOT_AUTO = "sa"
 

@@ -1,4 +1,6 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+
     /** The period that the scheduler should wait before comparing a reading with the event's inequality */
     export const SENSOR_EVENT_POLLING_PERIOD_MS: number = 100
 

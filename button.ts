@@ -1,4 +1,12 @@
-namespace microcode {
+namespace microdata {
+    import Affine = user_interface_base.Affine
+    import Bounds = user_interface_base.Bounds
+    import Sprite = user_interface_base.Sprite
+    import Screen = user_interface_base.Screen
+    import IComponent = user_interface_base.IComponent
+    import ISizable = user_interface_base.ISizable 
+    import IPlaceable = user_interface_base.IPlaceable
+
     export class Borders {
         constructor(
             public top: number,

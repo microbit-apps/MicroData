@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     /**
      * Grant the user the option to clear the contents stored on the data logger.
      * Inbetween Home and SensorSelect

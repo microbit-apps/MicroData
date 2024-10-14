@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     export class Options {
         public static fps = false
         public static profiling = false
