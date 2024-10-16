@@ -1,5 +1,6 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+
     /**
      * Display limits
      * Data in excess will require scrolling to view
@@ -109,7 +110,7 @@ namespace microdata {
         private goBack1PageFn: () => void
 
         constructor(app: App, goBack1PageFn: () => void) {
-            super(app, "recordedDataViewer")
+            super("recordedDataViewer")
 
             this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW
             TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS

@@ -1,5 +1,11 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import GridNavigator = user_interface_base.GridNavigator
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import CursorSceneWithPriorPage = user_interface_base.CursorSceneWithPriorPage
+    import Button = user_interface_base.Button
+    import ButtonStyles = user_interface_base.ButtonStyles
+
     /** 
      * Limit to how many sensors you may record from & read from at once. Neccessary to prevent egregious lag in live-data-viewer.
      * Inclusively, only one Jacdac sensor may be selected at once.
@@ -23,8 +29,11 @@ namespace microdata {
         private nextSceneEnum: CursorSceneEnum
         private jacdacSensorSelected: boolean
         
-        constructor(app: App, nextSceneEnum: CursorSceneEnum) {
-            super(app, function () {app.popScene(); app.pushScene(new Home(this.app))}, new GridNavigator(4, 5)); // 4x5 grid
+        constructor(private app: App, nextSceneEnum: CursorSceneEnum) {
+            super(function () {
+                this.app.popScene(); 
+                this.app.pushScene(new Home(this.app))
+            }, new GridNavigator(4, 5)); // 4x5 grid
             this.btns = [];
             this.selectedSensorAriaIDs = [];
             this.nextSceneEnum = nextSceneEnum;

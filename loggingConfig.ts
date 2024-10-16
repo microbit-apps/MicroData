@@ -1,5 +1,7 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import font = user_interface_base.font
 
     /**
      * Generated at recordingConfigSelection 
@@ -88,8 +90,8 @@ namespace microdata {
 
         private nextSceneEnum: CursorSceneEnum
 
-        constructor(app: App, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
-            super(app, "measurementConfigSelect")
+        constructor(private app: App, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
+            super("measurementConfigSelect")
             this.guiState = GUI_STATE.SENSOR_SELECT
 
             this.sensors = sensors
@@ -144,7 +146,7 @@ namespace microdata {
                                 this.app.popScene()
 
                                 if (this.nextSceneEnum == CursorSceneEnum.DistributedLogging) {
-                                    this.app.pushScene(new DistributedLoggingScreen(this.app, this.sensors, this.sensorConfigs));
+                                    this.app.pushScene(new DistributedLoggingScreen(this.sensors, this.sensorConfigs));
                                 }
                                 else {
                                     // All sensors are configured, pass them their config and move to the DataRecording screen:

@@ -1,5 +1,9 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import CursorScene = user_interface_base.CursorScene
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import Button = user_interface_base.Button
+    import ButtonStyles = user_interface_base.ButtonStyles
 
     /**
      * Is this Microbit sending commands to others or is it being instructed by a Commander? 
@@ -542,8 +546,8 @@ namespace microdata {
         private startStreamingBtn: Button
         private showDataBtn: Button
 
-        constructor(app: App, sensors?: Sensor[], configs?: RecordingConfig[]) {
-            super(app)
+        constructor(private app: App, sensors?: Sensor[], configs?: RecordingConfig[]) {
+            super()
             this.uiState = UI_STATE.SHOWING_OPTIONS
             this.distributedLogger = new DistributedLoggingProtocol(app, true, this)
 
