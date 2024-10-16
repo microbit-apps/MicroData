@@ -150,7 +150,7 @@ namespace microdata {
         /** */
         private targetIDs: number[]
 
-        constructor(private app: AppInterface, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
+        constructor(app: AppInterface, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
 
             //--------------
             // Unbind A & B:
@@ -544,8 +544,8 @@ namespace microdata {
         private startStreamingBtn: Button
         private showDataBtn: Button
 
-        constructor(private app: AppInterface, sensors?: Sensor[], configs?: RecordingConfig[]) {
-            super()
+        constructor(app: AppInterface, sensors?: Sensor[], configs?: RecordingConfig[]) {
+            super(app)
             this.uiState = UI_STATE.SHOWING_OPTIONS
             this.distributedLogger = new DistributedLoggingProtocol(app, true, this)
 

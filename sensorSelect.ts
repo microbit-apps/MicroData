@@ -30,8 +30,8 @@ namespace microdata {
         private nextSceneEnum: CursorSceneEnum
         private jacdacSensorSelected: boolean
         
-        constructor(private app: AppInterface, nextSceneEnum: CursorSceneEnum) {
-            super(function () {
+        constructor(app: AppInterface, nextSceneEnum: CursorSceneEnum) {
+            super(app, function () {
                 this.app.popScene(); 
                 this.app.pushScene(new Home(this.app))
             }, new GridNavigator(4, 5)); // 4x5 grid

@@ -92,8 +92,8 @@ namespace microdata {
 
         private nextSceneEnum: CursorSceneEnum
 
-        constructor(private app: AppInterface, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
-            super("measurementConfigSelect")
+        constructor(app: AppInterface, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
+            super(app, "measurementConfigSelect")
             this.guiState = GUI_STATE.SENSOR_SELECT
 
             this.sensors = sensors

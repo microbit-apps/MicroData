@@ -14,7 +14,7 @@ namespace microdata {
         private distributedLoggingBtn: Button
         private viewBtn: Button
 
-        constructor(private app: AppInterface) {super()}
+        constructor(app: AppInterface) {super(app)}
 
         /* override */ startup() {
             super.startup()

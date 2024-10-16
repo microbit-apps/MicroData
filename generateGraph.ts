@@ -99,8 +99,8 @@ namespace microdata {
         /** Greatest of sensor.maximum for all sensors: required to write at the top of the y-axis */
         private globalSensorMaximum: number;
 
-        constructor(private app: AppInterface) {
-            super("graphGeneration")
+        constructor(app: AppInterface) {
+            super(app, "graphGeneration")
             this.backgroundColor = 3
 
             this.windowWidth = Screen.WIDTH

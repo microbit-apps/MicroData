@@ -30,8 +30,8 @@ namespace microdata {
         /** For the currentSensorIndex */
         private sensorBoxColor: number;
 
-        constructor(private app: AppInterface, sensors: Sensor[]) {
-            super("dataRecorder")
+        constructor(app: AppInterface, sensors: Sensor[]) {
+            super(app, "dataRecorder")
 
             this.scheduler = new SensorScheduler(sensors)
             this.sensors = sensors

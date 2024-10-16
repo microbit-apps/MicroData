@@ -113,7 +113,7 @@ namespace microdata {
         private goBack1PageFn: () => void
 
         constructor(app: AppInterface, goBack1PageFn: () => void) {
-            super("recordedDataViewer")
+            super(app, "recordedDataViewer")
 
             this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW
             TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS

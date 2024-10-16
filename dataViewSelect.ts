@@ -18,8 +18,9 @@ namespace microdata {
         private graphViewBtn: Button
         private dataloggerEmpty: boolean
 
-        constructor(private app: AppInterface) { 
-            super(function () {
+        constructor(app: AppInterface) { 
+            super(app,
+                function () {
                 this.app.popScene(); 
                 this.app.pushScene(new Home(this.app))
             })
