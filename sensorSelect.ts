@@ -5,6 +5,7 @@ namespace microdata {
     import CursorSceneWithPriorPage = user_interface_base.CursorSceneWithPriorPage
     import Button = user_interface_base.Button
     import ButtonStyles = user_interface_base.ButtonStyles
+    import AppInterface = user_interface_base.AppInterface
 
     /** 
      * Limit to how many sensors you may record from & read from at once. Neccessary to prevent egregious lag in live-data-viewer.
@@ -29,7 +30,7 @@ namespace microdata {
         private nextSceneEnum: CursorSceneEnum
         private jacdacSensorSelected: boolean
         
-        constructor(private app: App, nextSceneEnum: CursorSceneEnum) {
+        constructor(private app: AppInterface, nextSceneEnum: CursorSceneEnum) {
             super(function () {
                 this.app.popScene(); 
                 this.app.pushScene(new Home(this.app))

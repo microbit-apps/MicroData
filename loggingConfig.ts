@@ -1,6 +1,8 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import Scene = user_interface_base.Scene
     import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import AppInterface = user_interface_base.AppInterface
     import font = user_interface_base.font
 
     /**
@@ -90,7 +92,7 @@ namespace microdata {
 
         private nextSceneEnum: CursorSceneEnum
 
-        constructor(private app: App, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
+        constructor(private app: AppInterface, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
             super("measurementConfigSelect")
             this.guiState = GUI_STATE.SENSOR_SELECT
 

@@ -1,5 +1,7 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import Scene = user_interface_base.Scene
+    import font = user_interface_base.font
 
     /**
      * Display limits

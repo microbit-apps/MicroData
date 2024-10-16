@@ -3,63 +3,18 @@ using config: C:\github\microbit-apps\microdata\mkc.json
 using editor: https://makecode.microbit.org/beta v7.1.13
 GET https://pxt.azureedge.net/api/gh/microbit-apps/user-interface-base/841ec0d32aa56a3747a78c64aaf2d89b44a7b156/text?cdn=20241016
 GET https://pxt.azureedge.net/api/gh/microsoft/pxt-arcadeshield/4756469b2b27adcd8734e9611ed8475f864eb23f/text?cdn=20241016
-dataViewSelect.ts(60,40): error TS2345: Argument of type 'TabularDataViewer' is not assignable to parameter of type 'Scene'.
-  Property 'xfrm_' is missing in type 'TabularDataViewer'.
-dataViewSelect.ts(73,40): error TS2345: Argument of type 'GraphGenerator' is not assignable to parameter of type 'Scene'.
-  Property 'xfrm_' is missing in type 'GraphGenerator'.
-distributedLogging.ts(563,40): error TS2345: Argument of type 'TabularDataViewer' is not assignable to parameter of type 'Scene'.
-distributedLogging.ts(666,44): error TS2345: Argument of type 'TabularDataViewer' is not assignable to parameter of type 'Scene'.
-distributedLogging.ts(715,78): error TS2304: Cannot find name 'font'.
-distributedLogging.ts(722,78): error TS2304: Cannot find name 'font'.
-generateGraph.ts(58,41): error TS2304: Cannot find name 'Scene'.
-generateGraph.ts(101,18): error TS2339: Property 'backgroundColor' does not exist on type 'GraphGenerator'.
-generateGraph.ts(223,26): error TS2339: Property 'app' does not exist on type 'GraphGenerator'.
-generateGraph.ts(224,26): error TS2339: Property 'app' does not exist on type 'GraphGenerator'.
-generateGraph.ts(224,64): error TS2339: Property 'app' does not exist on type 'GraphGenerator'.
-generateGraph.ts(476,32): error TS2339: Property 'backgroundColor' does not exist on type 'GraphGenerator'.
-generateGraph.ts(624,30): error TS2304: Cannot find name 'font'.
-generateGraph.ts(624,78): error TS2304: Cannot find name 'font'.
-generateGraph.ts(637,38): error TS2304: Cannot find name 'font'.
-generateGraph.ts(637,73): error TS2304: Cannot find name 'font'.
-generateGraph.ts(647,30): error TS2304: Cannot find name 'font'.
-generateGraph.ts(647,78): error TS2304: Cannot find name 'font'.
-generateGraph.ts(667,71): error TS2304: Cannot find name 'font'.
-home.ts(17,47): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'INavigator'.
-  Property 'clear' is missing in type 'AppInterface'.
-home.ts(32,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(33,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(33,62): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(45,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(46,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(46,62): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(58,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(59,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(59,74): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(71,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(72,26): error TS2339: Property 'app' does not exist on type 'Home'.
-home.ts(72,64): error TS2339: Property 'app' does not exist on type 'Home'.
-liveDataViewer.ts(47,41): error TS2552: Cannot find name 'Scene'. Did you mean 'scene'?
-liveDataViewer.ts(99,18): error TS2339: Property 'backgroundColor' does not exist on type 'LiveDataViewer'.
-liveDataViewer.ts(171,30): error TS2339: Property 'app' does not exist on type 'LiveDataViewer'.
-liveDataViewer.ts(172,30): error TS2339: Property 'app' does not exist on type 'LiveDataViewer'.
-liveDataViewer.ts(172,58): error TS2339: Property 'app' does not exist on type 'LiveDataViewer'.
-liveDataViewer.ts(303,32): error TS2339: Property 'backgroundColor' does not exist on type 'LiveDataViewer'.
-liveDataViewer.ts(355,82): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(385,60): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(393,60): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(517,34): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(517,98): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(525,34): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(525,98): error TS2304: Cannot find name 'font'.
-liveDataViewer.ts(548,75): error TS2304: Cannot find name 'font'.
-loggingConfig.ts(77,51): error TS2304: Cannot find name 'Scene'.
-loggingConfig.ts(149,85): error TS2345: Argument of type 'Sensor[]' is not assignable to parameter of type 'App'.
-  Property 'sceneManager' is missing in type 'Sensor[]'.
-sensorSelect.ts(150,44): error TS2345: Argument of type 'LiveDataViewer' is not assignable to parameter of type 'Scene'.
+distributedLogging.ts(560,62): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
+distributedLogging.ts(663,66): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
+distributedLogging.ts(712,78): error TS2304: Cannot find name 'font'.
+distributedLogging.ts(719,78): error TS2304: Cannot find name 'font'.
+generateGraph.ts(227,59): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
+home.ts(72,59): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
+  Property 'sceneManager' is missing in type 'AppInterface'.
+liveDataViewer.ts(50,41): error TS2507: Type 'typeof user_interface_base' is not a constructor function type.
+liveDataViewer.ts(102,18): error TS2339: Property 'backgroundColor' does not exist on type 'LiveDataViewer'.
+liveDataViewer.ts(306,32): error TS2339: Property 'backgroundColor' does not exist on type 'LiveDataViewer'.
+loggingConfig.ts(151,85): error TS2345: Argument of type 'Sensor[]' is not assignable to parameter of type 'AppInterface'.
+  Property 'pushScene' is missing in type 'Sensor[]'.
+loggingConfig.ts(159,73): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
+sensorSelect.ts(151,44): error TS2345: Argument of type 'LiveDataViewer' is not assignable to parameter of type 'Scene'.
   Property 'xfrm_' is missing in type 'LiveDataViewer'.
-sensorSelect.ts(154,44): error TS2345: Argument of type 'RecordingConfigSelection' is not assignable to parameter of type 'Scene'.
-  Property 'xfrm_' is missing in type 'RecordingConfigSelection'.
-sensorSelect.ts(157,44): error TS2345: Argument of type 'RecordingConfigSelection' is not assignable to parameter of type 'Scene'.
-tabularDataViewer.ts(28,44): error TS2552: Cannot find name 'Scene'. Did you mean 'scene'?
-tabularDataViewer.ts(137,113): error TS2304: Cannot find name 'font'.
-tabularDataViewer.ts(426,108): error TS2304: Cannot find name 'font'.
