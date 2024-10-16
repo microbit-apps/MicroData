@@ -5,6 +5,7 @@ namespace microdata {
     import Button = user_interface_base.Button
     import ButtonStyles = user_interface_base.ButtonStyles
     import AppInterface = user_interface_base.AppInterface
+    import font = user_interface_base.font
 
     /**
      * Is this Microbit sending commands to others or is it being instructed by a Commander? 

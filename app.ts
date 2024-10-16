@@ -12,7 +12,7 @@ namespace microdata {
     }
 
     // application configuration
-    user_interface_base.getIcon = icons.get
+    user_interface_base.getIcon = (id) => icons.get(id)
     user_interface_base.resolveTooltip = (ariaId: string) => ariaId
 
     /**

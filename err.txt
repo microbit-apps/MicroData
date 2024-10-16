@@ -3,18 +3,11 @@ using config: C:\github\microbit-apps\microdata\mkc.json
 using editor: https://makecode.microbit.org/beta v7.1.13
 GET https://pxt.azureedge.net/api/gh/microbit-apps/user-interface-base/841ec0d32aa56a3747a78c64aaf2d89b44a7b156/text?cdn=20241016
 GET https://pxt.azureedge.net/api/gh/microsoft/pxt-arcadeshield/4756469b2b27adcd8734e9611ed8475f864eb23f/text?cdn=20241016
-distributedLogging.ts(560,62): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
-distributedLogging.ts(663,66): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
-distributedLogging.ts(712,78): error TS2304: Cannot find name 'font'.
-distributedLogging.ts(719,78): error TS2304: Cannot find name 'font'.
-generateGraph.ts(227,59): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
-home.ts(72,59): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
-  Property 'sceneManager' is missing in type 'AppInterface'.
-liveDataViewer.ts(50,41): error TS2507: Type 'typeof user_interface_base' is not a constructor function type.
-liveDataViewer.ts(102,18): error TS2339: Property 'backgroundColor' does not exist on type 'LiveDataViewer'.
-liveDataViewer.ts(306,32): error TS2339: Property 'backgroundColor' does not exist on type 'LiveDataViewer'.
-loggingConfig.ts(151,85): error TS2345: Argument of type 'Sensor[]' is not assignable to parameter of type 'AppInterface'.
-  Property 'pushScene' is missing in type 'Sensor[]'.
-loggingConfig.ts(159,73): error TS2345: Argument of type 'AppInterface' is not assignable to parameter of type 'App'.
-sensorSelect.ts(151,44): error TS2345: Argument of type 'LiveDataViewer' is not assignable to parameter of type 'Scene'.
-  Property 'xfrm_' is missing in type 'LiveDataViewer'.
+write C:\github\microbit-apps\microdata\built/yotta.json
+write C:\github\microbit-apps\microdata\built/codal.json
+write C:\github\microbit-apps\microdata\built/mbdal-binary.asm
+write C:\github\microbit-apps\microdata\built/mbdal-binary.hex
+write C:\github\microbit-apps\microdata\built/mbcodal-binary.asm
+write C:\github\microbit-apps\microdata\built/mbcodal-binary.hex
+write C:\github\microbit-apps\microdata\built/binary.hex
+Build OK

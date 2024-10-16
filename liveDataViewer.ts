@@ -1,6 +1,6 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
-    import Scene = user_interface_base
+    import Scene = user_interface_base.Scene
     import AppInterface = user_interface_base.AppInterface
     import font = user_interface_base.font
 
