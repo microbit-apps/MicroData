@@ -1,4 +1,8 @@
 namespace microdata {
+    import AppInterface = user_interface_base.AppInterface
+    import Scene  = user_interface_base.Scene
+    import SceneManager = user_interface_base.SceneManager
+
     // Auto-save slot
     export const SAVESLOT_AUTO = "sa"
 
@@ -7,11 +11,15 @@ namespace microdata {
         version?: string
     }
 
+    // application configuration
+    user_interface_base.getIcon = (id) => icons.get(id)
+    user_interface_base.resolveTooltip = (ariaId: string) => ariaId
+
     /**
      * If an Arcade Shield is not present when starting MicroData that Microbit will enter DistributedLoggingProtocol.
      *      It will show a :) on its LEDs and try to become a Target - where it will receive radio commands from a Commander Microbit (one with an Arcade Shield)
      */
-    export class App {
+    export class App implements AppInterface {
         sceneManager: SceneManager 
 
         constructor() {

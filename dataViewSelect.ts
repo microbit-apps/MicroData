@@ -1,5 +1,10 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import CursorSceneWithPriorPage = user_interface_base.CursorSceneWithPriorPage
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import Button = user_interface_base.Button
+    import ButtonStyles = user_interface_base.ButtonStyles
+    import AppInterface = user_interface_base.AppInterface
 
     /**
      * Choose between:
@@ -13,8 +18,12 @@ namespace microdata {
         private graphViewBtn: Button
         private dataloggerEmpty: boolean
 
-        constructor(app: App) { 
-            super(app, function () {app.popScene(); app.pushScene(new Home(this.app))})
+        constructor(app: AppInterface) { 
+            super(app,
+                function () {
+                this.app.popScene(); 
+                this.app.pushScene(new Home(this.app))
+            })
         }
 
         /* override */ startup() {

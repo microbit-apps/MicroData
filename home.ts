@@ -1,6 +1,12 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
-
+    import CursorScene = user_interface_base.CursorScene
+    import Button = user_interface_base.Button
+    import ButtonStyles = user_interface_base.ButtonStyles
+    import AppInterface = user_interface_base.AppInterface
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import font = user_interface_base.font
+    import resolveTooltip = user_interface_base.resolveTooltip
 
     export class Home extends CursorScene {
         private liveDataBtn: Button
@@ -8,7 +14,7 @@ namespace microdata {
         private distributedLoggingBtn: Button
         private viewBtn: Button
 
-        constructor(app: App) {super(app)}
+        constructor(app: AppInterface) {super(app)}
 
         /* override */ startup() {
             super.startup()
@@ -120,7 +126,7 @@ namespace microdata {
                         ((Screen.WIDTH + wordLogo.width) >> 1) 
                         + dy
                         -
-                        microdata.font.charWidth * tagline.length,
+                        font.charWidth * tagline.length,
                     Screen.TOP_EDGE +
                         OFFSET +
                         wordLogo.height +
@@ -128,7 +134,7 @@ namespace microdata {
                         this.yOffset +
                         1,
                     0xb,
-                    microdata.font
+                    font
                 )
             }
 

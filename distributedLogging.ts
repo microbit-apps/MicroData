@@ -1,5 +1,11 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
+    import CursorScene = user_interface_base.CursorScene
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import Button = user_interface_base.Button
+    import ButtonStyles = user_interface_base.ButtonStyles
+    import AppInterface = user_interface_base.AppInterface
+    import font = user_interface_base.font
 
     /**
      * Is this Microbit sending commands to others or is it being instructed by a Commander? 
@@ -92,9 +98,6 @@ namespace microdata {
      * The Commander can get a list of the IDs of connected Targets and see the data from sensors being streamed back.
      */
     export class DistributedLoggingProtocol implements ITargetDataLoggedCallback {
-        /** The DistributedLoggingScreen which uses this protocol needs to switch between scenes - so that the user can select sensors, etc, then come back to the screen(). */
-        private app: App;
-
         //------------------------------------------------------
         // Variables used by both the Commander and the Targets:
         //------------------------------------------------------
@@ -147,8 +150,7 @@ namespace microdata {
         /** */
         private targetIDs: number[]
 
-        constructor(app: App, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
-            this.app = app;
+        constructor(app: AppInterface, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
 
             //--------------
             // Unbind A & B:
@@ -542,7 +544,7 @@ namespace microdata {
         private startStreamingBtn: Button
         private showDataBtn: Button
 
-        constructor(app: App, sensors?: Sensor[], configs?: RecordingConfig[]) {
+        constructor(app: AppInterface, sensors?: Sensor[], configs?: RecordingConfig[]) {
             super(app)
             this.uiState = UI_STATE.SHOWING_OPTIONS
             this.distributedLogger = new DistributedLoggingProtocol(app, true, this)

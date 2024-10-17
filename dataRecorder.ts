@@ -1,6 +1,7 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
-
+    import Scene  = user_interface_base.Scene
+    import AppInterface = user_interface_base.AppInterface
 
     /** Number of sensor information boxes that can fit onto the screen at once*/
     const MAX_SENSORS_ON_SCREEN: number = 5
@@ -29,7 +30,7 @@ namespace microdata {
         /** For the currentSensorIndex */
         private sensorBoxColor: number;
 
-        constructor(app: App, sensors: Sensor[]) {
+        constructor(app: AppInterface, sensors: Sensor[]) {
             super(app, "dataRecorder")
 
             this.scheduler = new SensorScheduler(sensors)
