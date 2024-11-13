@@ -1,4 +1,10 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+    import Scene = user_interface_base.Scene
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import AppInterface = user_interface_base.AppInterface
+    import font = user_interface_base.font
+
     /**
      * Generated at recordingConfigSelection 
      * Passed to and owned by a sensor
@@ -86,7 +92,7 @@ namespace microcode {
 
         private nextSceneEnum: CursorSceneEnum
 
-        constructor(app: App, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
+        constructor(app: AppInterface, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
             super(app, "measurementConfigSelect")
             this.guiState = GUI_STATE.SENSOR_SELECT
 

@@ -1,4 +1,9 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+    import Scene = user_interface_base.Scene
+    import AppInterface = user_interface_base.AppInterface
+    import font = user_interface_base.font
+
     /** The colours that will be used for the lines & sensor information boxes */
     const SENSOR_COLORS: number[] = [2,3,4,6,7,9]
 
@@ -94,9 +99,7 @@ namespace microcode {
         /** Greatest of sensor.maximum for all sensors: required to write at the top of the y-axis */
         private globalSensorMaximum: number;
 
-        private splineCoords: number[][]
-
-        constructor(app: App) {
+        constructor(app: AppInterface) {
             super(app, "graphGeneration")
             this.backgroundColor = 3
 
@@ -498,14 +501,9 @@ namespace microcode {
                         // Not disabled:
                         if (this.drawSensorStates[this.sensors[sensor].getName()]) {
                             const diff = Math.abs(this.processedCoordinates[sensor][i+1] - this.processedCoordinates[sensor][i+3])
-
-                            const smoothing_rate = diff >= 15 ? 8 : 4
-                            // const smoothing_rate = 1;
-
-                            // if (Math.abs(this.processedCoordinates[sensor][i+1] - this.processedCoordinates[sensor][i+3]) >= 0.)
-
+                            
                             // Duplicate the line along the y axis to smooth out aliasing:
-                            for (let j = -(smoothing_rate / 2); j < smoothing_rate / 2; j++) {
+                            for (let j = -(PLOT_SMOOTHING_CONSTANT / 2); j < PLOT_SMOOTHING_CONSTANT / 2; j++) {
                                 screen().drawLine(
                                     this.processedCoordinates[sensor][i]   + 1,
                                     this.processedCoordinates[sensor][i+1] + j,
@@ -518,35 +516,6 @@ namespace microcode {
                     }
                 }
             }
-
-            // if (this.yScrollOffset > Y_SCROLL_GRAPH_MODE_CUT_OFF) {
-            //     // Draw the data from each sensor, as a separate coloured line: sensors may have variable quantities of data:
-            //     for (let sensor = 0; sensor < this.sensors.length; sensor++) {
-            //         // Each coord in [x1, y1, x2, y2, x3, y3, ...]:
-            //         for (let i = 0; i < this.splineCoords[sensor].length - 4; i+=2) {
-            //             // Not disabled:
-            //             if (this.drawSensorStates[this.sensors[sensor].getName()]) {
-            //                 // const diff = Math.abs(this.processedCoordinates[sensor][i+1] - this.processedCoordinates[sensor][i+3])
-
-            //                 // const smoothing_rate = diff >= 15 ? 8 : 4
-            //                 const smoothing_rate = 1;
-
-            //                 // if (Math.abs(this.processedCoordinates[sensor][i+1] - this.processedCoordinates[sensor][i+3]) >= 0.)
-
-            //                 // Duplicate the line along the y axis to smooth out aliasing:
-            //                 for (let j = -(smoothing_rate / 2); j < smoothing_rate / 2; j++) {
-            //                     screen().drawLine(
-            //                         this.splineCoords[sensor][i]   + 1,
-            //                         this.splineCoords[sensor][i+1] + j,
-            //                         this.splineCoords[sensor][i+2] + 1,
-            //                         this.splineCoords[sensor][i+3] + j,
-            //                         SENSOR_COLORS[sensor % SENSOR_COLORS.length]
-            //                     );
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
             
             //---------------
             // Sensor blocks:

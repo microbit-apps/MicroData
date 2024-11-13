@@ -1,4 +1,9 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+    import Scene = user_interface_base.Scene
+    import AppInterface = user_interface_base.AppInterface
+    import font = user_interface_base.font
+
     /**
      * Display limits
      * Data in excess will require scrolling to view
@@ -107,7 +112,7 @@ namespace microcode {
 
         private goBack1PageFn: () => void
 
-        constructor(app: App, goBack1PageFn: () => void) {
+        constructor(app: AppInterface, goBack1PageFn: () => void) {
             super(app, "recordedDataViewer")
 
             this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW

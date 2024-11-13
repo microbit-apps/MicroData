@@ -1,4 +1,11 @@
-namespace microcode {
+namespace microdata {
+    import AppInterface = user_interface_base.AppInterface
+    import Screen = user_interface_base.Screen
+    import Scene  = user_interface_base.Scene
+    import Sprite = user_interface_base.Sprite
+    import Affine = user_interface_base.Affine
+    import font = user_interface_base.font
+
     /** Number of sensor information boxes that can fit onto the screen at once*/
     const MAX_SENSORS_ON_SCREEN: number = 5
     /** The colours that will be used for the lines & sensor information boxes */
@@ -31,7 +38,7 @@ namespace microcode {
         private yesBtn: Sprite // currentBtn = 0
         private noBtn: Sprite // currentBtn = 1
 
-        constructor(app: App, sensors: Sensor[]) {
+        constructor(app: AppInterface, sensors: Sensor[]) {
             super(app, "dataRecorder")
 
             this.scheduler = new SensorScheduler(sensors)

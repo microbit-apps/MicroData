@@ -1,4 +1,9 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+    import Scene = user_interface_base.Scene
+    import AppInterface = user_interface_base.AppInterface
+    import font = user_interface_base.font
+
     /** The colours that will be used for the lines & sensor information boxes */
     const SENSOR_COLORS: number[] = [2,3,4,6,7,9]
 
@@ -92,7 +97,7 @@ namespace microcode {
         /** Greatest of sensor.maximum for all sensors: required to write at the top of the y-axis */
         private globalSensorMaximum: number;
 
-        constructor(app: App, sensors: Sensor[]) {
+        constructor(app: AppInterface, sensors: Sensor[]) {
             super(app, "liveDataViewer")
             this.backgroundColor = 3
 

@@ -1,4 +1,4 @@
-namespace microcode {
+namespace microdata {
     export interface AnalyticsEvent {
         type: "event"
         msg: string

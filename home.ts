@@ -1,4 +1,13 @@
-namespace microcode {
+namespace microdata {
+    import Screen = user_interface_base.Screen
+    import CursorScene = user_interface_base.CursorScene
+    import Button = user_interface_base.Button
+    import ButtonStyles = user_interface_base.ButtonStyles
+    import AppInterface = user_interface_base.AppInterface
+    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import font = user_interface_base.font
+    import resolveTooltip = user_interface_base.resolveTooltip
+
     export class Home extends CursorScene {
         private liveDataBtn: Button
         private recordDataBtn: Button
@@ -6,7 +15,7 @@ namespace microcode {
         private viewBtn: Button
         private tagline: string;
 
-        constructor(app: App) {
+        constructor(app: AppInterface) {
             super(app)
             this.tagline = ["Lets measure!", "Hello :)", "Lets experiment!", "Mini-measurer",
                 "Record & view", "Data Science toolkit", "Start experimenting!"][randint(0, 6)]
@@ -121,7 +130,7 @@ namespace microcode {
                     ((Screen.WIDTH + wordLogo.width) >> 1)
                     + dy
                     -
-                    microcode.font.charWidth * this.tagline.length,
+                    font.charWidth * this.tagline.length,
                     Screen.TOP_EDGE +
                     OFFSET +
                     wordLogo.height +
@@ -129,7 +138,7 @@ namespace microcode {
                     this.yOffset +
                     3,
                     0xb,
-                    microcode.font
+                    font
                 )
             }
 
