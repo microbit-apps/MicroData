@@ -654,19 +654,20 @@ namespace microdata {
         public static getRadioName(): string {return "L"}
         public static getReading(): number {return input.lightLevel()}
         public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 255;}
-        
+        public static getMaximum(): number {return 255;}   
     }
 
     /**
      * Concrete implementation of onboard Thermometer.
-     * Ranged between 0 and 100
+     * Ranged between -40 and 100
      */
     export class TemperatureSensor extends Sensor {
         constructor() {super()}
 
         public static getName(): string {return "Temp."}
         public static getRadioName(): string {return "T"}
+        public static getMinimum(): number {return -40;}
+        public static getMaximum(): number {return 100;}
         public static getReading(): number {return input.temperature()}
     }
 
@@ -850,12 +851,18 @@ namespace microdata {
 
     /**
      * Micro-tesla reading of the magnet sensor on Dimension.Strength
+     * Min = -5000 micro-Teslas
+     * Max = 5000 micro-Teslas
+     * Min & Max from LSM303AGR has a dynamic range of +-50 Gauss
+     * https://www.st.com/en/mems-and-sensors/lsm303agr.html
      */
     export class MagnetSensor extends Sensor {
         constructor() {super()}
 
         public static getName(): string {return "Magnet"}
         public static getRadioName(): string {return "M"}
+        public static getMinimum(): number {return -5000}
+        public static getMaximum(): number {return 5000}
         public static getReading(): number {return input.magneticForce(Dimension.Strength)}
     }
 
