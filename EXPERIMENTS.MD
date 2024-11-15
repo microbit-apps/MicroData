@@ -43,13 +43,13 @@ Optionally: resistors<br>
 
 3. What is the reading on the magnetometer when using a 9 Volt battery with 15 turns of wire, when the micro:bit is 1cm from the electromagnet?
 
-4. Name 1 control variable used for question 5 and question 6.
+4. Name 1 control variable used for question 2 and question 3.
 
 5. What is the reading on the magnetometer when using a 9 Volt battery with 30 turns of wire, when 5cm away from the micro:bit?
 
 6. What is the reading on the magnetometer when using a 9 Volt battery with 30 turns of wire, when 1cm away from the micro:bit?
 
-7. Name 1 independent variable in questions 8 and 9?
+7. Name 1 independent variable in questions 5 and 6?
 
 8. How does the magnetic field strength change as the electromagnet is moved closer to the micro:bit?
 
