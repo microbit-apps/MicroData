@@ -39,56 +39,25 @@ Optionally: resistors<br>
 ## Tests:
 1. What is the reading on the magnetometer when there is no electromagnet nearby?
 
-___________________________________________________________________________
-
-
 2. What is the reading on the magnetometer when using a 9 Volt battery with 15 turns of wire, when the micro:bit is 5cm from the electromagnet?
-
-___________________________________________________________________________
-
 
 3. What is the reading on the magnetometer when using a 9 Volt battery with 15 turns of wire, when the micro:bit is 1cm from the electromagnet?
 
-___________________________________________________________________________
-
-
 4. Name 1 control variable used for question 5 and question 6.
-
-___________________________________________________________________________
-
 
 5. What is the reading on the magnetometer when using a 9 Volt battery with 30 turns of wire, when 5cm away from the micro:bit?
 
-___________________________________________________________________________
-
-
 6. What is the reading on the magnetometer when using a 9 Volt battery with 30 turns of wire, when 1cm away from the micro:bit?
-
-___________________________________________________________________________
-
 
 7. Name 1 independent variable in questions 8 and 9?
 
-___________________________________________________________________________
-
-
 8. How does the magnetic field strength change as the electromagnet is moved closer to the micro:bit?
-
-___________________________________________________________________________
-
 
 9. How does the magnetic field strength change as the number of turns of wire increases?
 
-___________________________________________________________________________
-
-
 10. Why is it that increasing the number of wire turns changes the magnetic field strength?
 
-___________________________________________________________________________
-
 11. Which affected the strength of the magnetic field more: changing the number of turns of wire, or changing the distance? Show your working and use appropriate units.
-
-___________________________________________________________________________
 
 
 ## Questions:
