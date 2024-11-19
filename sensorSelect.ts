@@ -62,7 +62,7 @@ namespace microdata {
             //-----------------------------------------------------
 
             let x: number = -60;
-            let y: number = Screen.HEIGHT * -0.3125 // y = -40 on an Arcade Shield of height 128 pixels
+            let y: number = -41
             for (let i = 0; i < icons.length; i++) {
                 this.btns.push(new Button({
                     parent: null,
@@ -183,8 +183,6 @@ namespace microdata {
                 Screen.HEIGHT,
                 0xc
             )
-
-            screen().printCenter("Sensor Selection", 2)
 
             for (let i = 0; i < this.btns.length; i++)
                 this.btns[i].draw()

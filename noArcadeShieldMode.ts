@@ -369,8 +369,8 @@ namespace microdata {
                 case UI_SENSOR_SELECT_STATE.MAGNET:
                     return [new MagnetSensor()]
 
-                case UI_SENSOR_SELECT_STATE.RADIO:
-                    new DistributedLoggingProtocol(this.app, false);
+                // case UI_SENSOR_SELECT_STATE.RADIO:
+                //     new DistributedLoggingProtocol(this.app, false);
                     return []
             
                 default:

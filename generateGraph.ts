@@ -489,7 +489,7 @@ namespace microdata {
 
             // Markers & axes:
             this.draw_axes();
-            
+
             //------------------
             // Draw sensor data:
             //------------------
@@ -500,6 +500,8 @@ namespace microdata {
                     for (let i = 0; i < this.processedCoordinates[sensor].length - 4; i+=2) {
                         // Not disabled:
                         if (this.drawSensorStates[this.sensors[sensor].getName()]) {
+                            const diff = Math.abs(this.processedCoordinates[sensor][i+1] - this.processedCoordinates[sensor][i+3])
+                            
                             // Duplicate the line along the y axis to smooth out aliasing:
                             for (let j = -(PLOT_SMOOTHING_CONSTANT / 2); j < PLOT_SMOOTHING_CONSTANT / 2; j++) {
                                 screen().drawLine(

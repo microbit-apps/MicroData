@@ -30,10 +30,14 @@ namespace microdata {
             this.sceneManager = new SceneManager()
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
-            if (shieldhelpers.shieldPresent())
-                this.pushScene(new Home(this))
-            else
-                new DistributedLoggingProtocol(this, false);
+            const arcadeShieldConnected = shieldhelpers.shieldPresent();
+            if (arcadeShieldConnected)
+                this.pushScene(new microdata.Home(this))
+
+            // Temp disabled elements relating to callbackObj (no mem)
+            // else
+                // new DistributedLoggingProtocol(this, false);
+                // new NoArcadeShieldMode(this);
         }
 
         public pushScene(scene: Scene) {

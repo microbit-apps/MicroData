@@ -213,6 +213,8 @@ namespace microdata {
         /** Should the information from the sensorWithMostTimeLeft be shown on the basic's 5x5 LED matrix? */
         private showOnBasicScreen: boolean = false;
 
+        private continueLogging: boolean;
+
         constructor(sensors: Sensor[], showOnBasicScreen?: boolean) {
             this.schedule = []
             this.sensors = sensors
@@ -224,12 +226,15 @@ namespace microdata {
             // The number of measurements this sensor has left is displayed on the microbit 5x5 led grid; when the Arcade Shield is not connected.
             this.sensorWithMostTimeLeft = sensors[0]
             let mostTimeLeft = this.sensorWithMostTimeLeft.totalMeasurements * this.sensorWithMostTimeLeft.getPeriod()
+
             this.sensors.forEach(sensor => {
                 if ((sensor.totalMeasurements * sensor.getPeriod()) > mostTimeLeft) {
                     mostTimeLeft = sensor.totalMeasurements * sensor.getPeriod()
                     this.sensorWithMostTimeLeft = sensor
                 }
             })
+
+            this.continueLogging = true;
 
             // Setup schedule so that periods are in order ascending
             sensors.sort((a, b) => a.getPeriod() - b.getPeriod())
@@ -240,6 +245,11 @@ namespace microdata {
         loggingComplete(): boolean {return !(this.schedule.length > 0)}
 
 
+        stop() {
+            this.continueLogging = false;
+        }
+
+
         /**
          * Schedules the sensors and orders them to .log()
          * Runs within a separate fiber.
@@ -247,10 +257,11 @@ namespace microdata {
          * Time it takes for this algorithm to run is accounted for when calculating how long to wait inbetween logs
          * Mutates this.schedule
          * 
+         * Temp disabled elements relating to callbackObj (no mem)
          * @param callbackObj is used by the DistributedLoggingProtocol; after each log & after the algorithm finishes a callback will be made
         */
-        start(callbackObj?: ITargetDataLoggedCallback) {
-            const callbackAfterLog: boolean = (callbackObj == null) ? false : true
+        start() {//callbackObj?: ITargetDataLoggedCallback) {
+            // const callbackAfterLog: boolean = (callbackObj == null) ? false : true
             
             control.inBackground(() => {
                 let currentTime = 0;
@@ -264,8 +275,8 @@ namespace microdata {
                     const logAsCSV = this.schedule[i].sensor.log(0)
 
                     // Optionally inform the caller of the log (In the case of the DistributedLoggingProtocol this information can be forwarded to the Commander over radio)
-                    if (callbackAfterLog)
-                        callbackObj.callback(logAsCSV)
+                    // if (callbackAfterLog)
+                    //     callbackObj.callback(logAsCSV)
 
                     // Clear from schedule (A sensor may only have 1 reading):
                     if (!this.schedule[i].sensor.hasMeasurements())
@@ -279,7 +290,22 @@ namespace microdata {
                     const nextLogTime = this.schedule[0].waitTime;
                     const sleepTime = nextLogTime - currentTime;
 
-                    basic.pause(sleepTime + lastLogTime - input.runningTime()) // Discount for operation time
+
+                    // Wait the required period, discount operation time, in 100ms chunks
+                    // Check if there last been a request to stop logging each chunk
+
+                    const pauseTime = sleepTime + lastLogTime - input.runningTime() // Discount for operation time
+                    for (let i = 0; i < pauseTime; i+=100) {
+                        if (!this.continueLogging) {
+                            return
+                        }
+                        basic.pause(100)
+                    }
+                    basic.pause(pauseTime % 100)
+
+                    if (!this.continueLogging)
+                        break;
+
                     lastLogTime = input.runningTime()
                     currentTime += sleepTime
 
@@ -298,8 +324,8 @@ namespace microdata {
                             const logAsCSV = this.schedule[i].sensor.log(currentTime)
 
                             // Optionally inform the caller of the log (In the case of the DistributedLoggingProtocol this information can be forwarded to the Commander over radio)
-                            if (callbackAfterLog)
-                                callbackObj.callback(logAsCSV)
+                            // if (callbackAfterLog)
+                            //     callbackObj.callback(logAsCSV)
 
                             // Update schedule with when they should next be logged:
                             if (this.schedule[i].sensor.hasMeasurements()) {
@@ -326,10 +352,11 @@ namespace microdata {
                         . # # # .
                     `)
                 }
-                if (callbackAfterLog) {
-                    DistributedLoggingProtocol.finishedLogging = true
-                    callbackObj.callback("")
-                }
+
+                // if (callbackAfterLog) {
+                //     DistributedLoggingProtocol.finishedLogging = true
+                //     callbackObj.callback("")
+                // }
             })
         }
     }
@@ -627,19 +654,20 @@ namespace microdata {
         public static getRadioName(): string {return "L"}
         public static getReading(): number {return input.lightLevel()}
         public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 255;}
-        
+        public static getMaximum(): number {return 255;}   
     }
 
     /**
      * Concrete implementation of onboard Thermometer.
-     * Ranged between 0 and 100
+     * Ranged between -40 and 100
      */
     export class TemperatureSensor extends Sensor {
         constructor() {super()}
 
         public static getName(): string {return "Temp."}
         public static getRadioName(): string {return "T"}
+        public static getMinimum(): number {return -40;}
+        public static getMaximum(): number {return 100;}
         public static getReading(): number {return input.temperature()}
     }
 
@@ -778,54 +806,63 @@ namespace microdata {
 
     /**
      * Sensing analog values on the P0 pin.
-     * Reading is normalised to be between 0 and 1.
+     * .analogReadPin() returns a value between [0,1024], this is converted to volts.
+     * Returns value between [0, 3]
      */
     export class AnalogPinP0Sensor extends Sensor {
         constructor() {super()}
         public static getName(): string {return "A. Pin 0"}
         public static getRadioName(): string {return "AP0"}
-        public static getReading(): number {return pins.analogReadPin(AnalogPin.P0) / 1023}
+        public static getReading(): number {return pins.analogReadPin(AnalogPin.P0) / 340}
         public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
+        public static getMaximum(): number {return 3;}
     }
 
 
     /**
      * Sensing analog values on the P1 pin.
-     * Reading is normalised to be between 0 and 1.
+     * .analogReadPin() returns a value between [0,1024], this is converted to volts.
+     * Returns value between [0, 3]
      */
     export class AnalogPinP1Sensor extends Sensor {
         constructor() {super()}
         public static getName(): string {return "A. Pin 1"}
         public static getRadioName(): string {return "AP1"}
-        public static getReading(): number {return pins.analogReadPin(AnalogPin.P1) / 1023}
+        public static getReading(): number { return pins.analogReadPin(AnalogPin.P1) / 340}
         public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
+        public static getMaximum(): number {return 3;}
     }
 
 
     /**
-     * Sensing analog values on the P2 pin.
-     * Reading is normalised to be between 0 and 1.
+     * Sensing the voltage on the P2 pin.
+     * .analogReadPin() returns a value between [0,1024], this is converted to volts.
+     * Returns value between [0, 3]
      */
     export class AnalogPinP2Sensor extends Sensor {
         constructor() {super()}
         public static getName(): string {return "A. Pin 2"}
         public static getRadioName(): string {return "AP2"}
-        public static getReading(): number {return pins.analogReadPin(AnalogPin.P2) / 1023}
+        public static getReading(): number { return pins.analogReadPin(AnalogPin.P2) / 340}
         public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
+        public static getMaximum(): number {return 3;}
     }
 
 
     /**
      * Micro-tesla reading of the magnet sensor on Dimension.Strength
+     * Min = -5000 micro-Teslas
+     * Max = 5000 micro-Teslas
+     * Min & Max from LSM303AGR has a dynamic range of +-50 Gauss
+     * https://www.st.com/en/mems-and-sensors/lsm303agr.html
      */
     export class MagnetSensor extends Sensor {
         constructor() {super()}
 
         public static getName(): string {return "Magnet"}
         public static getRadioName(): string {return "M"}
+        public static getMinimum(): number {return -5000}
+        public static getMaximum(): number {return 5000}
         public static getReading(): number {return input.magneticForce(Dimension.Strength)}
     }
 

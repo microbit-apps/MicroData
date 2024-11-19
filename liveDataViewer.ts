@@ -16,7 +16,7 @@ namespace microdata {
      * Used in sensors.draw()
      * Neccessary to prevent graph overflowing in the case of extreme readings
      */
-    export const BUFFERED_SCREEN_HEIGHT = Screen.HEIGHT - (Screen.HEIGHT * 0.078125) // 10
+    export const BUFFERED_SCREEN_HEIGHT = Screen.HEIGHT - 6
 
     /**
      * Is the graph or the sensors being shown? Is the graph zoomed in on?
@@ -250,10 +250,26 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.left.id,
                 () => {
-                    if (this.guiState == GUI_STATE.ZOOMED_IN && this.oscXCoordinate > 0) {
-                        this.oscXCoordinate -= 1
-                        this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
-                        this.update() // For fast response to the above change
+                    if (this.guiState == GUI_STATE.ZOOMED_IN) {
+                        // this.oscXCoordinate -= 1
+                        // this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
+                        // this.update() // For fast response to the above change
+
+                        let tick = true;
+                        control.onEvent(
+                            ControllerButtonEvent.Released,
+                            controller.left.id,
+                            () => tick = false
+                        )
+
+                        let isFirstTick = true
+                        while (tick && this.oscXCoordinate > 0) {
+                            this.oscXCoordinate -= 1
+                            this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
+                            basic.pause(isFirstTick ? 100 : 33)
+                            isFirstTick = false
+                        }
+                        control.onEvent(ControllerButtonEvent.Released, controller.left.id, () => { })
                     }
                 }
             )
@@ -262,11 +278,21 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.right.id,
                 () => {
-                    if (this.guiState == GUI_STATE.ZOOMED_IN && this.oscXCoordinate < this.sensors[this.oscSensorIndex].getHeightNormalisedBufferLength() - 1) {
-                        this.oscXCoordinate += 1
-                        this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
-
-                        this.update() // For fast response to the above change
+                    if (this.guiState == GUI_STATE.ZOOMED_IN) {
+                        let tick = true;
+                        control.onEvent(
+                            ControllerButtonEvent.Released,
+                            controller.right.id,
+                            () => tick = false
+                        )
+                        let isFirstTick = true
+                        while (tick && this.oscXCoordinate < this.sensors[this.oscSensorIndex].getHeightNormalisedBufferLength() - 1) {
+                            this.oscXCoordinate += 1
+                            this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
+                            basic.pause(isFirstTick ? 100 : 33)
+                            isFirstTick = false
+                        }
+                        control.onEvent(ControllerButtonEvent.Released, controller.right.id, () => { })
                     }
                 }
             )
@@ -323,7 +349,7 @@ namespace microdata {
                     if (this.drawSensorStates[i]) {
                         const hasSpace = this.sensors[i].getBufferLength() < this.sensors[i].getMaxBufferSize()
                         if ((this.guiState != GUI_STATE.ZOOMED_IN) || (this.guiState == GUI_STATE.ZOOMED_IN && hasSpace))
-                            this.sensors[i].readIntoBufferOnce(this.windowBotBuffer - (2 * this.yScrollOffset) + (Screen.HEIGHT * 0.0625)) // 8
+                            this.sensors[i].readIntoBufferOnce(this.windowBotBuffer - (2 * this.yScrollOffset) + 2) // 8
                     }
                         
                 }
@@ -333,6 +359,7 @@ namespace microdata {
             // Draw sensor lines & ticker:
             //----------------------------
             if (this.guiState != GUI_STATE.SENSOR_SELECTION) {
+                let tickerYValues: number[] = []
                 for (let i = 0; i < this.sensors.length; i++) {
                     if (this.drawSensorStates[i]) {
                         const sensor = this.sensors[i]
@@ -340,27 +367,30 @@ namespace microdata {
 
                         // Draw lines:
                         sensor.draw(
-                            this.windowLeftBuffer + 3,
+                            this.windowLeftBuffer + 2,
                             color
                         )
 
                         // Draw the latest reading on the right-hand side as a Ticker if at no-zoom:
                         if (this.guiState != GUI_STATE.ZOOMED_IN && sensor.getHeightNormalisedBufferLength() > 0) {
-                            const fromY = this.windowBotBuffer - 2 * this.yScrollOffset + (Screen.HEIGHT * 0.078125) // 10
+                            const fromY = this.windowBotBuffer - ( 2 * this.yScrollOffset) + 3
 
                             const reading = sensor.getReading()
                             const range = Math.abs(sensor.getMinimum()) + sensor.getMaximum()
                             const y = Math.round(Screen.HEIGHT - ((((reading - sensor.getMinimum()) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)))) - fromY
+
                             // Make sure the ticker won't be cut-off by other UI elements
-                            if (y > sensor.getMinimum() + 5) {
+                            if (!tickerYValues.some(v => Math.abs(v - y) <= 5)) {
                                 screen().print(
-                                    sensor.getNthReading(sensor.getBufferLength() - 1).toString().slice(0, 5),
-                                    Screen.WIDTH - this.windowRightBuffer - (4 * font.charWidth),
-                                    y,
+                                    sensor.getNthReading(sensor.getBufferLength() - 1).toString().slice(0, 4),
+                                    this.windowLeftBuffer + sensor.getBufferLength() + 4,
+                                    y - 1,
                                     color,
                                     bitmaps.font5,
                                 )
                             }
+
+                            tickerYValues.push(y)
                         }
                     }
                 }
