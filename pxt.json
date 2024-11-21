@@ -32,7 +32,8 @@
         "sensorSelect.ts",
         "dataRecorder.ts",
         "tabularDataViewer.ts",
-        "generateGraph.ts"
+        "generateGraph.ts",
+        "noArcadeShieldMode.ts"
     ],
     "testFiles": [],
     "targetVersions": {

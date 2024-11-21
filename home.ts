@@ -6,7 +6,6 @@ namespace microdata {
     import AppInterface = user_interface_base.AppInterface
     import CursorSceneEnum = user_interface_base.CursorSceneEnum
     import font = user_interface_base.font
-    import resolveTooltip = user_interface_base.resolveTooltip
 
     export class Home extends CursorScene {
         private liveDataBtn: Button
@@ -18,7 +17,7 @@ namespace microdata {
         constructor(app: AppInterface) {
             super(app)
             this.tagline = ["Lets measure!", "Hello :)", "Lets experiment!", "Mini-measurer",
-                "Record & view", "Data Science toolkit", "Start experimenting!"][randint(0, 6)]
+                "Record & view", "Data Science toolkit", "Start experimenting!", "for the micro:bit v2"][randint(0, 7)]
         }
 
         /* override */ startup() {

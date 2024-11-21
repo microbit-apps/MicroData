@@ -35,9 +35,9 @@ namespace microdata {
                 this.pushScene(new microdata.Home(this))
 
             // Temp disabled elements relating to callbackObj (no mem)
-            // else
+            else
                 // new DistributedLoggingProtocol(this, false);
-                // new NoArcadeShieldMode(this);
+                new NoArcadeShieldMode(this);
         }
 
         public pushScene(scene: Scene) {
