@@ -151,6 +151,7 @@ namespace microdata {
         private targetIDs: number[]
 
         constructor(app: AppInterface, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
+            control.singleSimulator()
 
             //--------------
             // Unbind A & B:
