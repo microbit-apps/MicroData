@@ -152,7 +152,7 @@ namespace microdata {
                         this.sensors.forEach((sensor) => sensor.setBufferSize(140));
 
                         const sensor = this.sensors[this.oscSensorIndex];
-                        this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength() / 2);
+                        this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength()>> 1);
                         this.oscReading = sensor.getNthHeightNormalisedReading(this.oscXCoordinate);
 ;
                         this.windowLeftBuffer = 0;

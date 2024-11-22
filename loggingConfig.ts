@@ -634,7 +634,7 @@ namespace microdata {
                         )
 
                         screen().drawRect(
-                            Screen.HALF_WIDTH - ((measurementsText.length * font.charWidth) / 2) - 4,
+                            Screen.HALF_WIDTH - ((measurementsText.length * font.charWidth)>> 1) - 4,
                             yWindowStart + (Screen.HEIGHT * 0.1640), // 21
                             (measurementsText.length * font.charWidth) + 8,
                             (Screen.HEIGHT * 0.1093), // 13
@@ -688,7 +688,7 @@ namespace microdata {
                             switch (this.eventOrPeriodIndex) {
                                 case 0:
                                     screen().drawRect(
-                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth) / 2) + ((sensor.getName().length + 1) * font.charWidth) - 4,
+                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth)>> 1) + ((sensor.getName().length + 1) * font.charWidth) - 4,
                                         Screen.HALF_HEIGHT + (Screen.HEIGHT * 0.09375), // 12
                                         (inequalitySymbol.length * font.charWidth) + 8,
                                         Screen.HEIGHT * 0.109, // 14
@@ -698,7 +698,7 @@ namespace microdata {
 
                                 case 1:
                                     screen().drawRect(
-                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth) / 2) + ((sensor.getName() + " " + inequalitySymbol + " ").length * font.charWidth) - 4,
+                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth)>> 1) + ((sensor.getName() + " " + inequalitySymbol + " ").length * font.charWidth) - 4,
                                         Screen.HALF_HEIGHT + (Screen.HEIGHT * 0.09375), // 12
                                         (inequalityOperand.length * font.charWidth) + 8,
                                         Screen.HEIGHT * 0.109, // 13
@@ -728,7 +728,7 @@ namespace microdata {
                             for (let col = 0; col < this.guiConfigValues[this.sensorIndex].length; col++) {
                                 if (col == this.eventOrPeriodIndex) {
                                     screen().drawRect(
-                                        Screen.HALF_WIDTH - ((periodConfigString.length * font.charWidth) / 2) + (distance * font.charWidth) - 4,
+                                        Screen.HALF_WIDTH - ((periodConfigString.length * font.charWidth)>> 1) + (distance * font.charWidth) - 4,
                                         Screen.HALF_HEIGHT + (Screen.HEIGHT * 0.0625), // 8
                                         (this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex].toString().length * font.charWidth) + 8,
                                         (Screen.HEIGHT * 0.1171), // 15

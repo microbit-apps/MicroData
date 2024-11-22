@@ -710,14 +710,14 @@ namespace microdata {
                             
                             screen().print(
                                 connectedText,
-                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth) / 2),
+                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth)>> 1),
                                 2
                             )
     
                             // Left-aligned with above text
                             screen().print(
                                 asMicrobit,
-                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth) / 2),
+                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth)>> 1),
                                 12
                             )
                             break;

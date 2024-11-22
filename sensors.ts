@@ -366,6 +366,7 @@ namespace microdata {
         private radioName: string;
         private minimum: number;
         private maximum: number;
+        private range: number;
         private sensorFn: () => number;
         private isJacdacSensor: boolean;
 
@@ -427,6 +428,7 @@ namespace microdata {
             this.radioName = opts.rName
             this.minimum = opts.min
             this.maximum = opts.max
+            this.range = Math.abs(this.minimum) + this.maximum
             this.sensorFn = opts.f
             this.isJacdacSensor = opts.isJacdacSensor
         }
@@ -470,7 +472,7 @@ namespace microdata {
         getName(): string {return this.name}
         getRadioName(): string {return this.radioName}
         getReading(): number {return this.sensorFn()}
-        getNormalisedReading(): number {return Math.abs(this.getReading()) / (Math.abs(this.getMinimum()) + this.getMaximum())}
+        getNormalisedReading(): number {return Math.abs(this.getReading()) / this.range}
         getMinimum(): number {return this.minimum;}
         getMaximum(): number {return this.maximum;}
         isJacdac(): boolean {return this.isJacdacSensor;}
@@ -558,9 +560,8 @@ namespace microdata {
                 return
 
             this.numberOfReadings += 1
-            const range: number = Math.abs(this.getMinimum()) + this.getMaximum();
             this.dataBuffer.push(reading);
-            this.heightNormalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((reading - this.getMinimum()) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
+            this.heightNormalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((reading - this.getMinimum()) / this.range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
         }
 
         /**
@@ -636,7 +637,7 @@ namespace microdata {
          */
         draw(fromX: number, color: number): void {
             for (let i = 0; i < this.heightNormalisedDataBuffer.length - 1; i++) {
-                for (let j = -(PLOT_SMOOTHING_CONSTANT / 2); j < PLOT_SMOOTHING_CONSTANT / 2; j++) {
+                for (let j = -(PLOT_SMOOTHING_CONSTANT>> 1); j < PLOT_SMOOTHING_CONSTANT>> 1; j++) {
                     screen().drawLine(
                         fromX + i,
                         this.heightNormalisedDataBuffer[i] + j,

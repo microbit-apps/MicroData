@@ -329,18 +329,18 @@ namespace microdata {
                         this.lowestPeriod = currentPeriod
 
                     // Add reading & period; check if full:
-                    if (this.rawCoordinates[cols[SENSOR_COLUMNS.NAME]].length / 2 < targetNumberOfReadings) {
+                    if (this.rawCoordinates[cols[SENSOR_COLUMNS.NAME]].length>> 1 < targetNumberOfReadings) {
                         this.rawCoordinates[cols[SENSOR_COLUMNS.NAME]].push(currentPeriod)  // X
                         this.rawCoordinates[cols[SENSOR_COLUMNS.NAME]].push(currentReading) // Y
 
                         // rawCoordinates for this sensor is full: Thus start reading next chunk (where next RIGHT press starts) here:
-                        if ((this.rawCoordinates[cols[SENSOR_COLUMNS.NAME]].length / 2) >= targetNumberOfReadings && this.startReadingAt[this.xScrollOffset + 1] == 0)
+                        if ((this.rawCoordinates[cols[SENSOR_COLUMNS.NAME]].length>> 1) >= targetNumberOfReadings && this.startReadingAt[this.xScrollOffset + 1] == 0)
                             this.startReadingAt[this.xScrollOffset + 1] = dataStart + i
                         
                         // Check if all are done:
                         foundAllReadings = true
                         for (let j = 0; j < this.sensors.length; j++) {
-                            if ((this.rawCoordinates[this.sensors[j].getName()].length / 2) < targetNumberOfReadings) {
+                            if ((this.rawCoordinates[this.sensors[j].getName()].length>> 1) < targetNumberOfReadings) {
                                 foundAllReadings = false
                                 break
                             }
@@ -503,7 +503,7 @@ namespace microdata {
                             const diff = Math.abs(this.processedCoordinates[sensor][i+1] - this.processedCoordinates[sensor][i+3])
                             
                             // Duplicate the line along the y axis to smooth out aliasing:
-                            for (let j = -(PLOT_SMOOTHING_CONSTANT / 2); j < PLOT_SMOOTHING_CONSTANT / 2; j++) {
+                            for (let j = -(PLOT_SMOOTHING_CONSTANT>> 1); j < PLOT_SMOOTHING_CONSTANT>> 1; j++) {
                                 screen().drawLine(
                                     this.processedCoordinates[sensor][i]   + 1,
                                     this.processedCoordinates[sensor][i+1] + j,
