@@ -36,7 +36,6 @@ namespace microdata {
 
             // Temp disabled elements relating to callbackObj (no mem)
             else
-                // new DistributedLoggingProtocol(this, false);
                 new NoArcadeShieldMode(this);
         }
 
