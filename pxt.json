@@ -25,7 +25,6 @@
         "version.ts",
         "utils.ts",
         "sensors.ts",
-        "jacdacSensors.ts",
         "liveDataViewer.ts",
         "dataViewSelect.ts",
         "loggingConfig.ts",
@@ -33,7 +32,8 @@
         "dataRecorder.ts",
         "tabularDataViewer.ts",
         "generateGraph.ts",
-        "distributedLogging.ts"
+        "distributedLogging.ts",
+        "noArcadeShieldMode.ts"
     ],
     "testFiles": [],
     "targetVersions": {

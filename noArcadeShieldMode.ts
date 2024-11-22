@@ -38,7 +38,7 @@ namespace microdata {
     };
 
     /** For module inside of B button. */
-    const SENSOR_SELECTION_SIZE = 4;
+    const SENSOR_SELECTION_SIZE = 5;
     /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
     const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
 
@@ -369,7 +369,7 @@ namespace microdata {
                     return [new MagnetSensor()]
 
                 case UI_SENSOR_SELECT_STATE.RADIO:
-                    // new DistributedLoggingProtocol(this.app, false);
+                    new DistributedLoggingProtocol(this.app, false);
                     return []
             
                 default:

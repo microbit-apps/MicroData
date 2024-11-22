@@ -465,11 +465,7 @@ namespace microdata {
             else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")   return new LogoPressSensor();
             else if (name == "Volume" || name == "Microphone" || name == "V")          return new VolumeSensor();
             else if (name == "Compass" || name == "C")                                 return new CompassHeadingSensor();
-            else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")    return new JacdacLightSensor();
-            else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM") return new JacdacSoilMoistureSensor();
-            else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")  return new JacdacDistanceSensor();
-            // else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")      return new JacdacFlexSensor(); // 
-            else                                                                       return new JacdacTemperatureSensor()
+            else                                                                       return new AccelerometerXSensor()
         }
 
         //---------------------
