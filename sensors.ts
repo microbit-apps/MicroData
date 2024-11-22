@@ -362,12 +362,19 @@ namespace microdata {
      * This class is extended by each of the concrete sensors which add on static methods for their name, getting their readings & optionally min/max readings
      */
     export abstract class Sensor implements ISensorable {
+        /** Immutable: Forward facing name that is presented to the user in LiveDataViewer, Sensor Selection & TabularDataViewer */
         private name: string;
+        /** Immutable: Name used for Radio Communication, a unique shorthand, see distributedLogging.ts */
         private radioName: string;
+        /** Immutable: Minimum possible sensor reading, based on datasheet of peripheral. Some sensors transform their output (Analog pins transform 0->1023, into 0->3V volt range) */
         private minimum: number;
+        /** Immutable: Maximum possible sensor reading, based on datasheet of peripheral. Some sensors transform their output (Analog pins transform 0->1023, into 0->3V volt range) */
         private maximum: number;
+        /** Immutable: Abs(minimum) + Abs(maximum); calculated once at start since min & max can't change */
         private range: number;
+        /** Immutable: Wrapper around the sensors call, e.g: sensorFn = () => input.acceleration(Dimension.X) */
         private sensorFn: () => number;
+        /** Immutable: Need to know whether or not this sensor is on the microbit or is an external Jacdac one; see sensorSelection.ts */
         private isJacdacSensor: boolean;
 
         /** Set inside .setConfig() */
@@ -461,7 +468,7 @@ namespace microdata {
             else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")    return new JacdacLightSensor();
             else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM") return new JacdacSoilMoistureSensor();
             else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")  return new JacdacDistanceSensor();
-            // else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")      return new JacdacFlexSensor();
+            // else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")      return new JacdacFlexSensor(); // 
             else                                                                       return new JacdacTemperatureSensor()
         }
 
@@ -508,7 +515,7 @@ namespace microdata {
         
         /**
          * Used by the DataRecorder to display information about the sensor as it is logging.
-         * @returns linles of information that can be printed out into a box for display.
+         * @returns lines of information that can be printed out into a box for display.
          */
         getEventInformation(): string[] {
             if (this.hasMeasurements())
@@ -550,15 +557,15 @@ namespace microdata {
          */
         readIntoBufferOnce(fromY: number): void {
             const reading = this.getReading()
-
+            
             if (this.dataBuffer.length >= this.maxBufferSize || reading === undefined) {
                 this.dataBuffer.shift();
                 this.heightNormalisedDataBuffer.shift();
             }
-
+            
             if (reading === undefined)
-                return
-
+                return            
+            
             this.numberOfReadings += 1
             this.dataBuffer.push(reading);
             this.heightNormalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((reading - this.getMinimum()) / this.range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
