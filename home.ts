@@ -59,7 +59,7 @@ namespace microdata {
                 x: 20,
                 y,
                 onClick: () => {
-                    this.app.popScene()
+                    // this.app.popScene()
                     // this.app.pushScene(new DistributedLoggingScreen(this.app)) // Temp disabled elements relating to callbackObj (no mem)
                 },
             })

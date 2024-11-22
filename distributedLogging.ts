@@ -98,11 +98,10 @@ namespace microdata {
      * The Commander can get a list of the IDs of connected Targets and see the data from sensors being streamed back.
      */
     export class DistributedLoggingProtocol implements ITargetDataLoggedCallback {
-
         //------------------------------------------------------
         // Variables used by both the Commander and the Targets:
         //------------------------------------------------------
-                
+        
         public id: number;
 
         /** Target (many) or Commander (only can be 1)? This is set inside .initialiseCommunication() and does not change thereon. */
@@ -368,7 +367,7 @@ namespace microdata {
                             }
                             else {
                                 const scheduler = new SensorScheduler(this.sensors, true)
-                                scheduler.start(((this.streamDataBack) ? this : null))
+                                scheduler.start() //((this.streamDataBack) ? this : null))
                             }
                         }
                     }

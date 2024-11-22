@@ -31,11 +31,6 @@ namespace microdata {
         "<=": function(reading: number, comparator: number) {return reading <= comparator}
     }
 
-    /** Value returned by default if the abstract getMinimum() is not overriddent */
-    const DEFAULT_SENSOR_MINIMUM = 0
-    /** Value returned by default if the abstract getMaximum() is not overriddent */
-    const DEFAULT_SENSOR_MAXIMUM = 100
-
     /** How many times should a line be duplicated when drawn? */
     const PLOT_SMOOTHING_CONSTANT: number = 4
 
@@ -260,8 +255,8 @@ namespace microdata {
          * Temp disabled elements relating to callbackObj (no mem)
          * @param callbackObj is used by the DistributedLoggingProtocol; after each log & after the algorithm finishes a callback will be made
         */
-        start(callbackObj?: ITargetDataLoggedCallback) {
-            const callbackAfterLog: boolean = (callbackObj == null) ? false : true
+        start() {//callbackObj?: ITargetDataLoggedCallback) {
+            // const callbackAfterLog: boolean = (callbackObj == null) ? false : true
             
             control.inBackground(() => {
                 let currentTime = 0;
@@ -275,8 +270,8 @@ namespace microdata {
                     const logAsCSV = this.schedule[i].sensor.log(0)
 
                     // Optionally inform the caller of the log (In the case of the DistributedLoggingProtocol this information can be forwarded to the Commander over radio)
-                    if (callbackAfterLog)
-                        callbackObj.callback(logAsCSV)
+                    // if (callbackAfterLog)
+                    //     callbackObj.callback(logAsCSV)
 
                     // Clear from schedule (A sensor may only have 1 reading):
                     if (!this.schedule[i].sensor.hasMeasurements())
@@ -289,6 +284,7 @@ namespace microdata {
                 while (this.schedule.length > 0) {
                     const nextLogTime = this.schedule[0].waitTime;
                     const sleepTime = nextLogTime - currentTime;
+
 
                     // Wait the required period, discount operation time, in 100ms chunks
                     // Check if there last been a request to stop logging each chunk
@@ -323,8 +319,8 @@ namespace microdata {
                             const logAsCSV = this.schedule[i].sensor.log(currentTime)
 
                             // Optionally inform the caller of the log (In the case of the DistributedLoggingProtocol this information can be forwarded to the Commander over radio)
-                            if (callbackAfterLog)
-                                callbackObj.callback(logAsCSV)
+                            // if (callbackAfterLog)
+                            //     callbackObj.callback(logAsCSV)
 
                             // Update schedule with when they should next be logged:
                             if (this.schedule[i].sensor.hasMeasurements()) {
@@ -352,10 +348,10 @@ namespace microdata {
                     `)
                 }
 
-                if (callbackAfterLog) {
-                    DistributedLoggingProtocol.finishedLogging = true
-                    callbackObj.callback("")
-                }
+                // if (callbackAfterLog) {
+                //     DistributedLoggingProtocol.finishedLogging = true
+                //     callbackObj.callback("")
+                // }
             })
         }
     }
@@ -366,6 +362,13 @@ namespace microdata {
      * This class is extended by each of the concrete sensors which add on static methods for their name, getting their readings & optionally min/max readings
      */
     export abstract class Sensor implements ISensorable {
+        private name: string;
+        private radioName: string;
+        private minimum: number;
+        private maximum: number;
+        private sensorFn: () => number;
+        private isJacdacSensor: boolean;
+
         /** Set inside .setConfig() */
         public totalMeasurements: number
 
@@ -409,7 +412,7 @@ namespace microdata {
          */
         private heightNormalisedDataBuffer: number[]
 
-        constructor() {
+        constructor(opts: {name: string, rName: string, f: () => number, min: number, max: number, isJacdacSensor: boolean}) {
             this.maxBufferSize = 80
             this.totalMeasurements = 0
             this.numberOfReadings = 0
@@ -419,6 +422,13 @@ namespace microdata {
             this.dataBuffer = []
             this.lastLoggedReading = 0
             this.heightNormalisedDataBuffer = []
+
+            this.name = opts.name
+            this.radioName = opts.rName
+            this.minimum = opts.min
+            this.maximum = opts.max
+            this.sensorFn = opts.f
+            this.isJacdacSensor = opts.isJacdacSensor
         }
 
         //------------------
@@ -437,9 +447,6 @@ namespace microdata {
             else if (name == "Accel. Z" || name == "Accelerometer Z" || name == "AZ")  return new AccelerometerZSensor();
             else if (name == "Pitch" || name == "P")                                   return new PitchSensor();
             else if (name == "Roll" || name == "R")                                    return new RollSensor();
-            else if (name == "T. Pin 0" || name == "Touch Pin 0" || name == "TP0")     return new TouchPinP0Sensor();
-            else if (name == "T. Pin 1" || name == "Touch Pin 1" || name == "TP1")     return new TouchPinP1Sensor();
-            else if (name == "T. Pin 2" || name == "Touch Pin 2" || name == "TP2")     return new TouchPinP2Sensor();
             else if (name == "A. Pin 0" || name == "Analog Pin 0" || name == "AP0")    return new AnalogPinP0Sensor();
             else if (name == "A. Pin 1" || name == "Analog Pin 1" || name == "AP1")    return new AnalogPinP1Sensor();
             else if (name == "A. Pin 2" || name == "Analog Pin 2" || name == "AP2")    return new AnalogPinP2Sensor();
@@ -460,13 +467,13 @@ namespace microdata {
         // Interface Functions:
         //---------------------
 
-        getName(): string {return "abstract"}
-        getRadioName(): string {return "abstract"}
-        getReading(): number {return 0}
+        getName(): string {return this.name}
+        getRadioName(): string {return this.radioName}
+        getReading(): number {return this.sensorFn()}
         getNormalisedReading(): number {return Math.abs(this.getReading()) / (Math.abs(this.getMinimum()) + this.getMaximum())}
-        getMinimum(): number {return DEFAULT_SENSOR_MINIMUM;}
-        getMaximum(): number {return DEFAULT_SENSOR_MAXIMUM;}
-        isJacdac(): boolean {return false;}
+        getMinimum(): number {return this.minimum;}
+        getMaximum(): number {return this.maximum;}
+        isJacdac(): boolean {return this.isJacdacSensor;}
 
         getMaxBufferSize(): number {return this.maxBufferSize}
         getNthReading(n: number): number {return this.dataBuffer[n]}
@@ -647,13 +654,16 @@ namespace microdata {
      * Ranged between 0 and 255
      */
     export class LightSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Light"}
-        public static getRadioName(): string {return "L"}
-        public static getReading(): number {return input.lightLevel()}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 255;}   
+        constructor() {
+            super({
+                name: "Light",
+                rName: "L",
+                f: () => input.lightLevel(),
+                min: 0,
+                max: 255,
+                isJacdacSensor: false
+            });
+        }
     }
 
     /**
@@ -661,13 +671,16 @@ namespace microdata {
      * Ranged between -40 and 100
      */
     export class TemperatureSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Temp."}
-        public static getRadioName(): string {return "T"}
-        public static getMinimum(): number {return -40;}
-        public static getMaximum(): number {return 100;}
-        public static getReading(): number {return input.temperature()}
+        constructor() {
+            super({
+                name: "Temp.",
+                rName: "T",
+                f: () => input.temperature(),
+                min: -40,
+                max: 100,
+                isJacdacSensor: false
+            });
+        }
     }
 
     /**
@@ -678,16 +691,16 @@ namespace microdata {
      */
     export class AccelerometerXSensor extends Sensor {
         constructor() {
-            super()
-            input.setAccelerometerRange(AcceleratorRange.OneG)
+            super({
+                name: "Accel. X",
+                rName: "AX",
+                f: () => input.acceleration(Dimension.X),
+                min: -2048,
+                max: 2048,
+                isJacdacSensor: false
+            });
+            input.setAccelerometerRange(AcceleratorRange.OneG);
         }
-
-        public static getName(): string {return "Accel. X"}
-        public static getRadioName(): string {return "AX"}
-        public static getReading(): number {return input.acceleration(Dimension.X)}
-        public static getMinimum(): number {return -2048;}
-        public static getMaximum(): number {return 2048;}
-        
     }
 
     /**
@@ -698,16 +711,16 @@ namespace microdata {
      */
     export class AccelerometerYSensor extends Sensor {
         constructor() {
-            super()
-            input.setAccelerometerRange(AcceleratorRange.OneG)
+            super({
+                name: "Accel. Y",
+                rName: "AY",
+                f: () => input.acceleration(Dimension.Y),
+                min: -2048,
+                max: 2048,
+                isJacdacSensor: false
+            });
+            input.setAccelerometerRange(AcceleratorRange.OneG);
         }
-
-        public static getName(): string {return "Accel. Y"}
-        public static getRadioName(): string {return "AY"}
-        public static getReading(): number {return input.acceleration(Dimension.Y)}
-        public static getMinimum(): number {return -2048;}
-        public static getMaximum(): number {return 2048;}
-        
     }
 
     /**
@@ -718,88 +731,16 @@ namespace microdata {
      */
     export class AccelerometerZSensor extends Sensor {
         constructor() {
-            super()
-            input.setAccelerometerRange(AcceleratorRange.OneG)
+            super({
+                name: "Accel. Z",
+                rName: "AZ",
+                f: () => input.acceleration(Dimension.Z),
+                min: -2048,
+                max: 2048,
+                isJacdacSensor: false
+            });
+            input.setAccelerometerRange(AcceleratorRange.OneG);
         }
-
-        public static getName(): string {return "Accel. Z"}
-        public static getRadioName(): string {return "AZ"}
-        public static getReading(): number {return input.acceleration(Dimension.Z)}
-        public static getMinimum(): number {return -2048;}
-        public static getMaximum(): number {return 2048;}
-        
-    }
-
-    /**
-     * Touchpin sensor.
-     * Need to hold both Ground and this Pin for an effect.
-     */
-    export class TouchPinP0Sensor extends Sensor {
-        private static pinStatus: number
-        public static isActive: boolean = false
-
-        constructor() {
-            super()
-
-            TouchPinP0Sensor.pinStatus = 0;
-            input.onPinPressed(TouchPin.P0, function () {
-                TouchPinP0Sensor.pinStatus = (TouchPinP0Sensor.pinStatus == 1) ? 0 : 1
-            })
-        }
-
-        public static getName(): string {return "T. Pin 0"}
-        public static getRadioName(): string {return "TP0"}
-        public static getReading(): number {return TouchPinP0Sensor.pinStatus}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
-    }
-
-    /**
-     * Touchpin sensor.
-     * Need to hold both Ground and this Pin for an effect.
-     */
-    export class TouchPinP1Sensor extends Sensor {
-        private static pinStatus: number
-        public static isActive: boolean = false
-
-        constructor() {
-            super()
-
-            TouchPinP1Sensor.pinStatus = 0;
-            input.onPinReleased(TouchPin.P1, () => {
-                TouchPinP1Sensor.pinStatus = (TouchPinP1Sensor.pinStatus == 0) ? 1 : 0
-            })
-        }
-
-        public static getName(): string {return "T. Pin 1"}
-        public static getRadioName(): string {return "TP1"}
-        public static getReading(): number {return TouchPinP1Sensor.pinStatus}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
-    }
-
-    /**
-     * Touchpin sensor.
-     * Need to hold both Ground and this Pin for an effect.
-     */
-    export class TouchPinP2Sensor extends Sensor {
-        private static pinStatus: number
-        public static isActive: boolean = false
-
-        constructor() {
-            super()
-            
-            TouchPinP2Sensor.pinStatus = 0;
-            input.onPinPressed(TouchPin.P2, function () {
-                TouchPinP2Sensor.pinStatus = (TouchPinP2Sensor.pinStatus == 1) ? 0 : 1
-            })
-        }
-
-        public static getName(): string {return "T. Pin 2"}
-        public static getRadioName(): string {return "TP2"}
-        public static getReading(): number {return TouchPinP2Sensor.pinStatus}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
     }
 
 
@@ -809,12 +750,16 @@ namespace microdata {
      * Returns value between [0, 3]
      */
     export class AnalogPinP0Sensor extends Sensor {
-        constructor() {super()}
-        public static getName(): string {return "A. Pin 0"}
-        public static getRadioName(): string {return "AP0"}
-        public static getReading(): number {return pins.analogReadPin(AnalogPin.P0) / 340}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 3;}
+        constructor() {
+            super({
+                name: "A. Pin 0",
+                rName: "AP0",
+                f: () => pins.analogReadPin(AnalogPin.P0) / 340,
+                min: 0,
+                max: 3,
+                isJacdacSensor: false
+            });
+        }
     }
 
 
@@ -824,12 +769,16 @@ namespace microdata {
      * Returns value between [0, 3]
      */
     export class AnalogPinP1Sensor extends Sensor {
-        constructor() {super()}
-        public static getName(): string {return "A. Pin 1"}
-        public static getRadioName(): string {return "AP1"}
-        public static getReading(): number { return pins.analogReadPin(AnalogPin.P1) / 340}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 3;}
+        constructor() {
+            super({
+                name: "A. Pin 1",
+                rName: "AP1",
+                f: () => pins.analogReadPin(AnalogPin.P1) / 340,
+                min: 0,
+                max: 3,
+                isJacdacSensor: false
+            });
+        }
     }
 
 
@@ -839,12 +788,16 @@ namespace microdata {
      * Returns value between [0, 3]
      */
     export class AnalogPinP2Sensor extends Sensor {
-        constructor() {super()}
-        public static getName(): string {return "A. Pin 2"}
-        public static getRadioName(): string {return "AP2"}
-        public static getReading(): number { return pins.analogReadPin(AnalogPin.P2) / 340}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 3;}
+        constructor() {
+            super({
+                name: "A. Pin 2",
+                rName: "AP2",
+                f: () => pins.analogReadPin(AnalogPin.P2) / 340,
+                min: 0,
+                max: 3,
+                isJacdacSensor: false
+            });
+        }      
     }
 
 
@@ -856,52 +809,64 @@ namespace microdata {
      * https://www.st.com/en/mems-and-sensors/lsm303agr.html
      */
     export class MagnetSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Magnet"}
-        public static getRadioName(): string {return "M"}
-        public static getMinimum(): number {return -5000}
-        public static getMaximum(): number {return 5000}
-        public static getReading(): number {return input.magneticForce(Dimension.Strength)}
+        constructor() {
+            super({
+                name: "Magnet",
+                rName: "M",
+                f: () => input.magneticForce(Dimension.Strength),
+                min: -5000,
+                max: 5000,
+                isJacdacSensor: false
+            });
+        }
     }
 
     /**
      * Onboard Pitch or Roll sensor
      */
     export class PitchSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Pitch"}
-        public static getRadioName(): string {return "P"}
-        public static getReading(): number {return input.rotation(Rotation.Pitch)}
-        public static getMinimum(): number {return -180;}
-        public static getMaximum(): number {return 180;}
+        constructor() {
+            super({
+                name: "Pitch",
+                rName: "P",
+                f: () => input.rotation(Rotation.Pitch),
+                min: -180,
+                max: 180,
+                isJacdacSensor: false
+            });
+        }    
     }
 
     /**
      * Onboard Pitch or Roll sensor
      */
     export class RollSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Roll"}
-        public static getRadioName(): string {return "R"}
-        public static getReading(): number {return input.rotation(Rotation.Roll)}
-        public static getMinimum(): number {return -180;}
-        public static getMaximum(): number {return 180;}
+        constructor() {
+            super({
+                name: "Roll",
+                rName: "R",
+                f: () => input.rotation(Rotation.Roll),
+                min: -180,
+                max: 180,
+                isJacdacSensor: false
+            });
+        }
     }
 
     /**
      * Detection of whether of not the Logo has been pressed
      */
     export class LogoPressSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Logo Press"}
-        public static getRadioName(): string {return "LP"}
-        public static getReading(): number {return input.logoIsPressed() ? 1 : 0}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 1;}
+        constructor() {
+            super({
+                name: "Logo Press",
+                rName: "LP",
+                f: () => (input.logoIsPressed() ? 1 : 0),
+                min: 0,
+                max: 1,
+                isJacdacSensor: false
+            });
+        }
     }
 
     /**
@@ -909,21 +874,23 @@ namespace microdata {
      * Ranged between 0 and 360 degrees.
      */
     export class CompassHeadingSensor extends Sensor {
-        constructor() {super()}
-
-        public static getName(): string {return "Compass"}
-        public static getRadioName(): string {return "C"}
-        public static getReading(): number {return input.compassHeading()}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 360;}
+        constructor() {
+            super({
+                name: "Compass",
+                rName: "C",
+                f: () => input.compassHeading(),
+                min: 0,
+                max: 360,
+                isJacdacSensor: false
+            });
+        }
     }
-
     /**
      * Sensor for the Microphone
      * Ranged between 0 and 255.
      */
     export class VolumeSensor extends Sensor {
-        constructor() {super()}
+        constructor() {super({name: "Microphone", rName: "V", f: () => input.soundLevel(), min: 0, max: 255, isJacdacSensor: false})}
 
         public static getName(): string {return "Microphone"}
         public static getRadioName(): string {return "V"}
@@ -931,5 +898,4 @@ namespace microdata {
         public static getMinimum(): number {return 0;}
         public static getMaximum(): number {return 255;}
     }
-
 }
