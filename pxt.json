@@ -33,7 +33,6 @@
         "dataRecorder.ts",
         "tabularDataViewer.ts",
         "generateGraph.ts",
-        "noArcadeShieldMode.ts",
         "distributedLogging.ts"
     ],
     "testFiles": [],

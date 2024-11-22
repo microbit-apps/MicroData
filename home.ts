@@ -12,12 +12,9 @@ namespace microdata {
         private recordDataBtn: Button
         private distributedLoggingBtn: Button
         private viewBtn: Button
-        private tagline: string;
 
         constructor(app: AppInterface) {
             super(app)
-            this.tagline = ["Lets measure!", "Hello :)", "Lets experiment!", "Mini-measurer",
-                "Record & view", "Data Science toolkit", "Start experimenting!", "for the micro:bit v2"][randint(0, 7)]
         }
 
         /* override */ startup() {
@@ -59,8 +56,8 @@ namespace microdata {
                 x: 20,
                 y,
                 onClick: () => {
-                    // this.app.popScene()
-                    // this.app.pushScene(new DistributedLoggingScreen(this.app)) // Temp disabled elements relating to callbackObj (no mem)
+                    this.app.popScene()
+                    this.app.pushScene(new DistributedLoggingScreen(this.app)) // Temp disabled elements relating to callbackObj (no mem)
                 },
             })
 
@@ -124,12 +121,12 @@ namespace microdata {
 
             if (!this.yOffset) {
                 Screen.print(
-                    this.tagline,
+                    "Mini-measurer",
                     Screen.LEFT_EDGE +
                     ((Screen.WIDTH + wordLogo.width) >> 1)
                     + dy
                     -
-                    font.charWidth * this.tagline.length,
+                    font.charWidth * "Mini-measurer".length,
                     Screen.TOP_EDGE +
                     OFFSET +
                     wordLogo.height +
