@@ -149,8 +149,8 @@ namespace microdata {
 
             // Check if all sensors have finished their work:
             if (this.scheduler.loggingComplete()) {
-                screen().printCenter("Data Logging Complete.", (screen().height / 2) - 10);
-                screen().printCenter("Press B to back out.", screen().height / 2);
+                screen().printCenter("Data Logging Complete.", (screen().height>> 1) - 10);
+                screen().printCenter("Press B to back out.", screen().height>> 1);
             }
 
             else {
@@ -263,14 +263,14 @@ namespace microdata {
                     const tutorialTextLength = ("Cancel recording?".length * font.charWidth)
                     screen().print(
                         "Cancel recording?",
-                        headerX - (tutorialTextLength / 2),
+                        headerX - (tutorialTextLength>> 1),
                         Screen.HALF_HEIGHT - 30 + 7,
                         15 // Black
                     )
 
                     // Underline the title:
                     screen().fillRect(
-                        headerX - (tutorialTextLength / 2) - 1,
+                        headerX - (tutorialTextLength>> 1) - 1,
                         Screen.HALF_HEIGHT - 30 + 16,
                         tutorialTextLength,
                         2,

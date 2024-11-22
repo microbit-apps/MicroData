@@ -1,6 +1,6 @@
 {
     "name": "MicroData",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "description": "Data science with micro:bit v2",
     "dependencies": {
         "core": "*",
@@ -32,7 +32,9 @@
         "sensorSelect.ts",
         "dataRecorder.ts",
         "tabularDataViewer.ts",
-        "generateGraph.ts"
+        "generateGraph.ts",
+        "noArcadeShieldMode.ts",
+        "distributedLogging.ts"
     ],
     "testFiles": [],
     "targetVersions": {

@@ -59,7 +59,7 @@ namespace microdata {
                 x: 20,
                 y,
                 onClick: () => {
-                    this.app.popScene()
+                    // this.app.popScene()
                     // this.app.pushScene(new DistributedLoggingScreen(this.app)) // Temp disabled elements relating to callbackObj (no mem)
                 },
             })
@@ -84,8 +84,8 @@ namespace microdata {
         private drawVersion() {
             const font = bitmaps.font5
             Screen.print(
-                "v1.5.2",
-                Screen.RIGHT_EDGE - font.charWidth * "v1.5.2".length,
+                "v1.5.3",
+                Screen.RIGHT_EDGE - font.charWidth * "v1.5.3".length,
                 Screen.BOTTOM_EDGE - font.charHeight - 2,
                 0xb,
                 font

@@ -11,7 +11,7 @@ namespace microdata {
      * Limit to how many sensors you may record from & read from at once. Neccessary to prevent egregious lag in live-data-viewer.
      * Inclusively, only one Jacdac sensor may be selected at once.
      */
-    export const MAX_NUMBER_OF_SENSORS: number = 5
+    export const MAX_NUMBER_OF_SENSORS: number = 3
     
     /** 
      * Starting index of contigious row of Jacdac sensors.

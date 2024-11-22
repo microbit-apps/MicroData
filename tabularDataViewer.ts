@@ -421,13 +421,13 @@ namespace microdata {
                     // In this.drawGridOfVariableSize: If the column after this one would not fit grant this one the remanining space
                     // This will align the text to the center of this column space
                     if (colID == TabularDataViewer.dataRows[0].length - 1 || cumulativeColOffset + this.headerStringLengths[colID] + this.headerStringLengths[colID + 1] > Screen.WIDTH) {
-                        cumulativeColOffset += ((Screen.WIDTH - cumulativeColOffset) / 2) - (this.headerStringLengths[colID] / 2);
+                        cumulativeColOffset += ((Screen.WIDTH - cumulativeColOffset)>> 1) - (this.headerStringLengths[colID]>> 1);
                     }
 
                     Screen.print(
                         value,
-                        Screen.LEFT_EDGE + cumulativeColOffset + (this.headerStringLengths[colID] / 2) - ((font.charWidth * value.length) / 2),
-                        Screen.TOP_EDGE + (row * tabularRowBufferSize) + (tabularRowBufferSize / 2) - 4,
+                        Screen.LEFT_EDGE + cumulativeColOffset + (this.headerStringLengths[colID]>> 1) - ((font.charWidth * value.length)>> 1),
+                        Screen.TOP_EDGE + (row * tabularRowBufferSize) + (tabularRowBufferSize>> 1) - 4,
                         0xb,
                         bitmaps.font8
                     )

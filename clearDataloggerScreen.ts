@@ -110,14 +110,14 @@ namespace microdata {
             const tutorialTextLength = ("Clear the data log?".length * font.charWidth)
             screen().print(
                 "Clear the data log?",
-                headerX - (tutorialTextLength / 2),
+                headerX - (tutorialTextLength>> 1),
                 Screen.HALF_HEIGHT - 40 + 7,
                 15 // Black
             )
             
             // Underline the title:
             screen().fillRect(
-                headerX - (tutorialTextLength / 2) + 2,
+                headerX - (tutorialTextLength>> 1) + 2,
                 Screen.HALF_HEIGHT - 40 + 25,
                 tutorialTextLength - (1 * font.charWidth),
                 2,

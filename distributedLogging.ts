@@ -368,7 +368,7 @@ namespace microdata {
                             }
                             else {
                                 const scheduler = new SensorScheduler(this.sensors, true)
-                                scheduler.start(((this.streamDataBack) ? this : null))
+                                scheduler.start() //((this.streamDataBack) ? this : null))
                             }
                         }
                     }
@@ -711,14 +711,14 @@ namespace microdata {
                             
                             screen().print(
                                 connectedText,
-                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth) / 2),
+                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth)>> 1),
                                 2
                             )
     
                             // Left-aligned with above text
                             screen().print(
                                 asMicrobit,
-                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth) / 2),
+                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth)>> 1),
                                 12
                             )
                             break;

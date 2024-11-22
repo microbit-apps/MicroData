@@ -247,7 +247,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             . . # . .
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -256,7 +256,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             . . # . .
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
 
                         break;
                     }
@@ -269,7 +269,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             . . . . .
                         `)
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -278,7 +278,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             # # . # #
                         `)
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
 
                         break;
                     }
@@ -291,7 +291,7 @@ class NoArcadeShieldMode {
                             # . . . #
                             . . # . . 
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -300,7 +300,7 @@ class NoArcadeShieldMode {
                             # . . . #
                             . . # . .
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
 
                         break;
                     }

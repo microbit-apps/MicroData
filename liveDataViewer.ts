@@ -7,7 +7,8 @@ namespace microdata {
     /** The colours that will be used for the lines & sensor information boxes */
     const SENSOR_COLORS: number[] = [2,3,4,6,7,9]
 
-    /** Time to wait inbetween updating each frame of the graph - new sensor reading requests are made.
+    /** 
+     * Time to wait inbetween updating each frame of the graph - new sensor reading requests are made.
      * The rest of the UI is still responsive though - since UP, DOWN, LEFT, RIGHT movements will invoke .update() immediately.
      */
     const GRAPH_FRAME_TIME_MS: number = 100
@@ -97,6 +98,7 @@ namespace microdata {
         /** Greatest of sensor.maximum for all sensors: required to write at the top of the y-axis */
         private globalSensorMaximum: number;
 
+
         constructor(app: AppInterface, sensors: Sensor[]) {
             super(app, "liveDataViewer")
             this.backgroundColor = 3
@@ -130,7 +132,6 @@ namespace microdata {
             this.setGlobalMinAndMax()
         }
 
-
         /* override */ startup() {
             super.startup()
 
@@ -152,9 +153,9 @@ namespace microdata {
                         this.sensors.forEach((sensor) => sensor.setBufferSize(140));
 
                         const sensor = this.sensors[this.oscSensorIndex];
-                        this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength() / 2);
+                        this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength()>> 1);
                         this.oscReading = sensor.getNthHeightNormalisedReading(this.oscXCoordinate);
-;
+
                         this.windowLeftBuffer = 0;
                         this.windowRightBuffer = 0;
                         this.windowTopBuffer = 0;
@@ -574,7 +575,8 @@ namespace microdata {
                     15
                 )
 
-                // End:
+                
+                // End: 
                 const end: string = (this.sensors[0].numberOfReadings + this.sensors[0].getHeightNormalisedBufferLength()).toString() 
                 screen().print(
                     end,
