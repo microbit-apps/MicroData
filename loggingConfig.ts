@@ -148,7 +148,7 @@ namespace microdata {
                                 this.app.popScene()
 
                                 if (this.nextSceneEnum == CursorSceneEnum.DistributedLogging) {
-                                    // this.app.pushScene(new DistributedLoggingScreen(this.app, this.sensors, this.sensorConfigs)); // Temp disabled with Distributedlogging (no mem)
+                                    this.app.pushScene(new DistributedLoggingScreen(this.app, this.sensors, this.sensorConfigs)); // Temp disabled with Distributedlogging (no mem)
                                 }
                                 else {
                                     // All sensors are configured, pass them their config and move to the DataRecording screen:

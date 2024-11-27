@@ -368,7 +368,7 @@ namespace microdata {
                             }
                             else {
                                 const scheduler = new SensorScheduler(this.sensors, true)
-                                scheduler.start() //((this.streamDataBack) ? this : null))
+                                scheduler.start((this.streamDataBack) ? this : null)
                             }
                         }
                     }
