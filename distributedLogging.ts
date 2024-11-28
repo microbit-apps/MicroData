@@ -610,7 +610,7 @@ namespace microdata {
                         control.inBackground(() => {
                             while (this.uiState == UI_STATE.SHOWING_CONNECTED_MICROBITS) {
                                 this.targetIDCache = this.distributedLogger.commanderRequestTargetIDs()
-                                basic.pause(50)
+                                basic.pause(250)
                             }
                         })
                     }
@@ -740,7 +740,7 @@ namespace microdata {
                                 1,
                                 y
                             )
-                            y += 5
+                            y += 8
                         }
                     })
 
