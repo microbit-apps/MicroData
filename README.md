@@ -1,5 +1,4 @@
 # MicroData
-This repository is <strong>Archived</strong>. Please use the most up-to-date [repository](https://github.com/microbit-apps/MicroData).
 
 ![home_screen](https://github.com/KierPalin/MicroData/blob/main/resources/MicroData_1_5.png?raw=true)
 
