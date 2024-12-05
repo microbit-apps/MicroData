@@ -25,7 +25,6 @@
         "version.ts",
         "utils.ts",
         "sensors.ts",
-        "jacdacSensors.ts",
         "liveDataViewer.ts",
         "dataViewSelect.ts",
         "loggingConfig.ts",

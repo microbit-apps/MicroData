@@ -361,7 +361,7 @@ namespace microdata {
      * Abstraction for all available sensors.
      * This class is extended by each of the concrete sensors which add on static methods for their name, getting their readings & optionally min/max readings
      */
-    export abstract class Sensor implements ISensorable {
+    export class Sensor implements ISensorable {
         /** Immutable: Forward facing name that is presented to the user in LiveDataViewer, Sensor Selection & TabularDataViewer */
         private name: string;
         /** Immutable: Name used for Radio Communication, a unique shorthand, see distributedLogging.ts */
@@ -420,7 +420,15 @@ namespace microdata {
          */
         private heightNormalisedDataBuffer: number[]
 
-        constructor(opts: {name: string, rName: string, f: () => number, min: number, max: number, isJacdacSensor: boolean}) {
+        constructor(opts: {
+            name: string, 
+            rName: string, 
+            f: () => number, 
+            min: number, 
+            max: number, 
+            isJacdacSensor: boolean,
+            setupFn?: () => void
+        }) {
             this.maxBufferSize = 80
             this.totalMeasurements = 0
             this.numberOfReadings = 0
@@ -430,7 +438,8 @@ namespace microdata {
             this.dataBuffer = []
             this.lastLoggedReading = 0
             this.heightNormalisedDataBuffer = []
-
+            
+            // Data from opts:
             this.name = opts.name
             this.radioName = opts.rName
             this.minimum = opts.min
@@ -438,6 +447,10 @@ namespace microdata {
             this.range = Math.abs(this.minimum) + this.maximum
             this.sensorFn = opts.f
             this.isJacdacSensor = opts.isJacdacSensor
+
+            // Could be additional functions required to set up the sensor (see Jacdac modules or Accelerometers):
+            if (opts.setupFn != null)
+                opts.setupFn();
         }
 
         //------------------
@@ -451,25 +464,208 @@ namespace microdata {
          * @returns concrete sensor that the input name corresponds to.
          */
         public static getFromName(name: string): Sensor {
-            if      (name == "Accel. X" || name == "Accelerometer X" || name == "AX")  return new AccelerometerXSensor();
-            else if (name == "Accel. Y" || name == "Accelerometer Y" || name == "AY")  return new AccelerometerYSensor();
-            else if (name == "Accel. Z" || name == "Accelerometer Z" || name == "AZ")  return new AccelerometerZSensor();
-            else if (name == "Pitch" || name == "P")                                   return new PitchSensor();
-            else if (name == "Roll" || name == "R")                                    return new RollSensor();
-            else if (name == "A. Pin 0" || name == "Analog Pin 0" || name == "AP0")    return new AnalogPinP0Sensor();
-            else if (name == "A. Pin 1" || name == "Analog Pin 1" || name == "AP1")    return new AnalogPinP1Sensor();
-            else if (name == "A. Pin 2" || name == "Analog Pin 2" || name == "AP2")    return new AnalogPinP2Sensor();
-            else if (name == "Light" || name == "L")                                   return new LightSensor();
-            else if (name == "Temp." || name == "Temperature" || name == "T")          return new TemperatureSensor();
-            else if (name == "Magnet" || name == "M")                                  return new MagnetSensor();
-            else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")   return new LogoPressSensor();
-            else if (name == "Volume" || name == "Microphone" || name == "V")          return new VolumeSensor();
-            else if (name == "Compass" || name == "C")                                 return new CompassHeadingSensor();
-            else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")    return new JacdacLightSensor();
-            else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM") return new JacdacSoilMoistureSensor();
-            else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")  return new JacdacDistanceSensor();
-            // else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")      return new JacdacFlexSensor(); // 
-            else                                                                       return new JacdacTemperatureSensor()
+            if (name == "Accel. X" || name == "Accelerometer X" || name == "AX")  
+                return new Sensor({
+                    name: "Accel. X",
+                    rName: "AX",
+                    f: () => input.acceleration(Dimension.X),
+                    min: -2048,
+                    max: 2048,
+                    isJacdacSensor: false,
+                    setupFn: () => input.setAccelerometerRange(AcceleratorRange.OneG)
+                });
+
+            else if (name == "Accel. Y" || name == "Accelerometer Y" || name == "AY")  
+                return new Sensor({
+                    name: "Accel. Y",
+                    rName: "AY",
+                    f: () => input.acceleration(Dimension.Y),
+                    min: -2048,
+                    max: 2048,
+                    isJacdacSensor: false,
+                    setupFn: () => input.setAccelerometerRange(AcceleratorRange.OneG)
+                });
+
+            else if (name == "Accel. Z" || name == "Accelerometer Z" || name == "AZ")  
+                return new Sensor({
+                    name: "Accel. Z",
+                    rName: "AZ",
+                    f: () => input.acceleration(Dimension.Z),
+                    min: -2048,
+                    max: 2048,
+                    isJacdacSensor: false,
+                    setupFn: () => input.setAccelerometerRange(AcceleratorRange.OneG)
+                });
+
+            else if (name == "Pitch" || name == "P")                 
+                return new Sensor({
+                    name: "Pitch",
+                    rName: "P",
+                    f: () => input.rotation(Rotation.Pitch),
+                    min: -180,
+                    max: 180,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Roll" || name == "R")                                    
+                return new Sensor({
+                    name: "Roll",
+                    rName: "R",
+                    f: () => input.rotation(Rotation.Roll),
+                    min: -180,
+                    max: 180,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "A. Pin 0" || name == "Analog Pin 0" || name == "AP0")    
+                return new Sensor({
+                    name: "A. Pin 0",
+                    rName: "AP0",
+                    f: () => pins.analogReadPin(AnalogPin.P0) / 340,
+                    min: 0,
+                    max: 3,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "A. Pin 1" || name == "Analog Pin 1" || name == "AP1")    
+                return new Sensor({
+                    name: "A. Pin 1",
+                    rName: "AP1",
+                    f: () => pins.analogReadPin(AnalogPin.P1) / 340,
+                    min: 0,
+                    max: 3,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "A. Pin 2" || name == "Analog Pin 2" || name == "AP2")    
+                return new Sensor({
+                    name: "A. Pin 2",
+                    rName: "AP2",
+                    f: () => pins.analogReadPin(AnalogPin.P2) / 340,
+                    min: 0,
+                    max: 3,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Light" || name == "L")                                   
+                return new Sensor({
+                    name: "Light",
+                    rName: "L",
+                    f: () => input.lightLevel(),
+                    min: 0,
+                    max: 255,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Temp." || name == "Temperature" || name == "T")          
+                return new Sensor({
+                    name: "Temp.",
+                    rName: "T",
+                    f: () => input.temperature(),
+                    min: -40,
+                    max: 100,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Magnet" || name == "M")                                  
+                return new Sensor({
+                    name: "Magnet",
+                    rName: "M",
+                    f: () => input.magneticForce(Dimension.Strength),
+                    min: -5000,
+                    max: 5000,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")   
+                return new Sensor({
+                    name: "Logo Press",
+                    rName: "LP",
+                    f: () => (input.logoIsPressed() ? 1 : 0),
+                    min: 0,
+                    max: 1,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Volume" || name == "Microphone" || name == "V")
+                return new Sensor({
+                    name: "Microphone",
+                    rName: "V",
+                    f: () => input.soundLevel(),
+                    min: 0,
+                    max: 255,
+                    isJacdacSensor: false
+                });
+
+            else if (name == "Compass" || name == "C")      
+                return new Sensor({
+                    name: "Compass",
+                    rName: "C",
+                    f: () => input.compassHeading(),
+                    min: 0,
+                    max: 360,
+                    isJacdacSensor: false
+                });
+
+            //--------------------------------------------
+            // Jacdac Sensors:
+            // See https://github.com/microsoft/pxt-jacdac
+            //--------------------------------------------
+
+            else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")    
+                return new Sensor({
+                    name: "Jac Light",
+                    rName: "JL",
+                    f: () => modules.lightLevel1.isConnected() ? modules.lightLevel1.lightLevel() : undefined,
+                    min: 0,
+                    max: 100,
+                    isJacdacSensor: true,
+                    setupFn: () => modules.lightLevel1.start()
+                });
+
+            else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM") 
+                return new Sensor({
+                    name: "Jac Moist",
+                    rName: "JM",
+                    f: () => modules.soilMoisture1.isConnected() ? modules.soilMoisture1.moisture() : undefined,
+                    min: 0,
+                    max: 100,
+                    isJacdacSensor: true,
+                    setupFn: () => modules.soilMoisture1.start()
+                });
+
+            else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")  
+                return new Sensor({
+                    name: "Jac Dist",
+                    rName: "JD",
+                    f: () => modules.distance1.isConnected() ? modules.distance1.distance() : undefined,
+                    min: 0,
+                    max: 100,
+                    isJacdacSensor: true,
+                    setupFn: () => modules.distance1.start()
+                });
+
+            else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")      
+                return new Sensor({
+                    name: "Jac Flex",
+                    rName: "JF",
+                    f: () => modules.flex1.isConnected() ? modules.flex1.bending() : undefined,
+                    min: 0,
+                    max: 100, // Assuming bending level ranges from 0 to 100 (adjust as needed)
+                    isJacdacSensor: true,
+                    setupFn: () => modules.flex1.start()
+                });
+
+            else                                                                       
+                return new Sensor({
+                    name: "Jac Temp",
+                    rName: "JT",
+                    f: () => modules.temperature1.isConnected() ? modules.temperature1.temperature() : undefined,
+                    min: 0,
+                    max: 100,
+                    isJacdacSensor: true,
+                    setupFn: () => modules.temperature1.start()
+                });
         }
 
         //---------------------
@@ -655,255 +851,5 @@ namespace microdata {
                 }
             }
         }
-    }
-
-    /**
-     * Concrete implementation of onboard Light Sensor.
-     * Ranged between 0 and 255
-     */
-    export class LightSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Light",
-                rName: "L",
-                f: () => input.lightLevel(),
-                min: 0,
-                max: 255,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-    /**
-     * Concrete implementation of onboard Thermometer.
-     * Ranged between -40 and 100
-     */
-    export class TemperatureSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Temp.",
-                rName: "T",
-                f: () => input.temperature(),
-                min: -40,
-                max: 100,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-    /**
-     * Concrete implementation of onboard Accelerometer with Dimension X
-     * Cannot be bundled with other Accelerometer's since getName() needs to be static.
-     * AcceleratorRange is set to OneG
-     * Ranged between -2048 to 2048
-     */
-    export class AccelerometerXSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Accel. X",
-                rName: "AX",
-                f: () => input.acceleration(Dimension.X),
-                min: -2048,
-                max: 2048,
-                isJacdacSensor: false
-            });
-            input.setAccelerometerRange(AcceleratorRange.OneG);
-        }
-    }
-
-    /**
-     * Concrete implementation of onboard Accelerometer with Dimension Y
-     * Cannot be bundled with other Accelerometer's since getName() needs to be static.
-     * AcceleratorRange is set to OneG
-     * Ranged between -2048 to 2048
-     */
-    export class AccelerometerYSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Accel. Y",
-                rName: "AY",
-                f: () => input.acceleration(Dimension.Y),
-                min: -2048,
-                max: 2048,
-                isJacdacSensor: false
-            });
-            input.setAccelerometerRange(AcceleratorRange.OneG);
-        }
-    }
-
-    /**
-     * Concrete implementation of onboard Accelerometer with Dimension Z
-     * Cannot be bundled with other Accelerometer's since getName() needs to be static.
-     * AcceleratorRange is set to OneG
-     * Ranged between -2048 to 2048
-     */
-    export class AccelerometerZSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Accel. Z",
-                rName: "AZ",
-                f: () => input.acceleration(Dimension.Z),
-                min: -2048,
-                max: 2048,
-                isJacdacSensor: false
-            });
-            input.setAccelerometerRange(AcceleratorRange.OneG);
-        }
-    }
-
-
-    /**
-     * Sensing analog values on the P0 pin.
-     * .analogReadPin() returns a value between [0,1024], this is converted to volts.
-     * Returns value between [0, 3]
-     */
-    export class AnalogPinP0Sensor extends Sensor {
-        constructor() {
-            super({
-                name: "A. Pin 0",
-                rName: "AP0",
-                f: () => pins.analogReadPin(AnalogPin.P0) / 340,
-                min: 0,
-                max: 3,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-
-    /**
-     * Sensing analog values on the P1 pin.
-     * .analogReadPin() returns a value between [0,1024], this is converted to volts.
-     * Returns value between [0, 3]
-     */
-    export class AnalogPinP1Sensor extends Sensor {
-        constructor() {
-            super({
-                name: "A. Pin 1",
-                rName: "AP1",
-                f: () => pins.analogReadPin(AnalogPin.P1) / 340,
-                min: 0,
-                max: 3,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-
-    /**
-     * Sensing the voltage on the P2 pin.
-     * .analogReadPin() returns a value between [0,1024], this is converted to volts.
-     * Returns value between [0, 3]
-     */
-    export class AnalogPinP2Sensor extends Sensor {
-        constructor() {
-            super({
-                name: "A. Pin 2",
-                rName: "AP2",
-                f: () => pins.analogReadPin(AnalogPin.P2) / 340,
-                min: 0,
-                max: 3,
-                isJacdacSensor: false
-            });
-        }      
-    }
-
-
-    /**
-     * Micro-tesla reading of the magnet sensor on Dimension.Strength
-     * Min = -5000 micro-Teslas
-     * Max = 5000 micro-Teslas
-     * Min & Max from LSM303AGR has a dynamic range of +-50 Gauss
-     * https://www.st.com/en/mems-and-sensors/lsm303agr.html
-     */
-    export class MagnetSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Magnet",
-                rName: "M",
-                f: () => input.magneticForce(Dimension.Strength),
-                min: -5000,
-                max: 5000,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-    /**
-     * Onboard Pitch or Roll sensor
-     */
-    export class PitchSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Pitch",
-                rName: "P",
-                f: () => input.rotation(Rotation.Pitch),
-                min: -180,
-                max: 180,
-                isJacdacSensor: false
-            });
-        }    
-    }
-
-    /**
-     * Onboard Pitch or Roll sensor
-     */
-    export class RollSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Roll",
-                rName: "R",
-                f: () => input.rotation(Rotation.Roll),
-                min: -180,
-                max: 180,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-    /**
-     * Detection of whether of not the Logo has been pressed
-     */
-    export class LogoPressSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Logo Press",
-                rName: "LP",
-                f: () => (input.logoIsPressed() ? 1 : 0),
-                min: 0,
-                max: 1,
-                isJacdacSensor: false
-            });
-        }
-    }
-
-    /**
-     * Sensor for the current Compass Heading
-     * Ranged between 0 and 360 degrees.
-     */
-    export class CompassHeadingSensor extends Sensor {
-        constructor() {
-            super({
-                name: "Compass",
-                rName: "C",
-                f: () => input.compassHeading(),
-                min: 0,
-                max: 360,
-                isJacdacSensor: false
-            });
-        }
-    }
-    /**
-     * Sensor for the Microphone
-     * Ranged between 0 and 255.
-     */
-    export class VolumeSensor extends Sensor {
-        constructor() {super({name: "Microphone", rName: "V", f: () => input.soundLevel(), min: 0, max: 255, isJacdacSensor: false})}
-
-        public static getName(): string {return "Microphone"}
-        public static getRadioName(): string {return "V"}
-        public static getReading(): number {return input.soundLevel()}
-        public static getMinimum(): number {return 0;}
-        public static getMaximum(): number {return 255;}
     }
 }
