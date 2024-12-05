@@ -77,7 +77,7 @@ namespace microdata {
                         if (index != -1) {
                             this.cursor.setOutlineColour()
                             this.selectedSensorAriaIDs.splice(index, 1)
-    
+
                             if (Sensor.getFromName(button.ariaId).isJacdac()) {
                                 this.jacdacSensorSelected = false
                                 this.setOtherJacdacButtonsTo(true)
@@ -92,6 +92,7 @@ namespace microdata {
                         // Addition:
                         else if (this.selectedSensorAriaIDs.length < MAX_NUMBER_OF_SENSORS) {
                             this.cursor.setOutlineColour(7)
+
                             if (Sensor.getFromName(button.ariaId).isJacdac()) {
                                 if (!this.jacdacSensorSelected) {
                                     this.selectedSensorAriaIDs.push(button.ariaId)
@@ -101,9 +102,10 @@ namespace microdata {
                                 }
                             }
         
-                            else
+                            else {
                                 this.selectedSensorAriaIDs.push(button.ariaId)
                                 button.pressable = true
+                            }
                         }
 
                         // Prevention:

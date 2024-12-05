@@ -400,7 +400,8 @@ namespace microdata {
             const tabularRowBufferSize = Screen.HEIGHT / Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS);
             this.drawGridOfVariableColSize(this.headerStringLengths.slice(this.currentCol), tabularRowBufferSize)
 
-            
+            // basic.showNumber(this.headerStringLengths.slice(this.currentCol)[0])
+
             // Values:
             for (let row = 0; row < Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS); row++) {
                 let cumulativeColOffset = 0;

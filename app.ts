@@ -32,7 +32,7 @@ namespace microdata {
 
             const arcadeShieldConnected = shieldhelpers.shieldPresent();
             if (arcadeShieldConnected)
-                this.pushScene(new microdata.Home(this))
+                this.pushScene(new microdata.Home(this));
 
             // Temp disabled elements relating to callbackObj (no mem)
             else
