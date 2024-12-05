@@ -38,158 +38,6 @@ namespace microdata {
     const READING_PRECISION: number = 8
 
     /**
-     * Only used within this sensor file.
-     * Unique attributes to each sensor.
-     * Concrete sensor implementations may override.
-     */
-    interface ISensorable {
-        //---------------------------------------------------------------
-        // Core sensor Information: Modified by concrete implementations:
-        //---------------------------------------------------------------
-
-        /**
-         * Overriden by ALL concrete sensor implementations.
-         */
-        getName(): string;
-
-        /**
-         * Overriden by ALL concrete sensor implementations.
-         */
-        getRadioName(): string;
-
-        /**
-         * Overriden by ALL concrete sensor implementations.
-         * May be return undefined (unconnected Jacdac)
-         * This is caught inside of .readIntoBufferOnce()
-         */
-        getReading(): number;
-
-        /**
-         * NOT overriden by sensor implementations. It uses .getReading(), .getMinimum() & .getMaximum() which all ARE overriden.
-         */
-        getNormalisedReading(): number;
-
-        /**
-         * Overriden by some concrete sensor implementations.
-         */
-        getMinimum(): number;
-
-        /**
-         * Overriden by some concrete sensor implementations.
-         */
-        getMaximum(): number;
-        
-        /**
-         * Overriden by ALL Jacdac concrete sensor implementations.
-         */
-        isJacdac(): boolean;
-
-
-        //--------------------------
-        // Simple Getters & Setters:
-        //--------------------------
-
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getMaxBufferSize(): number;
-
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getNthReading(n: number): number;
-        
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getNthHeightNormalisedReading(n: number): number;
-        
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getBufferLength(): number;
-        
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getHeightNormalisedBufferLength(): number;
-        
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getPeriod(): number;
-
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        getMeasurements(): number;
-        
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        hasMeasurements(): boolean;
-
-
-        //-------------------------
-        // More complex behaviours:
-        //-------------------------
-
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         * Returns 3 strings each with a line about the sensor's recording information.
-         * Used in dataRecorder
-         */
-        getRecordingInformation(): string[];
-
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         * Returns 3 strings each with a line about the sensor's event information.
-         * Used in dataRecorder
-         */
-        getEventInformation(): string[];
-
-        
-        /**
-         * Not overriden by any concrete sensor implmentation.
-         */
-        setBufferSize(newBufferSize: number): void;
-
-        /**
-         * Add one value to this.dataBuffer, add that value normalised into this.normalisedBuffer too.
-         * No value is added if the reading is undefined (such as from a disconnected Jacdac sensor).
-         * If the (this.dataBuffer.length >= this.maxBufferSize) then then the oldest values are removed.
-         * @param fromY the offset by which the reading should be raised before adding to this.normalisedBuffer
-         * @returns 
-         */
-        readIntoBufferOnce(fromY: number): void;
-
-        /**
-         * Populates this.normalisedBuffer with the Y position for each element in this.dataBuffer.
-         * Uses BUFFERED_SCREEN_HEIGHT.
-         * Invoked upon scrolling in the live-data-viewer
-         * @param fromY The y value that each element should be offset by.
-         */
-        normaliseDataBuffer(fromY: number): void;
-
-        /**
-         * Invoked inside of recordingConfigSelection.
-         * @param config see recordingConfigSelection
-         * @param isInEventMode will this sensor be used to track events?
-         */
-        setConfig(config: RecordingConfig): void;
-
-        /**
-         * Records a sensor's reading to the datalogger.
-         * Will set the event column in the datalogger to "N/A" if not in event mode.
-         * Invoked by dataRecorder.log().
-         * Writes the "Time (Ms)" column using a cumulative period.
-         */
-        log(time: number): string;
-    }
-
-
-
-    /**
      * Responsible for making an array of sensors with configurations read & log their data accurately.
      * This class is used by both the DataRecorder (when an Arcade Shield is connected), and by a microbit without an Arcade Shield (see DistributedLoggingProtocol).
      * The scheduler runs in a separate thread and accounts for sensors with different numbers of measurements, periods and events.
@@ -203,7 +51,7 @@ namespace microdata {
         private sensors: Sensor[];
 
         /** This class can be used evven if an Arcade Shield is not connected; the 5x5 matrix will display the number of measurements for the sensor with the most time left if this is the case */
-        private sensorWithMostTimeLeft: Sensor
+        private sensorWithMostTimeLeft: Sensor;
 
         /** Should the information from the sensorWithMostTimeLeft be shown on the basic's 5x5 LED matrix? */
         private showOnBasicScreen: boolean = false;
@@ -361,7 +209,7 @@ namespace microdata {
      * Abstraction for all available sensors.
      * This class is extended by each of the concrete sensors which add on static methods for their name, getting their readings & optionally min/max readings
      */
-    export class Sensor implements ISensorable {
+    export class Sensor {
         /** Immutable: Forward facing name that is presented to the user in LiveDataViewer, Sensor Selection & TabularDataViewer */
         private name: string;
         /** Immutable: Name used for Radio Communication, a unique shorthand, see distributedLogging.ts */
@@ -667,6 +515,7 @@ namespace microdata {
                     setupFn: () => modules.temperature1.start()
                 });
         }
+
 
         //---------------------
         // Interface Functions:
