@@ -23,7 +23,6 @@
         "app.ts",
         "home.ts",
         "version.ts",
-        "utils.ts",
         "sensors.ts",
         "liveDataViewer.ts",
         "dataViewSelect.ts",
