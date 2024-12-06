@@ -84,14 +84,16 @@ namespace microdata {
             this.schedule = sensors.map((sensor) => {return {sensor, waitTime: sensor.getPeriod()}})
         }
 
+        //----------------------------------------------
+        // Outward facing methods:
+        // Invoked by distributedLogging & dataRecorder:
+        //----------------------------------------------
 
-        loggingComplete(): boolean {return !(this.schedule.length > 0)}
+        public loggingComplete(): boolean {return !(this.schedule.length > 0)}
 
-
-        stop() {
+        public stop() {
             this.continueLogging = false;
         }
-
 
         /**
          * Schedules the sensors and orders them to .log()
@@ -103,7 +105,7 @@ namespace microdata {
          * Temp disabled elements relating to callbackObj (no mem)
          * @param callbackObj is used by the DistributedLoggingProtocol; after each log & after the algorithm finishes a callback will be made
         */
-        start(callbackObj?: ITargetDataLoggedCallback) {
+        public start(callbackObj?: ITargetDataLoggedCallback) {
             const callbackAfterLog: boolean = (callbackObj == null) ? false : true
             
             control.inBackground(() => {

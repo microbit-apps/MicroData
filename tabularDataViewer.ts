@@ -47,6 +47,11 @@ namespace microdata {
          */
         private static dataRows: string[][];
 
+        
+        //---------
+        // FOR GUI:
+        //---------
+
         /**
          * Needed to centre the headers in .draw()
          * No need to calculate once per frame
@@ -54,15 +59,11 @@ namespace microdata {
         private headerStringLengths: number[];
 
         /**
-         * Unfiltered at start
+         * Unfiltered at startJac Moist.
          * Pressing A sets to Filtered
          * Pressing B sets to Unfiltered
          */
         private guiState: DATA_VIEW_DISPLAY_MODE;
-
-        //---------
-        // FOR GUI:
-        //---------
 
         /**
          * Will this viewer need to scroll to reveal all of the rows?
@@ -70,6 +71,8 @@ namespace microdata {
         private static needToScroll: boolean
 
         /**
+         * User modified column index; via UP & DOWN.
+         * 
          * Cursor location, when the cursor is on the first or last row 
          * and UP or DOWN is invoked this.currentRowOffset is modified once instead.
          * Modified when pressing UP or DOWN
@@ -77,6 +80,8 @@ namespace microdata {
         private currentRow: number
 
         /**
+         * User modified column index; via LEFT & RIGHT.
+         * 
          * Used to determine which columns to draw.
          */
         private currentCol: number
@@ -118,6 +123,7 @@ namespace microdata {
             this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW
             TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS
 
+            // Start on the 2nd row; since the first row is for headers:
             this.currentRow = 1
             this.currentCol = 0
             
@@ -137,7 +143,7 @@ namespace microdata {
             TabularDataViewer.currentRowOffset = 1
             TabularDataViewer.nextDataChunk();
 
-            this.headerStringLengths = TabularDataViewer.dataLoggerHeader.map((header) => (header.length + 3) * font.charWidth)
+            this.headerStringLengths = TabularDataViewer.dataLoggerHeader.map((header) => (header.length + 5) * font.charWidth)
 
             //----------
             // Controls:
@@ -170,7 +176,7 @@ namespace microdata {
                         this.currentRow = 1
 
                         this.nextFilteredDataChunk();
-                        this.getNumberOfFilteredRows();
+                        this.updateNeedToScroll();
                         this.guiState = DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW
                     }
                 }
@@ -182,21 +188,22 @@ namespace microdata {
                 () => {
                     if (this.currentRow > 0)
                         this.currentRow = Math.max(this.currentRow - 1, 1);
-
+                    
+                    /**
+                     * When scrolling up the cursor might be at the bottom of the screen; so just move the cursor up one.
+                     * Or, the cursor could be on the 2nd row of the screen (index 1 since the first row are headers):
+                     *      So don't move the cursor, load a new chunk of data.
+                     */
                     if (TabularDataViewer.needToScroll && this.currentRow == 1) {
                         TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
                         
-                        if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {       
+                        if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
                             TabularDataViewer.nextDataChunk();
-                        }
-
-                        else {
+                        else 
                             this.nextFilteredDataChunk()
-                        }
 
-                        if (TabularDataViewer.currentRowOffset == 1) {
+                        if (TabularDataViewer.currentRowOffset == 1)
                             this.currentRow = 1
-                        }
                     }
                 }
             )
@@ -206,6 +213,13 @@ namespace microdata {
                 controller.down.id,
                 () => {
                     let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : datalogger.getNumberOfRows();
+
+                    /**
+                     * Same situation as when scrolling UP:
+                     * When scrolling down the cursor might be at the top of the screen; so just move the cursor down one.
+                     * Or, the cursor could be on the last row of the screen:
+                     *      So don't move the cursor, load a new chunk of data.
+                     */
 
                     // Boundary where there are TABULAR_MAX_ROWS - 1 number of rows:
                     if (datalogger.getNumberOfRows() == TABULAR_MAX_ROWS)
@@ -279,6 +293,11 @@ namespace microdata {
         }
 
 
+        //-------------------------------
+        // Non static Data Chunk methods:
+        //-------------------------------
+
+
         /**
          * Fill this.dataRows with up to TABULAR_MAX_ROWS elements of data.
          * Filter rows by this.filteredSensorName.
@@ -294,13 +313,19 @@ namespace microdata {
                 TabularDataViewer.dataRows.push(datalogger.getRows(0, 1).split("\n")[0].split(","))
             
             while (start < datalogger.getNumberOfRows() && TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) {
-                const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n");
-                for (let i = 0; i < rows.length; i++) {
-                    const data = rows[i].split(",")
-                    if (data[0] == this.filteredSensorName) {
-                        TabularDataViewer.dataRows.push(data);
+                const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
 
-                        if (TabularDataViewer.dataRows.length == (TabularDataViewer.currentRowOffset == 0 ? 3 : 2)) {
+                // Turn each row into a column of data:
+                for (let i = 0; i < rows.length; i++) {
+                    const cols = rows[i].split(",")
+                    
+                    // Only add if it's what we're looking for:
+                    if (cols[0] == this.filteredSensorName) {
+                        TabularDataViewer.dataRows.push(cols);
+
+                        // Document where this read started from, so the next read starts in the correct position:
+                        // Either 3 or 2; since the first read has headers (1 additional row):
+                        if (TabularDataViewer.dataRows.length == ((TabularDataViewer.currentRowOffset == 0) ? 3 : 2)) {
                             this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = start + i
                         }
                     }
@@ -314,19 +339,21 @@ namespace microdata {
          * Set this.numberOfFilteredRows & this.needToScroll 
          * Based upon this.filteredSensorName
          */
-        private getNumberOfFilteredRows() {
+        private updateNeedToScroll() {
+            const chunkSize = Math.min(20, datalogger.getNumberOfRows()); // 20 as limit for search
+            
             this.numberOfFilteredRows = 0
-
-            const chunkSize = Math.min(20, datalogger.getNumberOfRows())
             for (let chunk = 0; chunk < datalogger.getNumberOfRows(); chunk+=chunkSize) {
                 const rows = datalogger.getRows(chunk, chunkSize).split("\n");
                 for (let i = 0; i < rows.length; i++) {
-                    // Name:
+                    // Name check:
                     if (rows[i].split(",", 1)[0] == this.filteredSensorName) {
                         this.numberOfFilteredRows += 1
                     }
                 }
             }
+
+            // Are there more rows that we could display?
             TabularDataViewer.needToScroll = this.numberOfFilteredRows > TABULAR_MAX_ROWS
         }
 
@@ -347,12 +374,10 @@ namespace microdata {
                 }
 
                 // The last column should use all remaining space, if it is lesser than that remaining space:
-                if (col == colBufferSizes.length - 1 || cumulativeColOffset + colBufferSizes[col] + colBufferSizes[col + 1] > Screen.WIDTH) {
-                    cumulativeColOffset += Screen.WIDTH - cumulativeColOffset
-                }
-                else {
-                    cumulativeColOffset += colBufferSizes[col]
-                }
+                if (col == colBufferSizes.length - 1 || cumulativeColOffset + colBufferSizes[col] + colBufferSizes[col + 1] > Screen.WIDTH)
+                    cumulativeColOffset += Screen.WIDTH - cumulativeColOffset;
+                else
+                    cumulativeColOffset += colBufferSizes[col];
 
                 if (cumulativeColOffset <= Screen.WIDTH) {
                     Screen.drawLine(
@@ -400,36 +425,33 @@ namespace microdata {
             const tabularRowBufferSize = Screen.HEIGHT / Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS);
             this.drawGridOfVariableColSize(this.headerStringLengths.slice(this.currentCol), tabularRowBufferSize)
 
-            // basic.showNumber(this.headerStringLengths.slice(this.currentCol)[0])
-
-            // Values:
+            // Write the data into the grid:
             for (let row = 0; row < Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS); row++) {
                 let cumulativeColOffset = 0;
 
-                // Skip the first column: Time (Seconds)
-                for (let col = 0; col < TabularDataViewer.dataRows[0].length - this.currentCol; col++) { // datalogger.getRows(1).split(",").length
+                // Go through each column:
+                for (let col = 0; col < TabularDataViewer.dataRows[0].length - this.currentCol; col++) {
                     const colID: number = col + this.currentCol;
-                    let value: string = TabularDataViewer.dataRows[row][colID];
 
-                    // Never cut events, dont cut readings if also showing time.
-                    // If showing readings and events, cut readings.
-                    if (col == 0 && this.currentCol == 2)
-                        value = value.slice(0, 5);
+                    let columnValue: string = TabularDataViewer.dataRows[row][colID];
 
+                    // Bounds check:
                     if (cumulativeColOffset + this.headerStringLengths[colID] > Screen.WIDTH)
                         break;
 
                     // In this.drawGridOfVariableSize: If the column after this one would not fit grant this one the remanining space
                     // This will align the text to the center of this column space
-                    if (colID == TabularDataViewer.dataRows[0].length - 1 || cumulativeColOffset + this.headerStringLengths[colID] + this.headerStringLengths[colID + 1] > Screen.WIDTH) {
+                    if (colID == TabularDataViewer.dataRows[0].length - 1 || cumulativeColOffset + this.headerStringLengths[colID] + this.headerStringLengths[colID + 1] > Screen.WIDTH)
                         cumulativeColOffset += ((Screen.WIDTH - cumulativeColOffset)>> 1) - (this.headerStringLengths[colID]>> 1);
-                    }
 
+
+                    // Write the columnValue in the centre of each grid box:
                     Screen.print(
-                        value,
-                        Screen.LEFT_EDGE + cumulativeColOffset + (this.headerStringLengths[colID]>> 1) - ((font.charWidth * value.length)>> 1),
-                        Screen.TOP_EDGE + (row * tabularRowBufferSize) + (tabularRowBufferSize>> 1) - 4,
-                        0xb,
+                        columnValue,
+                        Screen.LEFT_EDGE + cumulativeColOffset + (this.headerStringLengths[colID] >> 1) - ((font.charWidth * columnValue.length) >> 1),
+                        Screen.TOP_EDGE + (row * tabularRowBufferSize) + (tabularRowBufferSize >> 1) - 4,
+                        // 0xb,
+                        1,
                         bitmaps.font8
                     )
 
