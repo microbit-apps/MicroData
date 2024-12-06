@@ -186,25 +186,41 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.up.id,
                 () => {
-                    if (this.currentRow > 0)
-                        this.currentRow = Math.max(this.currentRow - 1, 1);
-                    
-                    /**
-                     * When scrolling up the cursor might be at the bottom of the screen; so just move the cursor up one.
-                     * Or, the cursor could be on the 2nd row of the screen (index 1 since the first row are headers):
-                     *      So don't move the cursor, load a new chunk of data.
-                     */
-                    if (TabularDataViewer.needToScroll && this.currentRow == 1) {
-                        TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
-                        
-                        if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
-                            TabularDataViewer.nextDataChunk();
-                        else 
-                            this.nextFilteredDataChunk()
+                    let tick = true;
+                    control.onEvent(
+                        ControllerButtonEvent.Released,
+                        controller.up.id,
+                        () => tick = false
+                    )
 
-                        if (TabularDataViewer.currentRowOffset == 1)
-                            this.currentRow = 1
+
+                    // Control logic:
+                    while (tick) {
+                        if (this.currentRow > 0)
+                            this.currentRow = Math.max(this.currentRow - 1, 1);
+                        
+                        /**
+                         * When scrolling up the cursor might be at the bottom of the screen; so just move the cursor up one.
+                         * Or, the cursor could be on the 2nd row of the screen (index 1 since the first row are headers):
+                         *      So don't move the cursor, load a new chunk of data.
+                         */
+                        if (TabularDataViewer.needToScroll && this.currentRow == 1) {
+                            TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
+                            
+                            if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
+                                TabularDataViewer.nextDataChunk();
+                            else 
+                                this.nextFilteredDataChunk()
+
+                            if (TabularDataViewer.currentRowOffset == 1)
+                                this.currentRow = 1
+                        }
+                        
+                        basic.pause(100)
                     }
+
+                    // Reset binding
+                    control.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
                 }
             )
 
@@ -212,39 +228,51 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.down.id,
                 () => {
-                    let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : datalogger.getNumberOfRows();
+                    let tick = true;
+                    control.onEvent(
+                        ControllerButtonEvent.Released,
+                        controller.down.id,
+                        () => tick = false
+                    );
 
-                    /**
-                     * Same situation as when scrolling UP:
-                     * When scrolling down the cursor might be at the top of the screen; so just move the cursor down one.
-                     * Or, the cursor could be on the last row of the screen:
-                     *      So don't move the cursor, load a new chunk of data.
-                     */
+                    // Control logic:
+                    while (tick) {
+                        let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : datalogger.getNumberOfRows();
 
-                    // Boundary where there are TABULAR_MAX_ROWS - 1 number of rows:
-                    if (datalogger.getNumberOfRows() == TABULAR_MAX_ROWS)
-                        rowQty = TABULAR_MAX_ROWS - 1
+                        /**
+                         * Same situation as when scrolling UP:
+                         * When scrolling down the cursor might be at the top of the screen; so just move the cursor down one.
+                         * Or, the cursor could be on the last row of the screen:
+                         *      So don't move the cursor, load a new chunk of data.
+                         */
 
-                    if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW)
-                        rowQty = this.numberOfFilteredRows
+                        // Boundary where there are TABULAR_MAX_ROWS - 1 number of rows:
+                        if (datalogger.getNumberOfRows() == TABULAR_MAX_ROWS)
+                            rowQty = TABULAR_MAX_ROWS - 1
 
-                    if (TabularDataViewer.needToScroll) {
-                        if (this.currentRow + 1 < TABULAR_MAX_ROWS)
-                            this.currentRow += 1;
+                        if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW)
+                            rowQty = this.numberOfFilteredRows
 
-                        else if (TabularDataViewer.currentRowOffset <= rowQty - TABULAR_MAX_ROWS - 1) {
-                            TabularDataViewer.currentRowOffset += 1;
+                        if (TabularDataViewer.needToScroll) {
+                            if (this.currentRow + 1 < TABULAR_MAX_ROWS)
+                                this.currentRow += 1;
 
-                            if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
-                                TabularDataViewer.nextDataChunk();
-                            else
-                                this.nextFilteredDataChunk()
+                            else if (TabularDataViewer.currentRowOffset <= rowQty - TABULAR_MAX_ROWS - 1) {
+                                TabularDataViewer.currentRowOffset += 1;
+
+                                if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
+                                    TabularDataViewer.nextDataChunk();
+                                else
+                                    this.nextFilteredDataChunk()
+                            }
                         }
-                    }
 
-                    else if (this.currentRow < rowQty) {
-                        this.currentRow += 1;
+                        else if (this.currentRow < rowQty) {
+                            this.currentRow += 1;
+                        }
+                        basic.pause(100)
                     }
+                    control.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
                 }
             )
 
@@ -274,7 +302,6 @@ namespace microdata {
         public static updateDataChunks() {
             TabularDataViewer.nextDataChunk()
         }
-
 
         /**
          * Used to retrieve the next chunk of data.
