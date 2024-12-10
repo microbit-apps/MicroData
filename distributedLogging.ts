@@ -325,6 +325,7 @@ namespace microdata {
                  * COMMANDER REQUESTS ID
                  */
                 else if (message[MESSAGE_COMPONENT.NETWORK_COMMAND] == NETWORK_COMMAND_STRING[NETWORK_COMMAND.GET_ID]) {
+                    basic.pause(50 * this.id) // The Commander's request is broadcast, we don't want all the Targets to transmit at the same time, so wait a bit.
                     this.sendMessage(this.createMessage(NETWORK_COMMAND.GET_ID, [this.id]))
                 }
 
@@ -504,24 +505,16 @@ namespace microdata {
         public commanderRequestTargetIDs(): number[] {
             DistributedLoggingScreen.streamingDone = false;
             const currentTargetIDs = this.targetIDs;
-            let best: number[];
-
-            this.targetIDs = []
-
             for (let i = 0; i < 5; i++) {
+                this.targetIDs = [];
                 this.sendMessage(this.createMessage(NETWORK_COMMAND.GET_ID));
+                basic.pause(200) // Wait for the messages to come in
 
                 if (this.targetIDs.length >= currentTargetIDs.length) {
-                    best = this.targetIDs;
-                    break
-                }
-
-                else if (this.targetIDs.length > best.length) {
-                    best = this.targetIDs;
+                    break;
                 }
             }
 
-            this.targetIDs = best;
             DistributedLoggingScreen.streamingDone = true;
             return this.targetIDs;
         }
