@@ -393,7 +393,12 @@ namespace microdata {
         // Commander-only Methods:
         //------------------------
 
-        public addTargetID(id: number) {this.targetIDs.push(id)}
+        protected addTargetID(id: number) {
+            this.targetIDs.push(id)
+            this.targetIDs = this.targetIDs.sort();
+        }
+        protected isDuplicateTarget(id: number) {return this.targetIDs.filter((value) => value == id).length}
+         
 
         private becomeCommander() {
             this.radioMode = RADIO_LOGGING_MODE.COMMANDER
@@ -419,7 +424,10 @@ namespace microdata {
                  * INCOMING GET ID RESPONSE
                  */
                 else if (message[MESSAGE_COMPONENT.NETWORK_COMMAND] == NETWORK_COMMAND_STRING[NETWORK_COMMAND.GET_ID]) {
-                    this.addTargetID(message[MESSAGE_COMPONENT.DATA_START])
+                    const targetID = message[MESSAGE_COMPONENT.DATA_START];
+                    if (this.isDuplicateTarget(targetID))
+                        return
+                    this.addTargetID(targetID)
                 }
 
                 /**
@@ -494,18 +502,28 @@ namespace microdata {
          * @returns a list of these ids
          */
         public commanderRequestTargetIDs(): number[] {
-            DistributedLoggingScreen.streamingDone = false
+            DistributedLoggingScreen.streamingDone = false;
+            const currentTargetIDs = this.targetIDs;
+            let best: number[];
+
             this.targetIDs = []
 
-            // Start timeout:
-            control.inBackground(() => {
-                basic.pause(MESSAGE_LATENCY_MS * 2)
-                DistributedLoggingScreen.streamingDone = true
-            })
+            for (let i = 0; i < 5; i++) {
+                this.sendMessage(this.createMessage(NETWORK_COMMAND.GET_ID));
 
-            this.sendMessage(this.createMessage(NETWORK_COMMAND.GET_ID))
-            basic.pause(MESSAGE_LATENCY_MS)
-            return this.targetIDs
+                if (this.targetIDs.length >= currentTargetIDs.length) {
+                    best = this.targetIDs;
+                    break
+                }
+
+                else if (this.targetIDs.length > best.length) {
+                    best = this.targetIDs;
+                }
+            }
+
+            this.targetIDs = best;
+            DistributedLoggingScreen.streamingDone = true;
+            return this.targetIDs;
         }
     }
 
@@ -610,7 +628,7 @@ namespace microdata {
                         control.inBackground(() => {
                             while (this.uiState == UI_STATE.SHOWING_CONNECTED_MICROBITS) {
                                 this.targetIDCache = this.distributedLogger.commanderRequestTargetIDs()
-                                basic.pause(250)
+                                basic.pause(MESSAGE_LATENCY_MS * 2)
                             }
                         })
                     }
@@ -740,7 +758,7 @@ namespace microdata {
                                 1,
                                 y
                             )
-                            y += 8
+                            y += 10
                         }
                     })
 

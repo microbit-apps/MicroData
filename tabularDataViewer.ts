@@ -333,18 +333,18 @@ namespace microdata {
          * Mutates: this.filteredReadStarts[this.yScrollOffset + 1]
          */
         private nextFilteredDataChunk() {
-            let start = this.filteredReadStarts[TabularDataViewer.currentRowOffset]
+            let start = this.filteredReadStarts[TabularDataViewer.currentRowOffset];
             
             TabularDataViewer.dataRows = []
             if (TabularDataViewer.currentRowOffset == 0)
-                TabularDataViewer.dataRows.push(datalogger.getRows(0, 1).split("\n")[0].split(","))
+                TabularDataViewer.dataRows.push(datalogger.getRows(1, 1).split("\n")[0].split(",")); // 0 -> 1;
             
             while (start < datalogger.getNumberOfRows() && TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) {
                 const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
 
                 // Turn each row into a column of data:
                 for (let i = 0; i < rows.length; i++) {
-                    const cols = rows[i].split(",")
+                    const cols = rows[i].split(",");
                     
                     // Only add if it's what we're looking for:
                     if (cols[0] == this.filteredSensorName) {
