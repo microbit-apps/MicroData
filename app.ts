@@ -31,14 +31,16 @@ namespace microdata {
             radio.setTransmitPower(7)
             radio.setFrequencyBand(14)
 
+            sendAllAssetsOverRadio();
+
             this.sceneManager = new SceneManager()
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
-            const arcadeShieldConnected = shieldhelpers.shieldPresent();
-            if (arcadeShieldConnected)
-                this.pushScene(new microdata.Home(this));
-            else
-                new DistributedLoggingProtocol(this, false);
+            // const arcadeShieldConnected = shieldhelpers.shieldPresent();
+            // if (arcadeShieldConnected)
+            this.pushScene(new microdata.Home(this));
+            //     else
+            //         new DistributedLoggingProtocol(this, false);
         }
 
         public pushScene(scene: Scene) {

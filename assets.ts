@@ -8,44 +8,44 @@ namespace microdata {
 
     }
 
+    export function sendAllAssetsOverRadio() {
+        const iconNames: string[] = [
+            "wordLogo",
+            "microbitLogo",
+            "edit_program",
+            "MISSING",
+            "largeDisk",
+            "linear_graph_1",
+            "led_light_sensor",
+            "thermometer",
+            "accelerometer",
+            "finger_press",
+            "green_tick",
+            "magnet",
+            "pin_0",
+            "pin_1",
+            "pin_2",
+            "right_turn",
+            "right_spin",
+            "microphone",
+            "tile_button_a",
+            "tile_button_b",
+            "compass",
+            "radio_set_group",
+            "largeSettingsGear",
+            "microbitLogoWhiteBackground"
+        ];
 
-    // export function sendAllAssetsOverRadio() {
-    //     const iconNames: string[] = [
-    //         "wordLogo",
-    //         "microbitLogo",
-    //         "edit_program",
-    //         "MISSING",
-    //         "largeDisk",
-    //         "linear_graph_1",
-    //         "led_light_sensor",
-    //         "thermometer",
-    //         "accelerometer",
-    //         "finger_press",
-    //         "green_tick",
-    //         "magnet",
-    //         "pin_0",
-    //         "pin_1",
-    //         "pin_2",
-    //         "right_turn",
-    //         "right_spin",
-    //         "microphone",
-    //         "tile_button_a",
-    //         "tile_button_b",
-    //         "compass",
-    //         "radio_set_group",
-    //         "largeSettingsGear",
-    //         "microbitLogoWhiteBackground"
-    //     ];
+        basic.showString("Startin")
+        radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
+        iconNames.forEach(name => {
+            Screen.sendBitmap(name, icons.get(name))
+        })
 
-    //     basic.showString("Startin")
-    //     radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
-    //     iconNames.forEach(name => {
-    //         Screen.sendBitmap(name, icons.get(name))
-    //     })
+        radio.sendString("ASSET_TX_END")
+        basic.showString("Done")
+    }
 
-    //     radio.sendString("ASSET_TX_END")
-    //     basic.showString("Done")
-    // }
 
     // All unused assets have been cut since the flash storage limit has been approached
 
