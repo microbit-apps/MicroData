@@ -41,6 +41,8 @@ namespace microdata {
             this.pushScene(new microdata.Home(this));
             //     else
             //         new DistributedLoggingProtocol(this, false);
+            // else
+            // new DistributedLoggingProtocol(this, false);
         }
 
         public pushScene(scene: Scene) {
