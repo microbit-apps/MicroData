@@ -36,7 +36,7 @@ namespace microdata {
             "microbitLogoWhiteBackground"
         ];
 
-        basic.showString("Startin")
+        basic.showString("St")
         radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
         iconNames.forEach(name => {
             Screen.sendBitmap(name, icons.get(name))
