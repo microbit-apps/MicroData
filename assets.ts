@@ -36,13 +36,44 @@ namespace microdata {
             "microbitLogoWhiteBackground"
         ];
 
-        basic.showString("St")
-        radio.sendString("ASSET_TX_START" + "," + iconNames.length)
-        iconNames.forEach(name => {
-            Screen.sendBitmap(name, icons.get(name))
-        })
 
-        radio.sendString("ASSET_TX_END")
+        const waitForAck = () => {
+            // basic.showString("W")
+
+            let ackReceived = false;
+            radio.onReceivedString(_ => {
+                ackReceived = true;
+            })
+
+            // timeout:
+            for (let timeChunk = 0; timeChunk < 500; timeChunk += 25) {
+                if (ackReceived)
+                    break
+                basic.pause(25)
+            }
+
+            radio.onReceivedValue(_ => { }) // reset radio
+            return ackReceived;
+        };
+
+
+        basic.showString("St")
+        radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
+        basic.pause(50)
+
+        while (!waitForAck()) {
+            radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
+            basic.pause(50)
+        }
+
+        // iconNames.forEach(name => {
+        for (let i = 0; i < 1; i++) {
+            Screen.sendBitmap(iconNames[i], icons.get(iconNames[i]))
+            // Screen.sendBitmap(name, icons.get(name))
+            // })
+        }
+
+        // radio.sendString("ASSET_TX_END")
         basic.showString("Done")
     }
 
