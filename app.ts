@@ -1,6 +1,6 @@
 namespace microdata {
     import AppInterface = user_interface_base.AppInterface
-    import Scene  = user_interface_base.Scene
+    import Scene = user_interface_base.Scene
     import SceneManager = user_interface_base.SceneManager
 
     // Auto-save slot
@@ -20,7 +20,7 @@ namespace microdata {
      *      It will show a :) on its LEDs and try to become a Target - where it will receive radio commands from a Commander Microbit (one with an Arcade Shield)
      */
     export class App implements AppInterface {
-        sceneManager: SceneManager 
+        sceneManager: SceneManager
 
         constructor() {
             // One interval delay to ensure all static constructors have executed.
@@ -43,6 +43,14 @@ namespace microdata {
 
         public popScene() {
             this.sceneManager.popScene()
+        }
+
+        public save(slot: string, buffer: Buffer): boolean {
+            return true;
+        }
+
+        public load(slot: string): Buffer {
+            return Buffer.create(0)
         }
     }
 }
