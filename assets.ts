@@ -59,11 +59,11 @@ namespace microdata {
 
         basic.showString("St")
         radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
-        basic.pause(50)
+        basic.pause(10)
 
         while (!waitForAck()) {
             radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
-            basic.pause(50)
+            basic.pause(10)
         }
 
         // iconNames.forEach(name => {
@@ -74,7 +74,7 @@ namespace microdata {
         }
 
         // radio.sendString("ASSET_TX_END")
-        basic.showString("Done")
+        basic.showString("D")
     }
 
 
