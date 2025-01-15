@@ -38,7 +38,7 @@ namespace microdata {
 
 
         const waitForAck = () => {
-            // basic.showString("W")
+            basic.showString("W")
 
             let ackReceived = false;
             radio.onReceivedString(_ => {
