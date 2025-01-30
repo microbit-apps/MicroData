@@ -46,3 +46,12 @@ If you want to record data without an Arcade Shield and you do not need Jacdac s
 #### Via Web App
 
 You need to use https://makecode.microbit.org/beta currently to build MicroData. You can load this repo into MakeCode using the Import button in the home page and selecting "Import URL". Please note that there is currently no simulator support for the arcade shield extension (https://github.com/microsoft/pxt-arcadeshield) that MicroData depends on.
+
+#### Via VS Code MakeCode extension
+
+1.	Clone https://github.com/microsoft/vscode-makecode
+2.	cd to vscode-makecode repo directory and checkout branch dev/riknoll/simx
+3.	yarn install
+4.	code .
+5.	F5 to run new instance of VS Code
+6.	open folder to the directory of this repo
