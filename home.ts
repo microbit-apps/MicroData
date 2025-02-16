@@ -81,8 +81,8 @@ namespace microdata {
         private drawVersion() {
             const font = bitmaps.font5
             Screen.print(
-                "v1.5.3",
-                Screen.RIGHT_EDGE - font.charWidth * "v1.5.3".length,
+                "v1.6.0",
+                Screen.RIGHT_EDGE - font.charWidth * "v1.6.0".length,
                 Screen.BOTTOM_EDGE - font.charHeight - 2,
                 0xb,
                 font

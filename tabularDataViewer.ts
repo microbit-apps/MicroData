@@ -47,7 +47,7 @@ namespace microdata {
          */
         private static dataRows: string[][];
 
-        
+
         //---------
         // FOR GUI:
         //---------
@@ -101,12 +101,16 @@ namespace microdata {
          * This is unique per sensor, it is calculated once upon pressing A.
          */
         private numberOfFilteredRows: number
-        
+
         /**
          * Set when pressing A, filtered against in this.nextFilteredDataChunk()
          */
-        private filteredSensorName: string
-        
+        private filteredValue: string
+
+
+        /** Which column did the user press A on? Corresponds to this.filteredValue */
+        private filteredCol: number;
+
         /**
          * There may be any number of sensors, and each may have a unique period & number of measurements.
          * Data is retrieved in batches via datalogger.getRow():
@@ -115,6 +119,7 @@ namespace microdata {
          */
         private filteredReadStarts: number[]
 
+        /** TabularDataViewer may be entered from the Command Mode, DataViewSelect or View Data (Home screen 4th button) */
         private goBack1PageFn: () => void
 
         constructor(app: AppInterface, goBack1PageFn: () => void) {
@@ -126,15 +131,16 @@ namespace microdata {
             // Start on the 2nd row; since the first row is for headers:
             this.currentRow = 1
             this.currentCol = 0
-            
+
             this.numberOfFilteredRows = 0
 
-            this.filteredSensorName = ""
+            this.filteredValue = ""
             this.filteredReadStarts = [0]
+            this.filteredCol = 0
 
             this.goBack1PageFn = goBack1PageFn
         }
-        
+
         /* override */ startup() {
             super.startup()
 
@@ -153,8 +159,8 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.B.id,
                 () => {
-                    if(this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW) {
-                        TabularDataViewer.currentRowOffset = 0
+                    if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW) {
+                        TabularDataViewer.currentRowOffset = 1
                         this.currentRow = 1
 
                         TabularDataViewer.nextDataChunk();
@@ -171,7 +177,9 @@ namespace microdata {
                 controller.A.id,
                 () => {
                     if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
-                        this.filteredSensorName = TabularDataViewer.dataRows[this.currentRow][0]
+                        this.filteredCol = this.currentCol;
+                        this.filteredValue = TabularDataViewer.dataRows[this.currentRow][this.filteredCol]
+
                         TabularDataViewer.currentRowOffset = 0
                         this.currentRow = 1
 
@@ -198,7 +206,7 @@ namespace microdata {
                     while (tick) {
                         if (this.currentRow > 0)
                             this.currentRow = Math.max(this.currentRow - 1, 1);
-                        
+
                         /**
                          * When scrolling up the cursor might be at the bottom of the screen; so just move the cursor up one.
                          * Or, the cursor could be on the 2nd row of the screen (index 1 since the first row are headers):
@@ -206,16 +214,17 @@ namespace microdata {
                          */
                         if (TabularDataViewer.needToScroll && this.currentRow == 1) {
                             TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
-                            
-                            if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
-                                TabularDataViewer.nextDataChunk();
-                            else 
-                                this.nextFilteredDataChunk()
 
-                            if (TabularDataViewer.currentRowOffset == 1)
-                                this.currentRow = 1
+                            if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
+                                TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
+                                TabularDataViewer.nextDataChunk();
+                            }
+                            else {
+                                TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 0);
+                                this.nextFilteredDataChunk()
+                            }
                         }
-                        
+
                         basic.pause(100)
                     }
 
@@ -311,12 +320,13 @@ namespace microdata {
         private static nextDataChunk() {
             const rows = datalogger.getRows(TabularDataViewer.currentRowOffset, TABULAR_MAX_ROWS).split("\n");
             TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS
-            
-            TabularDataViewer.dataRows = [TabularDataViewer.dataLoggerHeader]
+
+            let nextDataChunk = [TabularDataViewer.dataLoggerHeader]
             for (let i = 0; i < rows.length; i++) {
                 if (rows[i][0] != "")
-                    TabularDataViewer.dataRows.push(rows[i].split(","));
+                    nextDataChunk.push(rows[i].split(","));
             }
+            TabularDataViewer.dataRows = nextDataChunk
         }
 
 
@@ -327,54 +337,55 @@ namespace microdata {
 
         /**
          * Fill this.dataRows with up to TABULAR_MAX_ROWS elements of data.
-         * Filter rows by this.filteredSensorName.
+         * Filter rows by this.filteredValue.
          * Sets the next filteredReadStart by setting this.filteredReadStarts[this.yScrollOffset + 1]
          * Mutates: this.dataRows
          * Mutates: this.filteredReadStarts[this.yScrollOffset + 1]
          */
         private nextFilteredDataChunk() {
             let start = this.filteredReadStarts[TabularDataViewer.currentRowOffset];
-            
-            TabularDataViewer.dataRows = []
-            if (TabularDataViewer.currentRowOffset == 0)
-                TabularDataViewer.dataRows.push(datalogger.getRows(1, 1).split("\n")[0].split(",")); // 0 -> 1;
-            
-            while (start < datalogger.getNumberOfRows() && TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) {
+
+            let nextFilteredDataChunk = [TabularDataViewer.dataLoggerHeader]
+            // if (TabularDataViewer.currentRowOffset == 0)
+            //     TabularDataViewer.dataRows.push(datalogger.getRows(1, 1).split("\n")[0].split(",")); // 0 -> 1;
+
+            while (start < datalogger.getNumberOfRows() && nextFilteredDataChunk.length < TABULAR_MAX_ROWS) {
                 const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
 
                 // Turn each row into a column of data:
                 for (let i = 0; i < rows.length; i++) {
                     const cols = rows[i].split(",");
-                    
+
                     // Only add if it's what we're looking for:
-                    if (cols[0] == this.filteredSensorName) {
-                        TabularDataViewer.dataRows.push(cols);
+                    if (cols[this.filteredCol] == this.filteredValue) {
+                        nextFilteredDataChunk.push(cols);
 
                         // Document where this read started from, so the next read starts in the correct position:
                         // Either 3 or 2; since the first read has headers (1 additional row):
-                        if (TabularDataViewer.dataRows.length == ((TabularDataViewer.currentRowOffset == 0) ? 3 : 2)) {
+                        if (nextFilteredDataChunk.length == ((TabularDataViewer.currentRowOffset == 0) ? 3 : 2)) {
                             this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = start + i
                         }
                     }
                 }
                 start += Math.min(TABULAR_MAX_ROWS, datalogger.getNumberOfRows(start))
             }
+
+            TabularDataViewer.dataRows = nextFilteredDataChunk
         }
 
 
         /**
          * Set this.numberOfFilteredRows & this.needToScroll 
-         * Based upon this.filteredSensorName
+         * Based upon this.filteredValue
          */
         private updateNeedToScroll() {
             const chunkSize = Math.min(20, datalogger.getNumberOfRows()); // 20 as limit for search
-            
+
             this.numberOfFilteredRows = 0
-            for (let chunk = 0; chunk < datalogger.getNumberOfRows(); chunk+=chunkSize) {
+            for (let chunk = 0; chunk < datalogger.getNumberOfRows(); chunk += chunkSize) {
                 const rows = datalogger.getRows(chunk, chunkSize).split("\n");
                 for (let i = 0; i < rows.length; i++) {
-                    // Name check:
-                    if (rows[i].split(",", 1)[0] == this.filteredSensorName) {
+                    if (rows[i].split(",", 1)[this.filteredCol] == this.filteredValue) {
                         this.numberOfFilteredRows += 1
                     }
                 }
@@ -416,8 +427,8 @@ namespace microdata {
                     )
                 }
             }
-            
-            for (let rowOffset = 0; rowOffset <= Screen.HEIGHT; rowOffset+=rowBufferSize) {
+
+            for (let rowOffset = 0; rowOffset <= Screen.HEIGHT; rowOffset += rowBufferSize) {
                 Screen.drawLine(
                     Screen.LEFT_EDGE,
                     Screen.TOP_EDGE + rowOffset,
@@ -449,6 +460,8 @@ namespace microdata {
             if (TabularDataViewer.updateDataRowsOnNextFrame)
                 TabularDataViewer.nextDataChunk()
 
+
+            // Could be optimised by calculating the Col line boundaries once & re-using them, instead of each frame:
             const tabularRowBufferSize = Screen.HEIGHT / Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS);
             this.drawGridOfVariableColSize(this.headerStringLengths.slice(this.currentCol), tabularRowBufferSize)
 
@@ -469,8 +482,7 @@ namespace microdata {
                     // In this.drawGridOfVariableSize: If the column after this one would not fit grant this one the remanining space
                     // This will align the text to the center of this column space
                     if (colID == TabularDataViewer.dataRows[0].length - 1 || cumulativeColOffset + this.headerStringLengths[colID] + this.headerStringLengths[colID + 1] > Screen.WIDTH)
-                        cumulativeColOffset += ((Screen.WIDTH - cumulativeColOffset)>> 1) - (this.headerStringLengths[colID]>> 1);
-
+                        cumulativeColOffset += ((Screen.WIDTH - cumulativeColOffset) >> 1) - (this.headerStringLengths[colID] >> 1);
 
                     // Write the columnValue in the centre of each grid box:
                     Screen.print(

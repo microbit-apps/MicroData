@@ -23,19 +23,19 @@ namespace microdata {
     /** 
      * Get aa function that performs that inequality check & logs it with an event description if the event has triggered.
      */
-    export const sensorEventFunctionLookup: {[inequality: string]: SensorEventFunction} = {
-        "=":  function(reading: number, comparator: number) {return reading == comparator},
-        ">":  function(reading: number, comparator: number) {return reading >  comparator},
-        "<":  function(reading: number, comparator: number) {return reading <  comparator},
-        ">=": function(reading: number, comparator: number) {return reading >= comparator},
-        "<=": function(reading: number, comparator: number) {return reading <= comparator}
+    export const sensorEventFunctionLookup: { [inequality: string]: SensorEventFunction } = {
+        "=": function(reading: number, comparator: number) { return reading == comparator },
+        ">": function(reading: number, comparator: number) { return reading > comparator },
+        "<": function(reading: number, comparator: number) { return reading < comparator },
+        ">=": function(reading: number, comparator: number) { return reading >= comparator },
+        "<=": function(reading: number, comparator: number) { return reading <= comparator }
     }
 
     /** How many times should a line be duplicated when drawn? */
     const PLOT_SMOOTHING_CONSTANT: number = 4
 
     /** To what precision whould readings fromt he sensor be cut to when they're logged? */
-    const READING_PRECISION: number = 8
+    const READING_PRECISION: number = 9
 
     /**
      * Responsible for making an array of sensors with configurations read & log their data accurately.
@@ -45,7 +45,7 @@ namespace microdata {
      */
     export class SensorScheduler {
         /** Ordered sensor periods */
-        private schedule: {sensor: Sensor, waitTime: number}[];
+        private schedule: { sensor: Sensor, waitTime: number }[];
 
         /** These are configured sensors that will be scheduled upon. */
         private sensors: Sensor[];
@@ -81,7 +81,7 @@ namespace microdata {
 
             // Setup schedule so that periods are in order ascending
             sensors.sort((a, b) => a.getPeriod() - b.getPeriod())
-            this.schedule = sensors.map((sensor) => {return {sensor, waitTime: sensor.getPeriod()}})
+            this.schedule = sensors.map((sensor) => { return { sensor, waitTime: sensor.getPeriod() } })
         }
 
         //----------------------------------------------
@@ -89,7 +89,7 @@ namespace microdata {
         // Invoked by distributedLogging & dataRecorder:
         //----------------------------------------------
 
-        public loggingComplete(): boolean {return !(this.schedule.length > 0)}
+        public loggingComplete(): boolean { return !(this.schedule.length > 0) }
 
         public stop() {
             this.continueLogging = false;
@@ -107,7 +107,7 @@ namespace microdata {
         */
         public start(callbackObj?: ITargetDataLoggedCallback) {
             const callbackAfterLog: boolean = (callbackObj == null) ? false : true
-            
+
             control.inBackground(() => {
                 let currentTime = 0;
 
@@ -140,7 +140,7 @@ namespace microdata {
                     // Check if there last been a request to stop logging each chunk
 
                     const pauseTime = sleepTime + lastLogTime - input.runningTime() // Discount for operation time
-                    for (let i = 0; i < pauseTime; i+=100) {
+                    for (let i = 0; i < pauseTime; i += 100) {
                         if (!this.continueLogging) {
                             return
                         }
@@ -181,8 +181,8 @@ namespace microdata {
 
                     // Ensure the schedule remains ordely after these potential deletions & recalculations:
                     this.schedule.sort((
-                        a: {sensor: Sensor; waitTime: number;}, 
-                        b: {sensor: Sensor; waitTime: number;}) =>
+                        a: { sensor: Sensor; waitTime: number; },
+                        b: { sensor: Sensor; waitTime: number; }) =>
                         a.waitTime - b.waitTime
                     )
                 }
@@ -246,7 +246,7 @@ namespace microdata {
          * Determines behaviour of .log()
          */
         private config: RecordingConfig
-        
+
 
         /** Event statistic used by the dataRecorder. */
         public lastLoggedEventDescription: string
@@ -271,11 +271,11 @@ namespace microdata {
         private heightNormalisedDataBuffer: number[]
 
         constructor(opts: {
-            name: string, 
-            rName: string, 
-            f: () => number, 
-            min: number, 
-            max: number, 
+            name: string,
+            rName: string,
+            f: () => number,
+            min: number,
+            max: number,
             isJacdacSensor: boolean,
             setupFn?: () => void
         }) {
@@ -288,7 +288,7 @@ namespace microdata {
             this.dataBuffer = []
             this.lastLoggedReading = 0
             this.heightNormalisedDataBuffer = []
-            
+
             // Data from opts:
             this.name = opts.name
             this.radioName = opts.rName
@@ -314,7 +314,7 @@ namespace microdata {
          * @returns concrete sensor that the input name corresponds to.
          */
         public static getFromName(name: string): Sensor {
-            if (name == "Accel. X" || name == "Accelerometer X" || name == "AX")  
+            if (name == "Accel. X" || name == "Accelerometer X" || name == "AX")
                 return new Sensor({
                     name: "Accel. X",
                     rName: "AX",
@@ -325,7 +325,7 @@ namespace microdata {
                     setupFn: () => input.setAccelerometerRange(AcceleratorRange.OneG)
                 });
 
-            else if (name == "Accel. Y" || name == "Accelerometer Y" || name == "AY")  
+            else if (name == "Accel. Y" || name == "Accelerometer Y" || name == "AY")
                 return new Sensor({
                     name: "Accel. Y",
                     rName: "AY",
@@ -336,7 +336,7 @@ namespace microdata {
                     setupFn: () => input.setAccelerometerRange(AcceleratorRange.OneG)
                 });
 
-            else if (name == "Accel. Z" || name == "Accelerometer Z" || name == "AZ")  
+            else if (name == "Accel. Z" || name == "Accelerometer Z" || name == "AZ")
                 return new Sensor({
                     name: "Accel. Z",
                     rName: "AZ",
@@ -347,7 +347,7 @@ namespace microdata {
                     setupFn: () => input.setAccelerometerRange(AcceleratorRange.OneG)
                 });
 
-            else if (name == "Pitch" || name == "P")                 
+            else if (name == "Pitch" || name == "P")
                 return new Sensor({
                     name: "Pitch",
                     rName: "P",
@@ -357,7 +357,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "Roll" || name == "R")                                    
+            else if (name == "Roll" || name == "R")
                 return new Sensor({
                     name: "Roll",
                     rName: "R",
@@ -367,7 +367,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "A. Pin 0" || name == "Analog Pin 0" || name == "AP0")    
+            else if (name == "A. Pin 0" || name == "Analog Pin 0" || name == "AP0")
                 return new Sensor({
                     name: "A. Pin 0",
                     rName: "AP0",
@@ -377,7 +377,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "A. Pin 1" || name == "Analog Pin 1" || name == "AP1")    
+            else if (name == "A. Pin 1" || name == "Analog Pin 1" || name == "AP1")
                 return new Sensor({
                     name: "A. Pin 1",
                     rName: "AP1",
@@ -387,7 +387,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "A. Pin 2" || name == "Analog Pin 2" || name == "AP2")    
+            else if (name == "A. Pin 2" || name == "Analog Pin 2" || name == "AP2")
                 return new Sensor({
                     name: "A. Pin 2",
                     rName: "AP2",
@@ -397,7 +397,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "Light" || name == "L")                                   
+            else if (name == "Light" || name == "L")
                 return new Sensor({
                     name: "Light",
                     rName: "L",
@@ -407,7 +407,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "Temp." || name == "Temperature" || name == "T")          
+            else if (name == "Temp." || name == "Temperature" || name == "T")
                 return new Sensor({
                     name: "Temp.",
                     rName: "T",
@@ -417,7 +417,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "Magnet" || name == "M")                                  
+            else if (name == "Magnet" || name == "M")
                 return new Sensor({
                     name: "Magnet",
                     rName: "M",
@@ -427,7 +427,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")   
+            else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")
                 return new Sensor({
                     name: "Logo Press",
                     rName: "LP",
@@ -447,7 +447,7 @@ namespace microdata {
                     isJacdacSensor: false
                 });
 
-            else if (name == "Compass" || name == "C")      
+            else if (name == "Compass" || name == "C")
                 return new Sensor({
                     name: "Compass",
                     rName: "C",
@@ -462,7 +462,7 @@ namespace microdata {
             // See https://github.com/microsoft/pxt-jacdac
             //--------------------------------------------
 
-            else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")    
+            else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")
                 return new Sensor({
                     name: "Jac Light",
                     rName: "JL",
@@ -473,7 +473,7 @@ namespace microdata {
                     setupFn: () => modules.lightLevel1.start()
                 });
 
-            else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM") 
+            else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM")
                 return new Sensor({
                     name: "Jac Moist",
                     rName: "JM",
@@ -484,7 +484,7 @@ namespace microdata {
                     setupFn: () => modules.soilMoisture1.start()
                 });
 
-            else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")  
+            else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")
                 return new Sensor({
                     name: "Jac Dist",
                     rName: "JD",
@@ -495,7 +495,7 @@ namespace microdata {
                     setupFn: () => modules.distance1.start()
                 });
 
-            else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")      
+            else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")
                 return new Sensor({
                     name: "Jac Flex",
                     rName: "JF",
@@ -506,7 +506,7 @@ namespace microdata {
                     setupFn: () => modules.flex1.start()
                 });
 
-            else                                                                       
+            else
                 return new Sensor({
                     name: "Jac Temp",
                     rName: "JT",
@@ -523,22 +523,22 @@ namespace microdata {
         // Interface Functions:
         //---------------------
 
-        getName(): string {return this.name}
-        getRadioName(): string {return this.radioName}
-        getReading(): number {return this.sensorFn()}
-        getNormalisedReading(): number {return Math.abs(this.getReading()) / this.range}
-        getMinimum(): number {return this.minimum;}
-        getMaximum(): number {return this.maximum;}
-        isJacdac(): boolean {return this.isJacdacSensor;}
+        getName(): string { return this.name }
+        getRadioName(): string { return this.radioName }
+        getReading(): number { return this.sensorFn() }
+        getNormalisedReading(): number { return Math.abs(this.getReading()) / this.range }
+        getMinimum(): number { return this.minimum; }
+        getMaximum(): number { return this.maximum; }
+        isJacdac(): boolean { return this.isJacdacSensor; }
 
-        getMaxBufferSize(): number {return this.maxBufferSize}
-        getNthReading(n: number): number {return this.dataBuffer[n]}
-        getNthHeightNormalisedReading(n: number): number {return this.heightNormalisedDataBuffer[n]}
-        getBufferLength(): number {return this.dataBuffer.length}
-        getHeightNormalisedBufferLength(): number {return this.heightNormalisedDataBuffer.length}
-        getPeriod(): number {return this.config.period;}
-        getMeasurements(): number {return this.config.measurements}
-        hasMeasurements(): boolean {return this.config.measurements > 0;}
+        getMaxBufferSize(): number { return this.maxBufferSize }
+        getNthReading(n: number): number { return this.dataBuffer[n] }
+        getNthHeightNormalisedReading(n: number): number { return this.heightNormalisedDataBuffer[n] }
+        getBufferLength(): number { return this.dataBuffer.length }
+        getHeightNormalisedBufferLength(): number { return this.heightNormalisedDataBuffer.length }
+        getPeriod(): number { return this.config.period; }
+        getMeasurements(): number { return this.config.measurements }
+        hasMeasurements(): boolean { return this.config.measurements > 0; }
 
 
         /**
@@ -546,20 +546,20 @@ namespace microdata {
          * @returns linles of information that can be printed out into a box for display.
          */
         getRecordingInformation(): string[] {
-            if (this.hasMeasurements())            
+            if (this.hasMeasurements())
                 return [
-                    this.getPeriod() / 1000 + " second period", 
+                    this.getPeriod() / 1000 + " second period",
                     this.config.measurements.toString() + " measurements left",
                     ((this.config.measurements * this.getPeriod()) / 1000).toString() + " seconds left",
-                    "Last log was " + this.lastLoggedReading.toString().slice(0, 6),
+                    "Last log was " + this.lastLoggedReading.toString().slice(0, 5),
                 ]
             else
                 return [
                     "Logging complete.",
-                    "Last log was " + this.lastLoggedReading.toString().slice(0, 6),
+                    "Last log was " + this.lastLoggedReading.toString().slice(0, 5),
                 ]
         }
-        
+
         /**
          * Used by the DataRecorder to display information about the sensor as it is logging.
          * @returns lines of information that can be printed out into a box for display.
@@ -569,14 +569,14 @@ namespace microdata {
                 return [
                     this.config.measurements.toString() + " events left",
                     "Logging " + this.config.inequality + " " + this.config.comparator + " events",
-                    "Last log was " + this.lastLoggedReading.toString().slice(0, 6),
+                    "Last log was " + this.lastLoggedReading.toString().slice(0, 5),
                     this.lastLoggedEventDescription
                 ]
 
             else
                 return [
                     "Logging complete.",
-                    "Last log was " + this.lastLoggedReading.toString().slice(0, 6)
+                    "Last log was " + this.lastLoggedReading.toString().slice(0, 5)
                 ]
         }
 
@@ -604,15 +604,15 @@ namespace microdata {
          */
         readIntoBufferOnce(fromY: number): void {
             const reading = this.getReading()
-            
+
             if (this.dataBuffer.length >= this.maxBufferSize || reading === undefined) {
                 this.dataBuffer.shift();
                 this.heightNormalisedDataBuffer.shift();
             }
-            
+
             if (reading === undefined)
-                return            
-            
+                return
+
             this.numberOfReadings += 1
             this.dataBuffer.push(reading);
             this.heightNormalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((reading - this.getMinimum()) / this.range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
@@ -655,7 +655,7 @@ namespace microdata {
             this.lastLoggedReading = this.getReading()
 
             const reading = this.lastLoggedReading.toString().slice(0, READING_PRECISION)
-            
+
             if (this.isInEventMode) {
                 if (sensorEventFunctionLookup[this.config.inequality](this.lastLoggedReading, this.config.comparator)) {
                     datalogger.log(
@@ -691,7 +691,7 @@ namespace microdata {
          */
         draw(fromX: number, color: number): void {
             for (let i = 0; i < this.heightNormalisedDataBuffer.length - 1; i++) {
-                for (let j = -(PLOT_SMOOTHING_CONSTANT>> 1); j < PLOT_SMOOTHING_CONSTANT>> 1; j++) {
+                for (let j = -(PLOT_SMOOTHING_CONSTANT >> 1); j < PLOT_SMOOTHING_CONSTANT >> 1; j++) {
                     screen().drawLine(
                         fromX + i,
                         this.heightNormalisedDataBuffer[i] + j,

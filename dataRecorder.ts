@@ -1,7 +1,7 @@
 namespace microdata {
     import AppInterface = user_interface_base.AppInterface
     import Screen = user_interface_base.Screen
-    import Scene  = user_interface_base.Scene
+    import Scene = user_interface_base.Scene
     import Sprite = user_interface_base.Sprite
     import Affine = user_interface_base.Affine
     import font = user_interface_base.font
@@ -9,9 +9,9 @@ namespace microdata {
     /** Number of sensor information boxes that can fit onto the screen at once*/
     const MAX_SENSORS_ON_SCREEN: number = 5
     /** The colours that will be used for the lines & sensor information boxes */
-    const SENSOR_BOX_COLORS: number[] = [2,3,4,6,7,9]
+    const SENSOR_BOX_COLORS: number[] = [2, 3, 4, 6, 7, 9]
     /** The colours that will be used for writing the information about the sensor. */
-    const SENSOR_BOX_TEXT_COLORS: number[] = [1,1,1,1,15,15]
+    const SENSOR_BOX_TEXT_COLORS: number[] = [1, 1, 1, 1, 15, 15]
 
     /**
      * Responsible for invoking the logging commands for each sensor,
@@ -45,7 +45,7 @@ namespace microdata {
             this.sensors = sensors
             this.numberOfSensors = sensors.length
 
-            this.sensorIndexOffset = 0 
+            this.sensorIndexOffset = 0
             this.currentSensorIndex = 0
             this.sensorBoxColor = 15
             this.showCancelRecordingScreen = false;
@@ -95,7 +95,7 @@ namespace microdata {
 
                     if (this.sensorIndexOffset > 0)
                         this.sensorIndexOffset = Math.max(0, this.sensorIndexOffset - 1)
-                    
+
                     this.update()
                 }
             )
@@ -135,8 +135,8 @@ namespace microdata {
 
             this.log()
         }
- 
-        log() {this.scheduler.start()}
+
+        log() { this.scheduler.start() }
 
         update(): void {
             Screen.fillRect(
@@ -149,8 +149,8 @@ namespace microdata {
 
             // Check if all sensors have finished their work:
             if (this.scheduler.loggingComplete()) {
-                screen().printCenter("Data Logging Complete.", (screen().height>> 1) - 10);
-                screen().printCenter("Press B to back out.", screen().height>> 1);
+                screen().printCenter("Data Logging Complete.", (screen().height >> 1) - 10);
+                screen().printCenter("Press B to back out.", screen().height >> 1);
             }
 
             else {
@@ -160,7 +160,7 @@ namespace microdata {
                 for (let i = this.sensorIndexOffset; i < this.numberOfSensors; i++) {
                     if (i - this.sensorIndexOffset > MAX_SENSORS_ON_SCREEN)
                         break
-                    
+
                     // Get the colour for this box
                     this.sensorBoxColor = SENSOR_BOX_COLORS[i % SENSOR_BOX_COLORS.length]
 
@@ -175,7 +175,7 @@ namespace microdata {
                             16,
                             16
                         )
-                        
+
                         screen().fillRect(
                             7,
                             y,
@@ -241,7 +241,7 @@ namespace microdata {
                 }
 
                 if (this.showCancelRecordingScreen) {
-                    const headerX = Screen.HALF_WIDTH // Log has data in it
+                    const headerX = Screen.HALF_WIDTH; // Log has data in it
 
                     // Outline:
                     screen().fillRect(
@@ -263,14 +263,14 @@ namespace microdata {
                     const tutorialTextLength = ("Cancel recording?".length * font.charWidth)
                     screen().print(
                         "Cancel recording?",
-                        headerX - (tutorialTextLength>> 1),
+                        headerX - (tutorialTextLength >> 1),
                         Screen.HALF_HEIGHT - 30 + 7,
                         15 // Black
                     )
 
                     // Underline the title:
                     screen().fillRect(
-                        headerX - (tutorialTextLength>> 1) - 1,
+                        headerX - (tutorialTextLength >> 1) - 1,
                         Screen.HALF_HEIGHT - 30 + 16,
                         tutorialTextLength,
                         2,
