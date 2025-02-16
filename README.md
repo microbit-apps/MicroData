@@ -28,11 +28,7 @@ A walkthrough of some of the experiments you can do with MicroData are available
 # Releases
 
 The binary.hex files for the most recent releases of MicroData are available ![here](https://github.com/KierPalin/MicroData/releases).<br>
-Both ![microdata-v1.5.1](https://github.com/KierPalin/MicroData/releases/tag/v1.5.1) and ![microdata-no-jacdac-mode-v1.5.0](https://github.com/KierPalin/MicroData/releases/tag/v1.5.0) have the latest features. There are some trade-offs between them though:
-* ![microdata-v1.5.1](https://github.com/KierPalin/MicroData/releases/tag/v1.5.1) has support for all sensors. When the Arcade Shield is not connected the microbit defaults to Commander mode (it listens to logging commands over the radio).
-* ![microdata-no-jacdac-mode-v1.5.0](https://github.com/KierPalin/MicroData/releases/tag/v1.5.0) does not support the Jacdac. When the Arcade Shield is not connected the microbit defaults to a mode that allows you to log data without an Arcade Shield (or enter Commander mode).<br>
 
-If you want to record data without an Arcade Shield and you do not need Jacdac sensors then use the ![microdata-no-jacdac-mode-v1.5.0](https://github.com/KierPalin/MicroData/releases/tag/v1.5.0) release.
 
 # Building
 
