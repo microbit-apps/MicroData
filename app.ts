@@ -2,6 +2,7 @@ namespace microdata {
     import AppInterface = user_interface_base.AppInterface
     import Scene = user_interface_base.Scene
     import SceneManager = user_interface_base.SceneManager
+    import Screen = user_interface_base.Screen
 
     // Auto-save slot
     export const SAVESLOT_AUTO = "sa"
@@ -28,9 +29,10 @@ namespace microdata {
             reportEvent("app.start")
 
             radio.setGroup(5)
-            radio.setTransmitPower(7)
-            radio.setFrequencyBand(14)
+            // radio.setTransmitPower(7)
+            // radio.setFrequencyBand(14)
 
+            this.handshake();
             sendAllAssetsOverRadio();
 
             this.sceneManager = new SceneManager()
@@ -38,11 +40,83 @@ namespace microdata {
 
             // const arcadeShieldConnected = shieldhelpers.shieldPresent();
             // if (arcadeShieldConnected)
-            this.pushScene(new microdata.Home(this));
+
+            // this.pushScene(new microdata.Home(this));
             //     else
             //         new DistributedLoggingProtocol(this, false);
             // else
             // new DistributedLoggingProtocol(this, false);
+
+
+            const imgs = [
+                "led_light_sensor",
+                "thermometer",
+                "accelerometer",
+                "finger_press",
+                "green_tick",
+                "magnet",
+                "pin_0",
+                "pin_1",
+                "pin_2",
+            ];
+
+
+            let pauseLoop = false;
+
+            // input.onButtonPressed(Button.A, function() {
+            //     pauseLoop = true;
+            //     basic.showString("A")
+            // })
+
+            // input.onButtonPressed(Button.B, function() {
+            //     pauseLoop = true;
+            //     basic.showString("B")
+            // })
+
+
+            let i = 0;
+            while (true) {
+                if (!pauseLoop) {
+                    basic.showNumber(i % 10)
+                    Screen.fill(i % 16)
+
+                    const img = icons.get(imgs[i % imgs.length])
+                    Screen.drawTransparentImage(
+                        img,
+                        (screen().width >> 1) - (img.width >> 1),
+                        (screen().height >> 1) - (img.height >> 1)
+                    )
+
+                    i++;
+                } else {
+                    Screen.fill(1)
+                    basic.pause(3000)
+                    pauseLoop = false;
+                }
+            }
+        }
+
+        handshake() {
+            let handshakeRecieved = false;
+            radio.onReceivedString((_: string) => {
+                handshakeRecieved = true;
+                radio.sendString("ACK")
+            })
+
+            radio.sendString("HANDSHAKE");
+            // let handshakeTimeout = 0;
+            while (!handshakeRecieved) {
+                // if (handshakeTimeout == 0) {
+                // }
+
+                // handshakeTimeout += 3;
+                basic.pause(3)
+
+                // if (handshakeTimeout >= 99) {
+                //     handshakeTimeout = 0;
+                // }
+            }
+            radio.onReceivedString((_: string) => { })
         }
 
         public pushScene(scene: Scene) {

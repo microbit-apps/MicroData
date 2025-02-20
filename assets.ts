@@ -9,10 +9,34 @@ namespace microdata {
     }
 
     export function sendAllAssetsOverRadio() {
+        // const iconNames: string[] = [
+        //     "wordLogo",
+        //     "microbitLogo",
+        //     "edit_program",
+        //     "MISSING",
+        //     "largeDisk",
+        //     "linear_graph_1",
+        //     "led_light_sensor",
+        //     "thermometer",
+        //     "accelerometer",
+        //     "finger_press",
+        //     "green_tick",
+        //     "magnet",
+        //     "pin_0",
+        //     "pin_1",
+        //     "pin_2",
+        //     "right_turn",
+        //     "right_spin",
+        //     "microphone",
+        //     "tile_button_a",
+        //     "tile_button_b",
+        //     "compass",
+        //     "radio_set_group",
+        //     "largeSettingsGear",
+        //     "microbitLogoWhiteBackground"
+        // ];
+
         const iconNames: string[] = [
-            "wordLogo",
-            "microbitLogo",
-            "edit_program",
             "MISSING",
             "largeDisk",
             "linear_graph_1",
@@ -27,56 +51,70 @@ namespace microdata {
             "pin_2",
             "right_turn",
             "right_spin",
-            "microphone",
-            "tile_button_a",
-            "tile_button_b",
-            "compass",
-            "radio_set_group",
-            "largeSettingsGear",
-            "microbitLogoWhiteBackground"
+            "microphone"
         ];
 
+        // const iconNames: string[] = [
+        //     "green_tick"
+        //     // "wordLogo"
+        // ]
 
-        const waitForAck = () => {
-            basic.showString("W")
+        // Get the number of bitmaps:
+        radio.sendString("BITMAPS," + iconNames.length);
+        waitForAck();
 
-            let ackReceived = false;
-            radio.onReceivedString(_ => {
-                ackReceived = true;
-            })
-
-            // timeout:
-            for (let timeChunk = 0; timeChunk < 500; timeChunk += 25) {
-                if (ackReceived)
-                    break
-                basic.pause(25)
-            }
-
-            radio.onReceivedValue(_ => { }) // reset radio
-            return ackReceived;
-        };
-
-
-        basic.showString("St")
-        radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
-        basic.pause(10)
-
-        while (!waitForAck()) {
-            radio.sendString("ASSET_TX_START" + ", " + iconNames.length)
-            basic.pause(10)
+        for (let i = 0; i < iconNames.length; i++) {
+            Screen.sendBitmap(icons.get(iconNames[i]));
         }
 
-        // iconNames.forEach(name => {
-        for (let i = 0; i < 1; i++) {
-            Screen.sendBitmap(iconNames[i], icons.get(iconNames[i]))
-            // Screen.sendBitmap(name, icons.get(name))
-            // })
-        }
-
-        // radio.sendString("ASSET_TX_END")
-        basic.showString("D")
+        basic.showString("F")
     }
 
+    function waitForAck() {
+        let received = false;
+        radio.onReceivedString((_: String) => {
+            received = true;
+        })
+
+        while (!received) {
+            basic.pause(3)
+        }
+    }
+
+    function getBuffer(bitmap: Bitmap, chunkIndex: number, chunkSize: number): Buffer {
+        const width = bitmap.width
+        const startIndex = chunkIndex * chunkSize;
+        const startingRow = (startIndex / width | 0);
+
+        const endIndex = startIndex + chunkSize;
+        const endingRow = (endIndex / width | 0);
+
+        // Buffer crosses multiple rows:
+        if (startingRow != endingRow) {
+            const rowBuf1 = Buffer.create(bitmap.width);
+            const rowBuf2 = Buffer.create(bitmap.width);
+
+            bitmap.getRows(startingRow, rowBuf1);
+            bitmap.getRows(startingRow + 1, rowBuf2);
+
+            const overhead = width - (startIndex % width);
+            const chunkBuf1 = rowBuf1.slice(startIndex % width, overhead);
+            const chunkBuf2 = rowBuf2.slice(0, chunkSize - overhead);
+
+            const res = chunkBuf1.concat(chunkBuf2);
+            // basic.showNumber(res.length)
+            return res
+        }
+
+        // Simply get the row, slice off the required bytes:
+        else {
+            const rowBuf = Buffer.create(bitmap.width);
+            bitmap.getRows(startingRow, rowBuf);
+            const res = rowBuf.slice(startIndex % width, chunkSize);
+            // basic.showNumber(res.length)
+            return res
+        }
+    }
 
     // All unused assets have been cut since the flash storage limit has been approached
 
