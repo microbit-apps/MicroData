@@ -7,6 +7,11 @@ namespace microdata {
     import CursorSceneEnum = user_interface_base.CursorSceneEnum
     import font = user_interface_base.font
 
+    import TextButton = microgui.TextButton
+    import TextButtonCollection = microgui.TextButtonCollection
+    import GUIComponentAlignment = microgui.GUIComponentAlignment
+    import GUIComponentScene = microgui.GUIComponentScene
+
     export class Home extends CursorScene {
         private liveDataBtn: Button
         private recordDataBtn: Button
@@ -56,8 +61,22 @@ namespace microdata {
                 x: 20,
                 y,
                 onClick: () => {
-                    this.app.popScene()
-                    this.app.pushScene(new DistributedLoggingScreen(this.app)) // Temp disabled elements relating to callbackObj (no mem)
+                    // this.app.popScene()
+                    // this.app.pushScene(new DistributedLoggingScreen(this.app)) // Temp disabled elements relating to callbackObj (no mem)
+
+                    const txtBtnCollection = new TextButtonCollection({
+                        alignment: GUIComponentAlignment.CENTRE,
+                        isActive: true,
+                        textBtns: [
+                            new TextButton({ text: "Button 1", callback: () => basic.showString("A") }),
+                            new TextButton({ text: "Button 2", callback: () => basic.showString("B") })
+                        ]
+                    })
+
+                    const s = new GUIComponentScene({ app: this.app, components: [txtBtnCollection] })
+
+                    // this.app.popScene()
+                    // this.app.pushScene(s)
                 },
             })
 
