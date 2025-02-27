@@ -98,7 +98,7 @@ namespace microdata {
                 },
             })
 
-            this.navigator.addButtons([this.dataViewBtn, this.graphViewBtn, this.resetDataLoggerBtn])
+            this.navigator.setBtns([[this.dataViewBtn, this.graphViewBtn, this.resetDataLoggerBtn]])
         }
 
         draw() {

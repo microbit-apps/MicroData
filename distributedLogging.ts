@@ -679,7 +679,7 @@ namespace microdata {
             })
 
             const btns: Button[] = [this.targetMicrobitsBtn, this.startLoggingBtn, this.startStreamingBtn, this.showDataBtn]
-            this.navigator.addButtons(btns)
+            this.navigator.setBtns([btns])
         }
 
         draw() {

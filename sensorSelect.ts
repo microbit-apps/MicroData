@@ -25,7 +25,7 @@ namespace microdata {
      *      These sensors are passed to either the measurement screen or the live data view
      */
     export class SensorSelect extends CursorSceneWithPriorPage {
-        private btns: Button[]
+        private btns: Button[][]
         private selectedSensorAriaIDs: string[]
         private nextSceneEnum: CursorSceneEnum
         private jacdacSensorSelected: boolean
@@ -34,8 +34,9 @@ namespace microdata {
             super(app, function () {
                 this.app.popScene(); 
                 this.app.pushScene(new Home(this.app))
-            }, new GridNavigator(4, 5)); // 4x5 grid
-            this.btns = [];
+            }, new GridNavigator()); 
+            
+            this.btns = [[], [], [], []]; // For our 4x5 grid
             this.selectedSensorAriaIDs = [];
             this.nextSceneEnum = nextSceneEnum;
             this.jacdacSensorSelected = false;
@@ -63,79 +64,93 @@ namespace microdata {
 
             let x: number = -60;
             let y: number = -41
-            for (let i = 0; i < icons.length; i++) {
-                this.btns.push(new Button({
-                    parent: null,
-                    style: ButtonStyles.Transparent,
-                    icon: icons[i],
-                    ariaId: ariaIDs[i],
-                    x: x,
-                    y: y,
-                    onClick: (button: Button) => {
-                        // Deletion:
-                        const index = this.selectedSensorAriaIDs.indexOf(button.ariaId)
-                        if (index != -1) {
-                            this.cursor.setOutlineColour()
-                            this.selectedSensorAriaIDs.splice(index, 1)
+            let iconIndex: number = 0;
 
-                            if (Sensor.getFromName(button.ariaId).isJacdac()) {
-                                this.jacdacSensorSelected = false
-                                this.setOtherJacdacButtonsTo(true)
-                            }
+            const rowLengths = [5,5,5,4] // Last row has 'Done' button added after this loop:
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < rowLengths[i]; j++) {
+                    this.btns[i][j] = new Button({
+                        parent: null,
+                        style: ButtonStyles.Transparent,
+                        icon: icons[iconIndex],
+                        ariaId: ariaIDs[iconIndex],
+                        x: x,
+                        y: y,
+                        onClick: (button: Button) => {
+                            // Deletion:
+                            const index = this.selectedSensorAriaIDs.indexOf(button.ariaId)
+                            if (index != -1) {
+                                this.cursor.setOutlineColour()
+                                this.selectedSensorAriaIDs.splice(index, 1)
 
-                            // Renable all except the Jacdac buttons:
-                            for (let i = 0; i < START_OF_JACDAC_BUTTONS_INDEX; i++) {
-                                this.btns[i].pressable = true
-                            }
-                        }
-
-                        // Addition:
-                        else if (this.selectedSensorAriaIDs.length < MAX_NUMBER_OF_SENSORS) {
-                            this.cursor.setOutlineColour(7)
-
-                            if (Sensor.getFromName(button.ariaId).isJacdac()) {
-                                if (!this.jacdacSensorSelected) {
-                                    this.selectedSensorAriaIDs.push(button.ariaId)
-                                    this.jacdacSensorSelected = true
-
-                                    this.setOtherJacdacButtonsTo(false, button)
+                                if (Sensor.getFromName(button.ariaId).isJacdac()) {
+                                    this.jacdacSensorSelected = false
+                                    this.setOtherJacdacButtonsTo(true)
                                 }
-                            }
-        
-                            else {
-                                this.selectedSensorAriaIDs.push(button.ariaId)
-                                button.pressable = true
-                            }
-                        }
 
-                        // Prevention:
-                        if (this.selectedSensorAriaIDs.length >= MAX_NUMBER_OF_SENSORS) {
-                            for (let i = 0; i < this.btns.length - 1; i++) {
-                                let buttonInUse = false
-                                for (let j = 0; j < this.selectedSensorAriaIDs.length; j++) {
-                                    
-                                    if (this.btns[i].ariaId == this.selectedSensorAriaIDs[j]) {
-                                        buttonInUse = true
-                                        break
+                                // Renable all except the Jacdac buttons:
+                                let currentIndex = 0;
+                                for (let i = 0; i < this.btns.length; i++) {
+                                    for (let j = 0; j < rowLengths[i]; j++) {
+                                        if (currentIndex >= START_OF_JACDAC_BUTTONS_INDEX)
+                                            break
+                                        this.btns[i][j].pressable = true
+                                        currentIndex++;
                                     }
                                 }
-
-                                if (!buttonInUse)
-                                    this.btns[i].pressable = false
                             }
-                        }
-                    },          
-                    dynamicBoundaryColorsOn: true,
-                }))
 
-                x += 30
-                if (x > 60) {
-                    x = -60
-                    y += Screen.HEIGHT * 0.21875 // 28 on 128 pixel high Arcade Shield
+                            // Addition:
+                            else if (this.selectedSensorAriaIDs.length < MAX_NUMBER_OF_SENSORS) {
+                                this.cursor.setOutlineColour(7)
+
+                                if (Sensor.getFromName(button.ariaId).isJacdac()) {
+                                    if (!this.jacdacSensorSelected) {
+                                        this.selectedSensorAriaIDs.push(button.ariaId)
+                                        this.jacdacSensorSelected = true
+
+                                        this.setOtherJacdacButtonsTo(false, button)
+                                    }
+                                }
+            
+                                else {
+                                    this.selectedSensorAriaIDs.push(button.ariaId)
+                                    button.pressable = true
+                                }
+                            }
+
+                            // Prevention:
+                            if (this.selectedSensorAriaIDs.length >= MAX_NUMBER_OF_SENSORS) {
+                                for (let i = 0; i < this.btns.length; i++) {
+                                    for (let j = 0; j < rowLengths[i]; j++) {
+                                        let buttonInUse = false
+                                        for (let k = 0; k < this.selectedSensorAriaIDs.length; k++) {
+                                            if (this.btns[i][j].ariaId == this.selectedSensorAriaIDs[k]) {
+                                                buttonInUse = true
+                                                break
+                                            }
+                                        }
+
+                                        if (!buttonInUse)
+                                            this.btns[i][j].pressable = false
+                                    }
+                                }
+                            }
+                        },          
+                        dynamicBoundaryColorsOn: true,
+                    })
+
+                    x += 30
+                    if (x > 60) {
+                        x = -60
+                        y += Screen.HEIGHT * 0.21875 // 28 on 128 pixel high Arcade Shield
+                    }
+
+                    iconIndex++;
                 }
             }
 
-            this.btns.push(new Button({
+            this.btns[3].push(new Button({
                 parent: null,
                 style: ButtonStyles.Transparent,
                 icon: "green_tick",
@@ -160,7 +175,9 @@ namespace microdata {
                         this.app.pushScene(new RecordingConfigSelection(this.app, sensors, CursorSceneEnum.DistributedLogging))
                 }
             }))
-            this.navigator.addButtons(this.btns)
+
+
+            this.navigator.setBtns(this.btns)
         }
 
         /**
@@ -170,10 +187,17 @@ namespace microdata {
          * @param buttonToIgnore Optional case that ignores the pressableStatus
          */
         private setOtherJacdacButtonsTo(pressableStatus: boolean, buttonToIgnore?: Button) {
-            for (let i = START_OF_JACDAC_BUTTONS_INDEX; i < this.btns.length - 1; i++)
-                this.btns[i].pressable = pressableStatus
+            let currentIndex = 0;
 
-            if (buttonToIgnore) 
+            for (let i = 0; i < this.btns.length; i++) {
+                for (let j = 0; j < this.btns[0].length; j++) {
+                    if (currentIndex >= START_OF_JACDAC_BUTTONS_INDEX && currentIndex != (4 * 5) - 1) // Don't touch the last button ('Done')
+                        this.btns[i][j].pressable = pressableStatus
+                    currentIndex++;
+                }
+            }
+
+            if (buttonToIgnore)
                 buttonToIgnore.pressable = !pressableStatus
         }
 
@@ -186,9 +210,7 @@ namespace microdata {
                 0xc
             )
 
-            for (let i = 0; i < this.btns.length; i++)
-                this.btns[i].draw()
-
+            this.navigator.drawComponents();
             super.draw() 
         }
     }

@@ -75,7 +75,7 @@ namespace microdata {
             })
 
             const btns: Button[] = [this.liveDataBtn, this.recordDataBtn, this.distributedLoggingBtn, this.viewBtn]
-            this.navigator.addButtons(btns)
+            this.navigator.setBtns([btns])
         }
 
         private drawVersion() {
