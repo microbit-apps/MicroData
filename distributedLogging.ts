@@ -551,11 +551,6 @@ namespace microdata {
 
         private targetIDCache: number[]
 
-        private targetMicrobitsBtn: Button
-        private startLoggingBtn: Button
-        private startStreamingBtn: Button
-        private showDataBtn: Button
-
         constructor(app: AppInterface, sensors?: Sensor[], configs?: RecordingConfig[]) {
             super(app)
             this.uiState = UI_STATE.SHOWING_OPTIONS
@@ -603,83 +598,82 @@ namespace microdata {
 
             const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
 
-            this.targetMicrobitsBtn = new Button({
-                parent: null,
-                style: ButtonStyles.Transparent,
-                icon: "largeSettingsGear",
-                ariaId: "See connected Microbits",
-                x: -60,
-                y,
-                onClick: () => {
-                    if (DistributedLoggingScreen.streamingDone) {
-                        this.uiState = UI_STATE.SHOWING_CONNECTED_MICROBITS
-                        this.cursor.visible = false
-                        this.targetIDCache = []
+            this.navigator.setBtns([[
+                new Button({
+                    parent: null,
+                    style: ButtonStyles.Transparent,
+                    icon: "largeSettingsGear",
+                    ariaId: "See connected Microbits",
+                    x: -60,
+                    y,
+                    onClick: () => {
+                        if (DistributedLoggingScreen.streamingDone) {
+                            this.uiState = UI_STATE.SHOWING_CONNECTED_MICROBITS
+                            this.cursor.visible = false
+                            this.targetIDCache = []
 
-                        // Start timeout:
-                        // Continually request the target ids; so that new incoming targets appear on the list as it is displayed, and outgoing targets leave it, in real-time:
-                        control.inBackground(() => {
-                            while (this.uiState == UI_STATE.SHOWING_CONNECTED_MICROBITS) {
-                                this.targetIDCache = this.distributedLogger.commanderRequestTargetIDs()
-                                basic.pause(MESSAGE_LATENCY_MS * 2)
-                            }
-                        })
+                            // Start timeout:
+                            // Continually request the target ids; so that new incoming targets appear on the list as it is displayed, and outgoing targets leave it, in real-time:
+                            control.inBackground(() => {
+                                while (this.uiState == UI_STATE.SHOWING_CONNECTED_MICROBITS) {
+                                    this.targetIDCache = this.distributedLogger.commanderRequestTargetIDs()
+                                    basic.pause(MESSAGE_LATENCY_MS * 2)
+                                }
+                            })
+                        }
+                    },
+                }),
+
+                new Button({
+                    parent: null,
+                    style: ButtonStyles.Transparent,
+                    icon: "radio_set_group",
+                    ariaId: "Start logging",
+                    x: -20,
+                    y,
+                    onClick: () => {
+                        if (DistributedLoggingScreen.streamingDone) {
+                            DistributedLoggingScreen.streamDataBack = false
+
+                            this.app.popScene()
+                            this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.DistributedLogging))
+                        }
                     }
-                },
-            })
+                }),
 
-            this.startLoggingBtn = new Button({
-                parent: null,
-                style: ButtonStyles.Transparent,
-                icon: "radio_set_group",
-                ariaId: "Start logging",
-                x: -20,
-                y,
-                onClick: () => {
-                    if (DistributedLoggingScreen.streamingDone) {
-                        DistributedLoggingScreen.streamDataBack = false
+                new Button({
+                    parent: null,
+                    style: ButtonStyles.Transparent,
+                    icon: "radio_set_group",
+                    ariaId: "Start streaming",
+                    x: 20,   
+                    y,
+                    onClick: () => {
+                        if (DistributedLoggingScreen.streamingDone) {
+                            DistributedLoggingScreen.streamDataBack = true
 
-                        this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.DistributedLogging))
-                    }
-                }
-            })
+                            this.app.popScene()
+                            this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.DistributedLogging))
+                        }
+                    },
+                    flipIcon: true
+                }),
 
-            this.startStreamingBtn = new Button({
-                parent: null,
-                style: ButtonStyles.Transparent,
-                icon: "radio_set_group",
-                ariaId: "Start streaming",
-                x: 20,   
-                y,
-                onClick: () => {
-                    if (DistributedLoggingScreen.streamingDone) {
-                        DistributedLoggingScreen.streamDataBack = true
-
-                        this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.DistributedLogging))
-                    }
-                },
-                flipIcon: true
-            })
-
-            this.showDataBtn = new Button({
-                parent: null,
-                style: ButtonStyles.Transparent,
-                icon: "largeDisk",
-                ariaId: "View real-time data",
-                x: 60,
-                y,
-                onClick: () => {
-                    if (DistributedLoggingScreen.showTabularData) {
-                        this.app.popScene();
-                        this.app.pushScene(new TabularDataViewer(this.app, function () {this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app))}));
-                    }
-                },
-            })
-
-            const btns: Button[] = [this.targetMicrobitsBtn, this.startLoggingBtn, this.startStreamingBtn, this.showDataBtn]
-            this.navigator.setBtns([btns])
+                new Button({
+                    parent: null,
+                    style: ButtonStyles.Transparent,
+                    icon: "largeDisk",
+                    ariaId: "View real-time data",
+                    x: 60,
+                    y,
+                    onClick: () => {
+                        if (DistributedLoggingScreen.showTabularData) {
+                            this.app.popScene();
+                            this.app.pushScene(new TabularDataViewer(this.app, function () {this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app))}));
+                        }
+                    },
+                })
+            ]])
         }
 
         draw() {
@@ -708,11 +702,7 @@ namespace microdata {
                                 2
                             )
     
-                            this.targetMicrobitsBtn.draw()
-                            this.startLoggingBtn.draw()
-                            this.startStreamingBtn.draw()
-                            this.showDataBtn.draw()
-    
+                            this.navigator.drawComponents();
                             break;
                         }
     
