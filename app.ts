@@ -63,17 +63,6 @@ namespace microdata {
 
             let pauseLoop = false;
 
-            // input.onButtonPressed(Button.A, function() {
-            //     pauseLoop = true;
-            //     basic.showString("A")
-            // })
-
-            // input.onButtonPressed(Button.B, function() {
-            //     pauseLoop = true;
-            //     basic.showString("B")
-            // })
-
-
             let i = 0;
             while (true) {
                 if (!pauseLoop) {
