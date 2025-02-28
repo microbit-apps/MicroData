@@ -61,27 +61,39 @@ namespace microdata {
             ];
 
 
-            let pauseLoop = false;
 
             let i = 0;
             while (true) {
-                if (!pauseLoop) {
-                    basic.showNumber(i % 10)
-                    Screen.fill(i % 16)
+                // basic.showNumber(i % 10)
+                Screen.fill(i % 16)
 
-                    const img = icons.get(imgs[i % imgs.length])
-                    Screen.drawTransparentImage(
-                        img,
-                        (screen().width >> 1) - (img.width >> 1),
-                        (screen().height >> 1) - (img.height >> 1)
-                    )
+                const img = icons.get(imgs[i % imgs.length])
+                Screen.drawTransparentImage(
+                    img,
+                    (screen().width >> 2) - 5,
+                    (screen().height >> 2) - 5
+                )
 
-                    i++;
-                } else {
-                    Screen.fill(1)
-                    basic.pause(3000)
-                    pauseLoop = false;
-                }
+                Screen.drawTransparentImage(
+                    img,
+                    (screen().width >> 2) + (screen().width >> 1) - 5,
+                    (screen().height >> 2) - 5
+                )
+
+                Screen.drawTransparentImage(
+                    img,
+                    (screen().width >> 2) - 5,
+                    (screen().height >> 2) + (screen().height >> 1) - 5
+                )
+
+                Screen.drawTransparentImage(
+                    img,
+                    (screen().width >> 2) + (screen().width >> 1) - 5,
+                    (screen().height >> 2) + (screen().height >> 1) - 5
+                )
+
+                basic.pause(40)
+                i++;
             }
         }
 
