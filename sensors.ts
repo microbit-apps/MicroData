@@ -490,7 +490,7 @@ namespace microdata {
                     rName: "JD",
                     f: () => modules.distance1.isConnected() ? modules.distance1.distance() : undefined,
                     min: 0,
-                    max: 100,
+                    max: 4,
                     isJacdacSensor: true,
                     setupFn: () => modules.distance1.start()
                 });
@@ -500,8 +500,8 @@ namespace microdata {
                     name: "Jac Flex",
                     rName: "JF",
                     f: () => modules.flex1.isConnected() ? modules.flex1.bending() : undefined,
-                    min: 0,
-                    max: 100, // Assuming bending level ranges from 0 to 100 (adjust as needed)
+                    min: -100,
+                    max: 100,
                     isJacdacSensor: true,
                     setupFn: () => modules.flex1.start()
                 });
@@ -511,8 +511,8 @@ namespace microdata {
                     name: "Jac Temp",
                     rName: "JT",
                     f: () => modules.temperature1.isConnected() ? modules.temperature1.temperature() : undefined,
-                    min: 0,
-                    max: 100,
+                    min: -40,
+                    max: 120,
                     isJacdacSensor: true,
                     setupFn: () => modules.temperature1.start()
                 });
