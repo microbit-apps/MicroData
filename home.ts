@@ -16,7 +16,7 @@ namespace microdata {
             super.startup()
 
             const y = 25
-            
+
             this.navigator.setBtns([[
                 new Button({
                     parent: null,
@@ -93,37 +93,41 @@ namespace microdata {
                 0xc
             )
 
+            const microbitLogo = icons.get("microbitLogo")
+            const microdataLogo = icons.get("microdataLogo")
+
             this.yOffset = Math.min(0, this.yOffset + 2)
             const t = control.millis()
             const dy = this.yOffset == 0 ? (Math.idiv(t, 800) & 1) - 1 : 0
             const margin = 2
-            const OFFSET = (Screen.HEIGHT >> 1) - wordLogo.height - margin - 9
+            const OFFSET = (Screen.HEIGHT >> 1) - microdataLogo.height - margin - 9
             const y = Screen.TOP_EDGE + OFFSET //+ dy
             Screen.drawTransparentImage(
-                wordLogo,
-                Screen.LEFT_EDGE + ((Screen.WIDTH - wordLogo.width) >> 1)// + dy
+                microdataLogo,
+                Screen.LEFT_EDGE + ((Screen.WIDTH - microdataLogo.width) >> 1)// + dy
                 ,
                 y + this.yOffset
             )
+
             Screen.drawTransparentImage(
                 microbitLogo,
                 Screen.LEFT_EDGE +
                 ((Screen.WIDTH - microbitLogo.width) >> 1) + dy
                 ,
-                y - wordLogo.height + this.yOffset + margin
+                y - microdataLogo.height + this.yOffset + margin
             )
 
             if (!this.yOffset) {
                 Screen.print(
                     "Mini-measurer",
                     Screen.LEFT_EDGE +
-                    ((Screen.WIDTH + wordLogo.width) >> 1)
+                    ((Screen.WIDTH + microdataLogo.width) >> 1)
                     + dy
                     -
                     font.charWidth * "Mini-measurer".length,
                     Screen.TOP_EDGE +
                     OFFSET +
-                    wordLogo.height +
+                    microdataLogo.height +
                     dy +
                     this.yOffset +
                     3,
