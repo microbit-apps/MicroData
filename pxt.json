@@ -1,6 +1,6 @@
 {
     "name": "MicroData",
-    "version": "1.7.2",
+    "version": "1.7.3",
     "description": "Data science with micro:bit v2",
     "dependencies": {
         "core": "*",
