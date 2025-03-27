@@ -37,7 +37,7 @@ const enum UI_SENSOR_SELECT_STATE {
 
 
 /** For module inside of B button. */
-const SENSOR_SELECTION_SIZE = 5;
+const UI_SENSOR_SELECT_STATE_LEN = 5;
 /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
 const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
 
@@ -56,7 +56,7 @@ const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
  * 
  * Fibers and special waiting functions .waitUntilSensorSelectStateChange & .waitUntilUIModeChanges are required to maintain low-latency and the dynamic behaviour described above.
  */
-class NoArcadeShieldMode {
+class HeadlessModeForMakeCode {
     /** Mutated by the A & B button */
     private uiMode: UI_MODE;
     /** Mutated by the B button & .dynamicSensorSelectionLoop() */
@@ -77,7 +77,7 @@ class NoArcadeShieldMode {
         // B Button
         input.onButtonPressed(2, () => {
             if (this.uiMode == UI_MODE.SENSOR_SELECTION)
-                this.uiSensorSelectState = (this.uiSensorSelectState + 1) % SENSOR_SELECTION_SIZE
+                this.uiSensorSelectState = (this.uiSensorSelectState + 1) % UI_SENSOR_SELECT_STATE_LEN
 
             else if (this.uiMode == UI_MODE.LOGGING) {
                 this.uiMode = UI_MODE.SENSOR_SELECTION;
@@ -247,7 +247,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             . . # . .
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -256,7 +256,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             . . # . .
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
 
                         break;
                     }
@@ -269,7 +269,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             . . . . .
                         `)
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -278,7 +278,7 @@ class NoArcadeShieldMode {
                             . . . . .
                             # # . # #
                         `)
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
 
                         break;
                     }
@@ -291,7 +291,7 @@ class NoArcadeShieldMode {
                             # . . . #
                             . . # . . 
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -300,7 +300,7 @@ class NoArcadeShieldMode {
                             # . . . #
                             . . # . .
                         `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
 
                         break;
                     }
@@ -377,16 +377,16 @@ class NoArcadeShieldMode {
 
 
 class Sensor {
-    constructor() {}
+    constructor() { }
 
     getNormalisedReading(): number {
         return Math.abs(this.getReading()) / (Math.abs(this.getMinimum()) + this.getMaximum())
     }
 
-    getName(): string {return "abstract"}
-    getReading(): number {return undefined}
-    getMinimum(): number {return 0;}
-    getMaximum(): number {return 100;}
+    getName(): string { return "abstract" }
+    getReading(): number { return undefined }
+    getMinimum(): number { return 0; }
+    getMaximum(): number { return 100; }
 }
 
 

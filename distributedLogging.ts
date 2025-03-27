@@ -101,7 +101,7 @@ namespace microdata {
         //------------------------------------------------------
         // Variables used by both the Commander and the Targets:
         //------------------------------------------------------
-        
+
         public id: number;
 
         /** Target (many) or Commander (only can be 1)? This is set inside .initialiseCommunication() and does not change thereon. */
@@ -135,15 +135,15 @@ namespace microdata {
 
         /** The Target needs to build a list of sensors from sensor names, configure them according to the Commander's specification, then pass that to the recorder */
         private sensors: Sensor[]
-        
+
         //--------------------------
         // Commander only Variables:
         //--------------------------
-        
+
         private static nextMicrobitIDToIssue: number;
         public numberOfTargetsConnected: number;
         private callbackObj: ITargetDataLoggedCallback;
-        
+
         /** Should the target send each row of data it logs back to the Commander? See DistributedLoggingProtocol.log() */
         private streamDataBack: boolean;
 
@@ -153,12 +153,12 @@ namespace microdata {
         constructor(app: AppInterface, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
             control.singleSimulator()
 
-            //--------------
-            // Unbind A & B:
-            //--------------
+            //-----------------------------------------------------------------------
+            // Unbind A & B: Since we may've come from headless mode which uses them.
+            //-----------------------------------------------------------------------
 
-            input.onButtonPressed(1, () => {});
-            input.onButtonPressed(2, () => {});
+            input.onButtonPressed(1, () => { });
+            input.onButtonPressed(2, () => { });
 
             //------------------------------------------------------
             // Variables used by both the Commander and the Targets:
@@ -176,11 +176,11 @@ namespace microdata {
             this.numberOfMessagesReceived = 0;
 
             this.sensors = []
-            
+
             //--------------------------
             // Commander only Variables:
             //--------------------------
-            
+
             DistributedLoggingProtocol.nextMicrobitIDToIssue = 0;
             this.numberOfTargetsConnected = 0;
             this.callbackObj = callbackObj;
@@ -226,7 +226,7 @@ namespace microdata {
             return message
         }
 
-        private sendMessage(message: string): void {radio.sendString(message)}
+        private sendMessage(message: string): void { radio.sendString(message) }
 
 
         private initialiseCommunication() {
@@ -300,7 +300,7 @@ namespace microdata {
              * Message with 'NETWORK_COMMAND.START_LOGGING' -> 'radio.onReceivedString(getSensorConfigData)'
              * @param receivedString The first message in a command; SENDER_ID + NETWORK_COMMAND + ?ADDITIONAL_INFO (number of future messages for START_LOGGING as an example)
              */
-            radio.onReceivedString(function (receivedString: string): void {
+            radio.onReceivedString(function(receivedString: string): void {
                 const message = receivedString.split(",")
 
                 if (message[MESSAGE_COMPONENT.NETWORK_COMMAND] == NETWORK_COMMAND_STRING[NETWORK_COMMAND.START_LOGGING]) {
@@ -345,15 +345,15 @@ namespace microdata {
                         const configType = dataStream[1]
                         if (configType == "P") {
                             const measurements: number = +dataStream[2]
-                            const period:       number = +dataStream[3]
-                            sensor.setConfig({measurements, period})
+                            const period: number = +dataStream[3]
+                            sensor.setConfig({ measurements, period })
                         }
 
                         else if (configType == "E") {
                             const measurements: number = +dataStream[2]
-                            const inequality:   string =  dataStream[3]
-                            const comparator:   number = +dataStream[4]
-                            sensor.setConfig({measurements, period: SENSOR_EVENT_POLLING_PERIOD_MS, inequality, comparator})
+                            const inequality: string = dataStream[3]
+                            const comparator: number = +dataStream[4]
+                            sensor.setConfig({ measurements, period: SENSOR_EVENT_POLLING_PERIOD_MS, inequality, comparator })
                         }
 
                         this.addSensor(sensor)
@@ -398,8 +398,8 @@ namespace microdata {
             this.targetIDs.push(id)
             this.targetIDs = this.targetIDs.sort();
         }
-        protected isDuplicateTarget(id: number) {return this.targetIDs.filter((value) => value == id).length}
-         
+        protected isDuplicateTarget(id: number) { return this.targetIDs.filter((value) => value == id).length }
+
 
         private becomeCommander() {
             this.radioMode = RADIO_LOGGING_MODE.COMMANDER
@@ -409,7 +409,7 @@ namespace microdata {
 
             radio.onReceivedString(function commanderControlFlowFn(receivedString: string): void {
                 const message = receivedString.split(",")
-                
+
                 /**
                  * INCOMING JOIN REQUEST
                  */
@@ -457,7 +457,7 @@ namespace microdata {
                     );
                 }
             })
-        }   
+        }
 
         //--------------------------------------------------------------------------------
         // Methods invoked on the Commander Screen that tell command the Target Microbits:
@@ -565,7 +565,7 @@ namespace microdata {
 
                 if (DistributedLoggingScreen.showTabularData) {
                     this.app.popScene()
-                    this.app.pushScene(new TabularDataViewer(this.app, function () {this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app))}))
+                    this.app.pushScene(new TabularDataViewer(this.app, function() { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }))
                 }
             }
         }
@@ -573,7 +573,7 @@ namespace microdata {
         callback(msg: string) {
             DistributedLoggingScreen.streamingDone = true
         }
-        
+
         /* override */ startup() {
             super.startup()
 
@@ -646,7 +646,7 @@ namespace microdata {
                     style: ButtonStyles.Transparent,
                     icon: "radio_set_group",
                     ariaId: "Start streaming",
-                    x: 20,   
+                    x: 20,
                     y,
                     onClick: () => {
                         if (DistributedLoggingScreen.streamingDone) {
@@ -669,7 +669,7 @@ namespace microdata {
                     onClick: () => {
                         if (DistributedLoggingScreen.showTabularData) {
                             this.app.popScene();
-                            this.app.pushScene(new TabularDataViewer(this.app, function () {this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app))}));
+                            this.app.pushScene(new TabularDataViewer(this.app, function() { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }));
                         }
                     },
                 })
@@ -695,36 +695,36 @@ namespace microdata {
                             )
                             break;
                         }
-    
+
                         case RADIO_LOGGING_MODE.COMMANDER: {
                             screen().printCenter(
                                 "Commander Mode",
                                 2
                             )
-    
+
                             this.navigator.drawComponents();
                             break;
                         }
-    
+
                         case RADIO_LOGGING_MODE.TARGET: {
                             const connectedText = "Connected to Commander,"
-                            const asMicrobit    = "as Microbit " + this.distributedLogger.id + "."
-                            
+                            const asMicrobit = "as Microbit " + this.distributedLogger.id + "."
+
                             screen().print(
                                 connectedText,
-                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth)>> 1),
+                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth) >> 1),
                                 2
                             )
-    
+
                             // Left-aligned with above text
                             screen().print(
                                 asMicrobit,
-                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth)>> 1),
+                                Screen.HALF_WIDTH - ((connectedText.length * font.charWidth) >> 1),
                                 12
                             )
                             break;
                         }
-                    
+
                         default:
                             break;
                     }

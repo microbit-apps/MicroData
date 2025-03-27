@@ -35,7 +35,7 @@ namespace microdata {
             if (arcadeShieldConnected)
                 this.pushScene(new microdata.Home(this));
             else
-                new DistributedLoggingProtocol(this, false);
+                new HeadlessMode(this);
         }
 
         public pushScene(scene: Scene) {

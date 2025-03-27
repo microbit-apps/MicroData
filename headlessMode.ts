@@ -38,7 +38,7 @@ namespace microdata {
     };
 
     /** For module inside of B button. */
-    const SENSOR_SELECTION_SIZE = 4;
+    const UI_SENSOR_SELECT_STATE_LEN = 5;
     /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
     const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
 
@@ -57,7 +57,7 @@ namespace microdata {
      * 
      * Fibers and special waiting functions .waitUntilSensorSelectStateChange & .waitUntilUIModeChanges are required to maintain low-latency and the dynamic behaviour described above.
      */
-    export class NoArcadeShieldMode {
+    export class HeadlessMode {
         private app: App;
         /** Mutated by the A & B button */
         private uiMode: UI_MODE;
@@ -80,8 +80,7 @@ namespace microdata {
             // B Button
             input.onButtonPressed(2, () => {
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION)
-                    this.uiSensorSelectState = (this.uiSensorSelectState + 1) % SENSOR_SELECTION_SIZE
-
+                    this.uiSensorSelectState = (this.uiSensorSelectState + 1) % UI_SENSOR_SELECT_STATE_LEN
                 else if (this.uiMode == UI_MODE.LOGGING) {
                     this.uiMode = UI_MODE.SENSOR_SELECTION;
                     this.dynamicSensorSelectionLoop();
@@ -105,11 +104,11 @@ namespace microdata {
          */
         private dynamicSensorSelectionLoop() {
             const dynamicInfo = [
-                {sensor: new AccelerometerXSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25}, 
-                {sensor: new AccelerometerYSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25}, 
-                {sensor: new AccelerometerZSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25},
-                {sensor: new LightSensor(),          uiState: UI_SENSOR_SELECT_STATE.LIGHT,        threshold: 0.75},
-                {sensor: new MagnetSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.80},
+                { sensor: Sensor.getFromName("Accel. X"), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25 },
+                { sensor: Sensor.getFromName("Accel. Y"), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25 },
+                { sensor: Sensor.getFromName("Accel. Z"), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25 },
+                { sensor: Sensor.getFromName("Light"), uiState: UI_SENSOR_SELECT_STATE.LIGHT, threshold: 0.85 },
+                { sensor: Sensor.getFromName("Magnet"), uiState: UI_SENSOR_SELECT_STATE.MAGNET, threshold: 0.80 },
             ];
 
             // Don't trigger the same sensor selection twice in a row:
@@ -228,7 +227,7 @@ namespace microdata {
 
                             break;
                         }
-                            
+
                         case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
                             basic.showLeds(`
                                 # . . . .
@@ -250,8 +249,8 @@ namespace microdata {
                                 . . . . .
                                 . . # . .
                             `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
-                            
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+
                             basic.showLeds(`
                                 . # # # .
                                 . # # # .
@@ -259,7 +258,7 @@ namespace microdata {
                                 . . . . .
                                 . . # . .
                             `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
 
                             break;
                         }
@@ -272,7 +271,7 @@ namespace microdata {
                                 . . . . .
                                 . . . . .
                             `)
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
 
                             basic.showLeds(`
                                 . # # # .
@@ -281,7 +280,7 @@ namespace microdata {
                                 . . . . .
                                 # # . # #
                             `)
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
 
                             break;
                         }
@@ -294,8 +293,8 @@ namespace microdata {
                                 # . . . #
                                 . . # . . 
                             `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
-                            
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+
                             basic.showLeds(`
                                 . # # # .
                                 # . . . #
@@ -303,7 +302,7 @@ namespace microdata {
                                 # . . . #
                                 . . # . .
                             `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS>> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
 
                             break;
                         }
@@ -315,7 +314,7 @@ namespace microdata {
             });
         }
 
-        
+
         /**
          * Get the sensor(s) that the user selected and start logging them.
          * Exit if the UI_MODE changes back to SENSOR_SELECTION (upon the user pressing B)
@@ -357,21 +356,21 @@ namespace microdata {
         private uiSelectionToSensors(): Sensor[] {
             switch (this.uiSensorSelectState) {
                 case UI_SENSOR_SELECT_STATE.ACCELERATION:
-                    return [new AccelerometerXSensor(), new AccelerometerYSensor(), new AccelerometerZSensor()]
+                    return [Sensor.getFromName("Accel. X"), Sensor.getFromName("Accel. Y"), Sensor.getFromName("Accel. Z")]
 
                 case UI_SENSOR_SELECT_STATE.TEMPERATURE:
-                    return [new TemperatureSensor()]
+                    return [Sensor.getFromName("Temp.")]
 
                 case UI_SENSOR_SELECT_STATE.LIGHT:
-                    return [new LightSensor()]
+                    return [Sensor.getFromName("Light")]
 
                 case UI_SENSOR_SELECT_STATE.MAGNET:
-                    return [new MagnetSensor()]
+                    return [Sensor.getFromName("Magnet")]
 
                 case UI_SENSOR_SELECT_STATE.RADIO:
-                    // new DistributedLoggingProtocol(this.app, false);
+                    new DistributedLoggingProtocol(this.app, false);
                     return []
-            
+
                 default:
                     return []
             }

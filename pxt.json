@@ -32,7 +32,7 @@
         "tabularDataViewer.ts",
         "generateGraph.ts",
         "distributedLogging.ts",
-        "test.ts"
+        "headlessMode.ts"
     ],
     "testFiles": [
         "test.ts"
