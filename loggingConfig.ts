@@ -32,7 +32,7 @@ namespace microdata {
 
         return "E," + config.measurements + "," + config.inequality + "," + config.comparator
     }
-    
+
     const enum GUI_STATE {
         SENSOR_SELECT,
         SENSOR_SELECT_CONFIG_ROW,
@@ -55,7 +55,7 @@ namespace microdata {
         "Period   Event", // PERIOD_OR_EVENT; Add space to account for the line that separates them when drawn - this is drawn as a switch.
         "Done" // DONE
     ]
-    
+
     const GUI_TEXT_EVENT_CONFIG = ["choose inequality", "compared against"]
     const enum GUI_TEXT_EVENT_INDEX {
         INEQUALITY,
@@ -110,7 +110,7 @@ namespace microdata {
 
             for (let i = 0; i < this.sensors.length; i++) {
                 this.sensorConfigIsSet.push(false)
-                this.sensorConfigs.push({measurements: 10, period: 1000, inequality: null, comparator: null}) // Defaults per sensor
+                this.sensorConfigs.push({ measurements: 10, period: 1000, inequality: null, comparator: null }) // Defaults per sensor
 
                 this.guiConfigValues[i] = GUI_PERIOD_DEFAULTS
             }
@@ -138,13 +138,13 @@ namespace microdata {
                                 for (let i = 0; i < this.sensors.length; i++) {
                                     if (!this.sensorConfigIsSet[i]) {
                                         // Reset GUI state:
-                                        this.configurationIndex = CONFIG_ROW.MEASUREMENT_QTY 
-                                        this.eventOrPeriodIndex = 0        
-                                        this.guiState = GUI_STATE.SENSOR_SELECT 
+                                        this.configurationIndex = CONFIG_ROW.MEASUREMENT_QTY
+                                        this.eventOrPeriodIndex = 0
+                                        this.guiState = GUI_STATE.SENSOR_SELECT
                                         return
                                     }
                                 }
-                                
+
                                 this.app.popScene()
 
                                 if (this.nextSceneEnum == CursorSceneEnum.DistributedLogging) {
@@ -200,7 +200,7 @@ namespace microdata {
                                     }
                                     this.guiState = GUI_STATE.SENSOR_SELECT_CONFIG_ROW
                                     break;
-                                }              
+                                }
                             }
                             break
                         }
@@ -268,7 +268,7 @@ namespace microdata {
                                     // basic.showNumber(this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex])
                                 }
                                 break;
-                            }                       
+                            }
                         }
                     }
                     this.update()
@@ -296,11 +296,11 @@ namespace microdata {
                             }
                             case CONFIG_ROW.PERIOD_OR_EVENT: {
                                 if (this.currentConfigMode == CONFIG_MODE.EVENT) {
-                                    if (this.eventOrPeriodIndex == GUI_TEXT_EVENT_INDEX.COMPARATOR ) {
+                                    if (this.eventOrPeriodIndex == GUI_TEXT_EVENT_INDEX.COMPARATOR) {
                                         if (this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] - 1 < this.sensors[this.sensorIndex].getMinimum())
                                             this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] = this.sensors[this.sensorIndex].getMaximum()
                                         else
-                                            this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] -= 1  
+                                            this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] -= 1
                                     }
                                     else if (this.eventOrPeriodIndex == GUI_TEXT_EVENT_INDEX.INEQUALITY) {
                                         const qty = sensorEventSymbols.length
@@ -312,7 +312,7 @@ namespace microdata {
                                     this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] = Math.max(this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] - 1, 0)
                                 }
                                 break;
-                            }                       
+                            }
                         }
                     }
                     this.update()
@@ -339,7 +339,7 @@ namespace microdata {
                                 else if (this.currentConfigMode == CONFIG_MODE.EVENT)
                                     this.eventOrPeriodIndex = (((this.eventOrPeriodIndex - 1) % qty) + qty) % qty
                                 break;
-                            }                       
+                            }
                         }
                     }
                     this.update()
@@ -365,14 +365,14 @@ namespace microdata {
                                 else if (this.currentConfigMode == CONFIG_MODE.EVENT)
                                     this.eventOrPeriodIndex = (this.eventOrPeriodIndex + 1) % GUI_TEXT_EVENT_CONFIG.length
                                 break;
-                            }                       
+                            }
                         }
                     }
                     this.update()
                 }
             )
         }
-        
+
         update() {
             Screen.fillRect(
                 Screen.LEFT_EDGE,
@@ -449,7 +449,7 @@ namespace microdata {
             //-----------------------
 
             let periodEventStart = Screen.HALF_HEIGHT
-    
+
             // Push to just above Done if Measurements selected, if selected push to just below Measurements:
             if (this.guiState == GUI_STATE.SENSOR_MODIFY_CONFIG_ROW) {
                 if (this.configurationIndex == CONFIG_ROW.MEASUREMENT_QTY)
@@ -457,7 +457,7 @@ namespace microdata {
                 else
                     periodEventStart = yStart + font.charHeight + (Screen.HEIGHT * 0.08593) // + 11 // yStart + font.charHeight + (Screen.HEIGHT * 0.08593)
             }
-            
+
             screen().fillRect(
                 0,
                 periodEventStart,
@@ -474,16 +474,16 @@ namespace microdata {
                 7 // green
             ) // Coloured border ontop
 
-            
+
             //-----------------------------------------------
             // Period text & block: Draw as an on/off switch:
             //-----------------------------------------------
 
             // Draw as an on-off switch:
             const periodBlockColour = (this.currentConfigMode == CONFIG_MODE.PERIOD) ? 7 : 1 // Green vs White
-            const eventBlockColour  = (this.currentConfigMode == CONFIG_MODE.EVENT)  ? 7 : 1 // Green vs White
-            const periodTextColour  = 15
-            const eventTextColour   = 15
+            const eventBlockColour = (this.currentConfigMode == CONFIG_MODE.EVENT) ? 7 : 1 // Green vs White
+            const periodTextColour = 15
+            const eventTextColour = 15
 
             screen().fillRect(
                 0,
@@ -492,7 +492,7 @@ namespace microdata {
                 font.charHeight + (Screen.HEIGHT * 0.07), // 9
                 periodBlockColour
             ) // Coloured border ontop
-            
+
             screen().print(
                 "Period",
                 headerX - 2,
@@ -522,7 +522,7 @@ namespace microdata {
                 font.charHeight + (Screen.HEIGHT * 0.07), // 9 // Screen.HEIGHT * 0.1328,  // 17,
                 eventBlockColour
             ) // Coloured border ontop
-            
+
             screen().print(
                 "         Event", // Space for "Period" + "   " (3 spaces)
                 headerX - 2,
@@ -625,7 +625,7 @@ namespace microdata {
                             yWindowStart + (Screen.HEIGHT * 0.0468), // 6
                             15 // black
                         )
-                        
+
                         const measurementsText = this.sensorConfigs[this.sensorIndex].measurements.toString()
                         screen().printCenter(
                             measurementsText,
@@ -634,7 +634,7 @@ namespace microdata {
                         )
 
                         screen().drawRect(
-                            Screen.HALF_WIDTH - ((measurementsText.length * font.charWidth)>> 1) - 4,
+                            Screen.HALF_WIDTH - ((measurementsText.length * font.charWidth) >> 1) - 4,
                             yWindowStart + (Screen.HEIGHT * 0.1640), // 21
                             (measurementsText.length * font.charWidth) + 8,
                             (Screen.HEIGHT * 0.1093), // 13
@@ -643,10 +643,10 @@ namespace microdata {
 
                         break;
                     }
-                
+
                     case CONFIG_ROW.PERIOD_OR_EVENT: {
-                        const yPeriodOrEventWindowStart = periodEventStart + font.charHeight 
-                        
+                        const yPeriodOrEventWindowStart = periodEventStart + font.charHeight
+
                         screen().fillRect(
                             2,
                             yPeriodOrEventWindowStart + (Screen.HEIGHT * 0.0859), // 11
@@ -688,7 +688,7 @@ namespace microdata {
                             switch (this.eventOrPeriodIndex) {
                                 case 0:
                                     screen().drawRect(
-                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth)>> 1) + ((sensor.getName().length + 1) * font.charWidth) - 4,
+                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth) >> 1) + ((sensor.getName().length + 1) * font.charWidth) - 4,
                                         Screen.HALF_HEIGHT + (Screen.HEIGHT * 0.09375), // 12
                                         (inequalitySymbol.length * font.charWidth) + 8,
                                         Screen.HEIGHT * 0.109, // 14
@@ -698,14 +698,14 @@ namespace microdata {
 
                                 case 1:
                                     screen().drawRect(
-                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth)>> 1) + ((sensor.getName() + " " + inequalitySymbol + " ").length * font.charWidth) - 4,
+                                        Screen.HALF_WIDTH - ((expression.length * font.charWidth) >> 1) + ((sensor.getName() + " " + inequalitySymbol + " ").length * font.charWidth) - 4,
                                         Screen.HALF_HEIGHT + (Screen.HEIGHT * 0.09375), // 12
                                         (inequalityOperand.length * font.charWidth) + 8,
                                         Screen.HEIGHT * 0.109, // 13
                                         5 // yellow
                                     )
                                     break;
-                            
+
                                 default:
                                     break;
                             }
@@ -728,7 +728,7 @@ namespace microdata {
                             for (let col = 0; col < this.guiConfigValues[this.sensorIndex].length; col++) {
                                 if (col == this.eventOrPeriodIndex) {
                                     screen().drawRect(
-                                        Screen.HALF_WIDTH - ((periodConfigString.length * font.charWidth)>> 1) + (distance * font.charWidth) - 4,
+                                        Screen.HALF_WIDTH - ((periodConfigString.length * font.charWidth) >> 1) + (distance * font.charWidth) - 4,
                                         Screen.HALF_HEIGHT + (Screen.HEIGHT * 0.0625), // 8
                                         (this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex].toString().length * font.charWidth) + 8,
                                         (Screen.HEIGHT * 0.1171), // 15
@@ -768,7 +768,7 @@ namespace microdata {
                     font.charHeight + (Screen.HEIGHT * 0.0703), // 9
                     15 // black
                 )
-    
+
                 screen().fillRect(
                     1,
                     headerY + (row * rowSize) - (Screen.HEIGHT * 0.023437), // 3
@@ -788,7 +788,7 @@ namespace microdata {
                             6
                         ) // Highlight selected in blue
                     }
-                } 
+                }
 
                 screen().print(
                     this.sensors[row].getName(),

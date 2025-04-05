@@ -12,7 +12,7 @@ namespace microdata {
      * Inclusively, only one Jacdac sensor may be selected at once.
      */
     export const MAX_NUMBER_OF_SENSORS: number = 3
-    
+
     /** 
      * Starting index of contigious row of Jacdac sensors.
      * Used to ensure that Jacdac sensors are appropriately enabled/disabled.
@@ -29,13 +29,13 @@ namespace microdata {
         private selectedSensorAriaIDs: string[]
         private nextSceneEnum: CursorSceneEnum
         private jacdacSensorSelected: boolean
-        
+
         constructor(app: AppInterface, nextSceneEnum: CursorSceneEnum) {
-            super(app, function () {
-                this.app.popScene(); 
+            super(app, function() {
+                this.app.popScene();
                 this.app.pushScene(new Home(this.app))
-            }, new GridNavigator()); 
-            
+            }, new GridNavigator(null, true));
+
             this.btns = [[], [], [], []]; // For our 4x5 grid
             this.selectedSensorAriaIDs = [];
             this.nextSceneEnum = nextSceneEnum;
@@ -66,7 +66,7 @@ namespace microdata {
             let y: number = -41
             let iconIndex: number = 0;
 
-            const rowLengths = [5,5,5,4] // Last row has 'Done' button added after this loop:
+            const rowLengths = [5, 5, 5, 4] // Last row has 'Done' button added after this loop:
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < rowLengths[i]; j++) {
                     this.btns[i][j] = new Button({
@@ -112,7 +112,7 @@ namespace microdata {
                                         this.setOtherJacdacButtonsTo(false, button)
                                     }
                                 }
-            
+
                                 else {
                                     this.selectedSensorAriaIDs.push(button.ariaId)
                                     button.pressable = true
@@ -136,7 +136,7 @@ namespace microdata {
                                     }
                                 }
                             }
-                        },          
+                        },
                         dynamicBoundaryColorsOn: true,
                     })
 
@@ -167,7 +167,7 @@ namespace microdata {
                     if (this.nextSceneEnum === CursorSceneEnum.LiveDataViewer) {
                         this.app.pushScene(new LiveDataViewer(this.app, sensors))
                     }
-                    
+
                     else if (this.nextSceneEnum === CursorSceneEnum.RecordingConfigSelect)
                         this.app.pushScene(new RecordingConfigSelection(this.app, sensors))
 
@@ -211,7 +211,7 @@ namespace microdata {
             )
 
             this.navigator.drawComponents();
-            super.draw() 
+            super.draw()
         }
     }
 }

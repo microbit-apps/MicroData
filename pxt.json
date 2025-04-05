@@ -7,7 +7,7 @@
         "radio": "*",
         "microphone": "*",
         "datalogger": "*",
-        "user-interface-base": "github:microbit-apps/user-interface-base#v0.0.17",
+        "user-interface-base": "github:microbit-apps/user-interface-base#592f5876341a87f651392aae3755815370276fe8",
         "jacdac": "github:microsoft/pxt-jacdac#v1.9.28",
         "jacdac-light-level": "github:microsoft/pxt-jacdac/light-level#v1.9.28",
         "jacdac-soil-moisture": "github:microsoft/pxt-jacdac/soil-moisture#v1.9.28",

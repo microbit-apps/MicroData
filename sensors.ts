@@ -227,6 +227,13 @@ namespace microdata {
         /** Immutable: Need to know whether or not this sensor is on the microbit or is an external Jacdac one; see sensorSelection.ts */
         private isJacdacSensor: boolean;
 
+        /** 
+         * LiveDataViewer does not need to be between (min, max) it can be scaled.
+         * This is valuable for the magnetometer since its range is much wider than typical values.
+         * Set to 1 if not provided.
+         */
+        private dynamicRangeScalingFactor: number;
+
         /** Set inside .setConfig() */
         public totalMeasurements: number
 
@@ -277,7 +284,8 @@ namespace microdata {
             min: number,
             max: number,
             isJacdacSensor: boolean,
-            setupFn?: () => void
+            setupFn?: () => void,
+            dynamicRangeScalingFactor?: number
         }) {
             this.maxBufferSize = 80
             this.totalMeasurements = 0
@@ -297,6 +305,8 @@ namespace microdata {
             this.range = Math.abs(this.minimum) + this.maximum
             this.sensorFn = opts.f
             this.isJacdacSensor = opts.isJacdacSensor
+
+            this.dynamicRangeScalingFactor = (opts.dynamicRangeScalingFactor) ? opts.dynamicRangeScalingFactor : 1.0
 
             // Could be additional functions required to set up the sensor (see Jacdac modules or Accelerometers):
             if (opts.setupFn != null)
@@ -412,8 +422,8 @@ namespace microdata {
                     name: "Temp.",
                     rName: "T",
                     f: () => input.temperature(),
-                    min: -40,
-                    max: 100,
+                    min: -5,
+                    max: 50,
                     isJacdacSensor: false
                 });
 
@@ -424,7 +434,8 @@ namespace microdata {
                     f: () => input.magneticForce(Dimension.Strength),
                     min: -5000,
                     max: 5000,
-                    isJacdacSensor: false
+                    isJacdacSensor: false,
+                    dynamicRangeScalingFactor: 0.2
                 });
 
             else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")
@@ -529,6 +540,8 @@ namespace microdata {
         getNormalisedReading(): number { return Math.abs(this.getReading()) / this.range }
         getMinimum(): number { return this.minimum; }
         getMaximum(): number { return this.maximum; }
+        getEffectiveMinimum(): number { return this.minimum * this.dynamicRangeScalingFactor; }
+        getEffectiveMaximum(): number { return this.maximum * this.dynamicRangeScalingFactor; }
         isJacdac(): boolean { return this.isJacdacSensor; }
 
         getMaxBufferSize(): number { return this.maxBufferSize }
@@ -581,6 +594,24 @@ namespace microdata {
         }
 
         /**
+         * Checks value to ensure it is within effective range
+         * It will increase this.dynamicRangeScalingFactor (to a max of 1.0),
+         * if this is not the case (increasing the effective range).
+         */
+        private increaseDynamicRangeScalingFactor(value: number) {
+            const eMin = this.getEffectiveMinimum();
+            const eMax = this.getEffectiveMaximum();
+
+            if (value > eMin && value < eMax)
+                return;
+
+            const nearest = (value < eMin) ? eMin : eMax;
+            const increase = Math.abs(value - nearest) / Math.abs(value)
+
+            this.dynamicRangeScalingFactor = Math.min(1.0, this.dynamicRangeScalingFactor + increase);
+        }
+
+        /**
          * Change the size of the buffer used for this.dataBuffer & this.normalisedBuffer
          * Will shift out old this.dataBuffer & this.normalisedBuffer values from the front.
          * @param newBufferSize absolute new value for both this.dataBuffer & this.normalisedBuffer
@@ -604,6 +635,7 @@ namespace microdata {
          */
         readIntoBufferOnce(fromY: number): void {
             const reading = this.getReading()
+            this.increaseDynamicRangeScalingFactor(reading);
 
             if (this.dataBuffer.length >= this.maxBufferSize || reading === undefined) {
                 this.dataBuffer.shift();

@@ -126,7 +126,7 @@ namespace microdata {
             this.sensorMinsAndMaxs = []
 
             sensors.forEach((sensor) => {
-                this.sensorMinsAndMaxs.push([sensor.getMinimum(), sensor.getMaximum()])
+                this.sensorMinsAndMaxs.push([sensor.getEffectiveMinimum(), sensor.getEffectiveMaximum()])
                 this.drawSensorStates.push(true)
             })
             this.setGlobalMinAndMax()
@@ -314,12 +314,12 @@ namespace microdata {
                 if (this.drawSensorStates[i]) {
                     // Minimum and Maximum sensor readings for the y-axis markers
                     const sensor: Sensor = this.sensors[i]
-                    if (sensor.getMinimum() < this.globalSensorMinimum || this.globalSensorMinimum == null) {
-                        this.globalSensorMinimum = sensor.getMinimum()
+                    if (sensor.getEffectiveMinimum() < this.globalSensorMinimum || this.globalSensorMinimum == null) {
+                        this.globalSensorMinimum = sensor.getEffectiveMinimum()
                     }
 
-                    if (sensor.getMaximum() > this.globalSensorMaximum || this.globalSensorMaximum == null) {
-                        this.globalSensorMaximum = sensor.getMaximum()
+                    if (sensor.getEffectiveMaximum() > this.globalSensorMaximum || this.globalSensorMaximum == null) {
+                        this.globalSensorMaximum = sensor.getEffectiveMaximum()
                     }
                 }
             }
@@ -377,8 +377,8 @@ namespace microdata {
                             const fromY = this.windowBotBuffer - ( 2 * this.yScrollOffset) + 3
 
                             const reading = sensor.getReading()
-                            const range = Math.abs(sensor.getMinimum()) + sensor.getMaximum()
-                            const y = Math.round(Screen.HEIGHT - ((((reading - sensor.getMinimum()) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)))) - fromY
+                            const range = Math.abs(sensor.getEffectiveMinimum()) + sensor.getEffectiveMaximum()
+                            const y = Math.round(Screen.HEIGHT - ((((reading - sensor.getEffectiveMinimum()) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)))) - fromY
 
                             // Make sure the ticker won't be cut-off by other UI elements
                             if (!tickerYValues.some(v => Math.abs(v - y) <= 5)) {
