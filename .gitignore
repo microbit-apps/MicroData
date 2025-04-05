@@ -33,3 +33,4 @@ crowdinstats.csv
 package-lock.json
 .DS_Store
 build.sh
+compile_commands.json
