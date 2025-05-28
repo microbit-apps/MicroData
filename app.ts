@@ -29,13 +29,13 @@ namespace microdata {
             reportEvent("app.start")
 
             this.sceneManager = new SceneManager()
-            datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
+            // datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
-            const arcadeShieldConnected = shieldhelpers.shieldPresent();
-            if (arcadeShieldConnected)
-                this.pushScene(new microdata.Home(this));
-            else
-                new HeadlessMode(this);
+            // const arcadeShieldConnected = shieldhelpers.shieldPresent();
+            // if (arcadeShieldConnected)
+            this.pushScene(new microdata.Home(this));
+            // else
+            //     new HeadlessMode(this);
         }
 
         public pushScene(scene: Scene) {

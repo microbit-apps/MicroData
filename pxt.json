@@ -3,17 +3,11 @@
     "version": "1.7.4",
     "description": "Data science with micro:bit v2",
     "dependencies": {
-        "core": "*",
-        "radio": "*",
-        "microphone": "*",
-        "datalogger": "*",
-        "user-interface-base": "github:microbit-apps/user-interface-base#v0.0.17",
-        "jacdac": "github:microsoft/pxt-jacdac#v1.9.28",
-        "jacdac-light-level": "github:microsoft/pxt-jacdac/light-level#v1.9.28",
-        "jacdac-soil-moisture": "github:microsoft/pxt-jacdac/soil-moisture#v1.9.28",
-        "jacdac-distance": "github:microsoft/pxt-jacdac/distance#v1.9.28",
-        "jacdac-temperature": "github:microsoft/pxt-jacdac/temperature#v1.9.28",
-        "jacdac-flex": "github:microsoft/pxt-jacdac/flex#v1.9.28"
+        "core": "file:../core",
+        "radio": "file:../radio",
+        "microphone": "file:../microphone",
+        "datalogger": "file:../datalogger",
+        "user-interface-base": "file:../user-interface-base"
     },
     "files": [
         "analytics.ts",
