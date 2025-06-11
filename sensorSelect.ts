@@ -34,7 +34,7 @@ namespace microdata {
             super(app, function() {
                 this.app.popScene();
                 this.app.pushScene(new Home(this.app))
-            }, new GridNavigator(null, true));
+            }, new GridNavigator(null));
 
             this.btns = [[], [], [], []]; // For our 4x5 grid
             this.selectedSensorAriaIDs = [];
