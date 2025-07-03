@@ -37,6 +37,7 @@ namespace microdata {
         private nextSceneEnum: CursorSceneEnum
         private jacdacSensorSelected: boolean
         private tutorialHintIndex: number;
+        private userHasPressedABtn: boolean;
         
         constructor(app: AppInterface, nextSceneEnum: CursorSceneEnum) {
             super(app, function () {
@@ -49,6 +50,7 @@ namespace microdata {
             this.nextSceneEnum = nextSceneEnum;
             this.jacdacSensorSelected = false;
             this.tutorialHintIndex = 0;
+            this.userHasPressedABtn = false;
         }
 
         /* override */ startup() {
@@ -190,13 +192,25 @@ namespace microdata {
             this.navigator.setBtns(this.btns)
         }
 
-
         private overrideControllerButtonBindings() {
+            const tutorialTextCountDownTimer = () => {
+                control.inBackground(() => {
+                    basic.pause(4000)
+                    this.tutorialHintIndex = 3
+                    basic.pause(4000)
+                    this.tutorialHintIndex = NUMBER_OF_TUTORIAL_HINTS
+                })
+            }
+
             control.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.right.id,
                 () => {
-                    if (this.tutorialHintIndex == 0)
+                    if (this.userHasPressedABtn && this.tutorialHintIndex <= 1) {
+                        this.tutorialHintIndex = 2
+                        tutorialTextCountDownTimer()
+                    }
+                    else if (this.tutorialHintIndex == 0)
                         this.tutorialHintIndex = 1
                     this.moveCursor(CursorDir.Right)
                 }
@@ -205,7 +219,11 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.up.id,
                 () => {
-                    if (this.tutorialHintIndex == 0)
+                    if (this.userHasPressedABtn && this.tutorialHintIndex <= 1) {
+                        this.tutorialHintIndex = 2
+                        tutorialTextCountDownTimer()
+                    }
+                    else if (this.tutorialHintIndex == 0)
                         this.tutorialHintIndex = 1
                     this.moveCursor(CursorDir.Up)
                 }
@@ -214,7 +232,11 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.down.id,
                 () => {
-                    if (this.tutorialHintIndex == 0)
+                    if (this.userHasPressedABtn && this.tutorialHintIndex <= 1) {
+                        this.tutorialHintIndex = 2
+                        tutorialTextCountDownTimer()
+                    }
+                    else if (this.tutorialHintIndex == 0)
                         this.tutorialHintIndex = 1
                     this.moveCursor(CursorDir.Down)
                 }
@@ -223,31 +245,26 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.left.id,
                 () => {
-                    if (this.tutorialHintIndex == 0)
+                    if (this.userHasPressedABtn && this.tutorialHintIndex <= 1) {
+                        this.tutorialHintIndex = 2
+                        tutorialTextCountDownTimer()
+                    }
+                    else if (this.tutorialHintIndex == 0)
                         this.tutorialHintIndex = 1
                     this.moveCursor(CursorDir.Left)
                 }
             )
 
-            const click = () => this.cursor.click()
-            const tutorialTextCountDownTimer = () => {
-                control.inBackground(() => {
-                    basic.pause(4000)
-                    this.tutorialHintIndex = 3
-                    basic.pause(4000)
-                    this.tutorialHintIndex = 4
-                })
-            }
-
             control.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.A.id,
                 () => {
+                    this.userHasPressedABtn = true;
                     if (this.tutorialHintIndex == 1) {
                         this.tutorialHintIndex = 2
                         tutorialTextCountDownTimer()
                     }
-                    click
+                    this.cursor.click()
                 }
             )
         }
@@ -287,6 +304,7 @@ namespace microdata {
             super.draw()
             
             if (TUTORIAL_MODE) {
+                basic.showNumber(this.cursor.navigator.)
                 const drawTutorialTextBox = () => {
                     Screen.fillRect(
                         Screen.LEFT_EDGE,

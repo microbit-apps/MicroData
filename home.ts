@@ -40,7 +40,8 @@ namespace microdata {
                     y,
                     onClick: () => {
                         this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+                        // this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+                        this.app.pushScene(new LoggingModeSelection(this.app))
                     },
                 }),
 

@@ -23,6 +23,7 @@ namespace microdata {
     export class App implements AppInterface {
         sceneManager: SceneManager
 
+        // 592f5876341a87f651392aae3755815370276fe8
         constructor() {
             // One interval delay to ensure all static constructors have executed.
             basic.pause(10)
