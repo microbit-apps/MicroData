@@ -10,15 +10,45 @@ namespace microdata {
     import font = user_interface_base.font
     import Bounds = user_interface_base.Bounds
 
-    const enum GUI_STATE {
-        CHANGING_NUMBER_OF_MEASUREMENTS,
-        CHANGING_PERIOD_SECONDS
+
+    const enum GUI_STATE_QUESTION {
+        ASKING_HOW_LONG,
+        ASKING_INTERVAL
     }
 
-    export class BasicLoggingScene extends Scene {
-        private guiState: GUI_STATE = GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS;
-        private numberOfMeasurements: number = 10;
-        private periodSeconds: number = 1;
+    const enum GUI_STATE_USER_ANSWER {
+        CHANGING_EXPERIMENT_LENGTH,
+        CHANGING_EXPERIMENT_LENGTH_UNITS,
+        CHANGING_EXPERIMENT_INTERVAL,
+        CHANGING_EXPERIMENT_INTERVAL_UNITS
+    }
+
+    const EXPERIMENT_UNITS = [
+        // "milli-seconds",
+        "seconds",
+        "minutes",
+        "hours",
+        "days",
+    ]
+
+    const EXPERIMENT_UNITS_CONVERSION_TABLE = {
+        // "milli-seconds": 1,
+        "seconds": 1000,
+        "minutes": 60000,
+        "hours": 3600000,
+        "days": 86400000
+    }
+
+
+    export class IntervalMode extends Scene {
+        private guiStateQuestion: GUI_STATE_QUESTION = GUI_STATE_QUESTION.ASKING_HOW_LONG;
+        private guiStateAnswer: GUI_STATE_USER_ANSWER = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH;
+
+        private experimentLength: number = 10;
+        private experimentLengthUnitsIndex: number = 0; // "Seconds"
+
+        private experimentInterval: number = 1;
+        private experimentIntervalUnitsIndex: number = 0; // "Seconds"
 
         constructor(app: AppInterface) {
             super(app)
@@ -30,10 +60,17 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.right.id,
                 () => {
-                    this.guiState =
-                    (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
-                        this.guiState = GUI_STATE.CHANGING_PERIOD_SECONDS :
-                        this.guiState = GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS
+                    if (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) {
+                        this.guiStateAnswer =
+                            (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH) ?
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH_UNITS :
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH
+                    } else {
+                        this.guiStateAnswer =
+                            (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) ?
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL_UNITS :
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL
+                    }
                 }
             )
 
@@ -41,10 +78,17 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.left.id,
                 () => {
-                    this.guiState =
-                    (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
-                        this.guiState = GUI_STATE.CHANGING_PERIOD_SECONDS :
-                        this.guiState = GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS
+                    if (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) {
+                        this.guiStateAnswer =
+                            (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH) ?
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH_UNITS :
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH
+                    } else {
+                        this.guiStateAnswer =
+                            (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) ?
+                            this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL_UNITS :
+                            this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL
+                    }
                 }
             )
 
@@ -61,10 +105,19 @@ namespace microdata {
 
                     // Control logic:
                     while (tick) {
-                        if (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS)
-                            this.numberOfMeasurements += 1
-                        else
-                            this.periodSeconds += 1
+                        if (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) {
+                            if (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH) {
+                                this.experimentLength += 1;
+                            } else {
+                                this.experimentLengthUnitsIndex = (this.experimentLengthUnitsIndex + 1) % EXPERIMENT_UNITS.length;
+                            }
+                        } else {
+                            if (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) {
+                                this.experimentInterval += 1;
+                            } else {
+                                this.experimentIntervalUnitsIndex = (this.experimentIntervalUnitsIndex + 1) % EXPERIMENT_UNITS.length;;
+                            }
+                        }
                         basic.pause(100)
                     }
                     // Reset binding
@@ -85,10 +138,21 @@ namespace microdata {
 
                     // Control logic:
                     while (tick) {
-                        if (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS)
-                            this.numberOfMeasurements = Math.max(1, this.numberOfMeasurements - 1)
-                        else
-                            this.periodSeconds = Math.max(1, this.periodSeconds - 1)
+                        if (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) {
+                            if (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH) {
+                                this.experimentLength = Math.max(1, this.experimentLength - 1);
+                            } else {
+                                const len = EXPERIMENT_UNITS.length;
+                                this.experimentLengthUnitsIndex = (((this.experimentLengthUnitsIndex - 1) % len) + len) % len
+                            }
+                        } else {
+                            if (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) {
+                                this.experimentInterval = Math.max(1, this.experimentInterval - 1);
+                            } else {
+                                const len = EXPERIMENT_UNITS.length;
+                                this.experimentIntervalUnitsIndex = (((this.experimentIntervalUnitsIndex - 1) % len) + len) % len
+                            }
+                        }
                         basic.pause(100)
                     }
                     // Reset binding
@@ -99,8 +163,7 @@ namespace microdata {
             control.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.A.id,
-                () => {
-                    
+                () => { 
                     basic.showLeds(`
                         . . . . .
                         . # . # .
@@ -110,6 +173,15 @@ namespace microdata {
                     `)
                 }
             )
+
+            control.onEvent(
+                ControllerButtonEvent.Pressed,
+                controller.B.id,
+                () => {
+                    this.app.popScene();
+                    this.app.pushScene(new LoggingModeSelection(this.app))
+                }
+            )
         }
 
         draw() {
@@ -117,14 +189,11 @@ namespace microdata {
 
             const textFont = bitmaps.font12;
             const textXOffset = 30;
-            const numberOfMeasurementsCenteringOffset =
-                ((this.numberOfMeasurements.toString().length * textFont.charWidth) >> 1);
-            const periodCenteringOffset =
-                ((this.periodSeconds.toString().length * textFont.charWidth) >> 1);
 
             const triangleWidth = 22;
+            const sensorName = "Accel. X";
 
-            const sensorName = "Accel. X"
+            // Sensor name Box:
             screen().fillRect(
                 (screen().width >> 1) - ((sensorName.length * font.charWidth) >> 1) + 2,
                 5 + 2,
@@ -139,39 +208,55 @@ namespace microdata {
                 (sensorName.length * font.charWidth) + 6,
                 font.charHeight + 3,
                 6
-            )
+            ) // End of Sensor name Box
 
+
+            const firstColValue: string = this.experimentLength.toString()
+            const colSpacingValue: string = (firstColValue.length % 2) ? "  " : " ";
+            const secondColValue: string = EXPERIMENT_UNITS[this.experimentLengthUnitsIndex]
+
+            const totalLength = firstColValue.length + colSpacingValue.length + secondColValue.length;
+            const xCenteringOffset = (screen().width - (totalLength * textFont.charWidth)) >> 1;
+
+            // First col:
+            const firstColBoundaryWidth = ((firstColValue.length + (firstColValue.length % 2)) * textFont.charWidth) + 2;
             screen().fillRect(
-                textXOffset - numberOfMeasurementsCenteringOffset - 3,
+                xCenteringOffset - 4,
                 (screen().height >> 1) - (textFont.charHeight >> 1) + 1,
-                (numberOfMeasurementsCenteringOffset * 2) + 2,
+                firstColBoundaryWidth,
                 textFont.charHeight + 3,
                 15
             )
 
             screen().fillRect(
-                textXOffset - numberOfMeasurementsCenteringOffset - 4,
+                xCenteringOffset - 4,
                 (screen().height >> 1) - (textFont.charHeight >> 1),
-                (numberOfMeasurementsCenteringOffset * 2) + 1,
+                firstColBoundaryWidth - 1,
                 textFont.charHeight + 2,
                 4
-            )
+            ) // End of First col
 
+
+            // Second col:
+            const colSpacingWidth = (colSpacingValue.length * font.charWidth)
+            
+            const secondColBoundaryWidth = ((secondColValue.length) * textFont.charWidth);
             screen().fillRect(
-                screen().width - textXOffset - periodCenteringOffset - 3,
+                xCenteringOffset + firstColBoundaryWidth + colSpacingWidth,
                 (screen().height >> 1) - (textFont.charHeight >> 1) + 1,
-                (periodCenteringOffset * 2) + 2,
+                secondColBoundaryWidth + 2,
                 textFont.charHeight + 3,
                 15
             )
 
             screen().fillRect(
-                screen().width - textXOffset - periodCenteringOffset - 4,
+                xCenteringOffset + firstColBoundaryWidth + colSpacingWidth,
                 (screen().height >> 1) - (textFont.charHeight >> 1),
-                (periodCenteringOffset * 2) + 1,
+                secondColBoundaryWidth + 1,
                 textFont.charHeight + 2,
-                4
-            )
+                5
+            ) // End of Second col
+
 
             for (let i = 0; i < 2; i++) { // Embolden
                 screen().print(
@@ -180,81 +265,344 @@ namespace microdata {
                     5 + 2,
                     15
                 )
-
-                screen().print(
-                    "" + this.numberOfMeasurements,
-                    textXOffset - i - numberOfMeasurementsCenteringOffset,
-                    (screen().height >> 1) - (textFont.charHeight >> 1),
-                    15,
-                    textFont
-                )
-
-                screen().print(
-                    "" + this.periodSeconds,
-                    screen().width - textXOffset - i - periodCenteringOffset,
-                    (screen().height >> 1) - (textFont.charHeight >> 1),
-                    15,
-                    textFont
-                )
             }
 
-            let xOffset = 
-                (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
-                    screen().width - 30: (screen().width >> 1);
+            screen().print(
+                "" + firstColValue + colSpacingValue  + secondColValue,
+                xCenteringOffset + (((firstColValue.length % 2) * textFont.charWidth) >> 1),
+                (screen().height >> 1) - (textFont.charHeight >> 1),
+                15,
+                textFont
+            )
 
+            // Question:
+            const boxXOffset = 2;
             screen().fillRect(
-                xOffset - (screen().width >> 1)  + 2,
-                25 - 1,
-                (screen().width >> 1) + 24,
-                screen().height - 40,
+                boxXOffset,
+                22,
+                90,
+                26,
                 15
             )
 
             screen().fillRect(
-                xOffset - (screen().width >> 1) + 4,
-                25 + 1,
-                (screen().width >> 1) + 24 - 5,
-                screen().height - 40 - 5,
+                boxXOffset,
+                22,
+                90,
+                26 - 2,
                 6
             )
 
             screen().fillRect(
-                xOffset - (screen().width >> 1) + 6,
-                25 + 6,
-                3,
-                3,
-                15
-            )
-
-            const tips = (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
-                ["Use Up and Down\nto change the\nnumber of\nmeasurements.",
-                 "Press Right to\nprogress."] :
-                ["Use Up and Down\nto change the\nseconds between\nmeasurements.",
-                 "Press A when\nyou're done."];
+                boxXOffset + 4,
+                27,
+                4,
+                4,
+                1
+            ) // Bulletpoint
 
             screen().print(
-                tips[0],
-                xOffset - (screen().width >> 1) + 10,
-                25 + 4,
+                "How long your\nexperiment?",
+                boxXOffset + 10,
+                25,
+            ) // End of Question
+
+            // Tutorial text:
+            screen().fillRect(
+                boxXOffset,
+                74,
+                screen().width - 12,
+                43,
                 15
             )
 
             screen().fillRect(
-                xOffset - (screen().width >> 1) + 6,
-                75 + 6,
-                3,
-                3,
-                15
+                boxXOffset,
+                74,
+                (screen().width - 12) - 2,
+                43 - 2,
+                6
             )
 
+            screen().fillRect(
+                boxXOffset + 4,
+                80,
+                4,
+                4,
+                1
+            ) // Bulletpoint
+
             screen().print(
-                tips[1],
-                xOffset - (screen().width >> 1) + 10,
-                75 + 4,
-                15
+                "Use Up, Down, Left and\nRight for selection.",
+                13,
+                78,
             )
+
+            screen().fillRect(
+                boxXOffset + 4,
+                102,
+                4,
+                4,
+                1
+            ) // Bulletpoint
+
+            screen().print(
+                "Press A to confirm.",
+                13,
+                101,
+            ) // End of Tutorial text
         }
     }
+
+
+    // export class EventLoggingScene extends Scene {
+    //     private guiState: GUI_STATE = GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS;
+    //     private numberOfMeasurements: number = 10;
+    //     private periodSeconds: number = 1;
+
+    //     constructor(app: AppInterface) {
+    //         super(app)
+    //     }
+
+    //     /* override */ startup() {
+    //         super.startup()
+    //         control.onEvent(
+    //             ControllerButtonEvent.Pressed,
+    //             controller.right.id,
+    //             () => {
+    //                 this.guiState =
+    //                     (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
+    //                         this.guiState = GUI_STATE.CHANGING_PERIOD_SECONDS :
+    //                         this.guiState = GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS
+    //             }
+    //         )
+
+    //         control.onEvent(
+    //             ControllerButtonEvent.Pressed,
+    //             controller.left.id,
+    //             () => {
+    //                 this.guiState =
+    //                     (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
+    //                         this.guiState = GUI_STATE.CHANGING_PERIOD_SECONDS :
+    //                         this.guiState = GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS
+    //             }
+    //         )
+
+    //         control.onEvent(
+    //             ControllerButtonEvent.Pressed,
+    //             controller.up.id,
+    //             () => {
+    //                 let tick = true;
+    //                 control.onEvent(
+    //                     ControllerButtonEvent.Released,
+    //                     controller.up.id,
+    //                     () => tick = false
+    //                 )
+
+    //                 // Control logic:
+    //                 while (tick) {
+    //                     if (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS)
+    //                         this.numberOfMeasurements += 1
+    //                     else
+    //                         this.periodSeconds += 1
+    //                     basic.pause(100)
+    //                 }
+    //                 // Reset binding
+    //                 control.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
+    //             }
+    //         )
+
+    //         control.onEvent(
+    //             ControllerButtonEvent.Pressed,
+    //             controller.down.id,
+    //             () => {
+    //                 let tick = true;
+    //                 control.onEvent(
+    //                     ControllerButtonEvent.Released,
+    //                     controller.down.id,
+    //                     () => tick = false
+    //                 )
+
+    //                 // Control logic:
+    //                 while (tick) {
+    //                     if (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS)
+    //                         this.numberOfMeasurements = Math.max(1, this.numberOfMeasurements - 1)
+    //                     else
+    //                         this.periodSeconds = Math.max(1, this.periodSeconds - 1)
+    //                     basic.pause(100)
+    //                 }
+    //                 // Reset binding
+    //                 control.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
+    //             }
+    //         )
+
+    //         control.onEvent(
+    //             ControllerButtonEvent.Pressed,
+    //             controller.A.id,
+    //             () => {
+    //                 basic.showLeds(`
+    //                     . . . . .
+    //                     . # . # .
+    //                     . . . . .
+    //                     # . . . #
+    //                     . # # # .
+    //                 `)
+    //             }
+    //         )
+
+    //         control.onEvent(
+    //             ControllerButtonEvent.Pressed,
+    //             controller.B.id,
+    //             () => {
+    //                 this.app.popScene();
+    //                 this.app.pushScene(new LoggingModeSelection(this.app))
+    //             }
+    //         )
+    //     }
+
+    //     draw() {
+    //         screen().fill(12);
+
+    //         const textFont = bitmaps.font12;
+    //         const textXOffset = 30;
+    //         const numberOfMeasurementsCenteringOffset =
+    //             ((this.numberOfMeasurements.toString().length * textFont.charWidth) >> 1);
+    //         const periodCenteringOffset =
+    //             ((this.periodSeconds.toString().length * textFont.charWidth) >> 1);
+
+    //         const triangleWidth = 22;
+
+    //         const sensorName = "Accel. X"
+    //         screen().fillRect(
+    //             (screen().width >> 1) - ((sensorName.length * font.charWidth) >> 1) + 2,
+    //             5 + 2,
+    //             (sensorName.length * font.charWidth) + 6 + 1,
+    //             font.charHeight + 3 + 1,
+    //             15
+    //         )
+
+    //         screen().fillRect(
+    //             (screen().width >> 1) - ((sensorName.length * font.charWidth) >> 1),
+    //             5,
+    //             (sensorName.length * font.charWidth) + 6,
+    //             font.charHeight + 3,
+    //             6
+    //         )
+
+    //         screen().fillRect(
+    //             textXOffset - numberOfMeasurementsCenteringOffset - 3,
+    //             (screen().height >> 1) - (textFont.charHeight >> 1) + 1,
+    //             (numberOfMeasurementsCenteringOffset * 2) + 2,
+    //             textFont.charHeight + 3,
+    //             15
+    //         )
+
+    //         screen().fillRect(
+    //             textXOffset - numberOfMeasurementsCenteringOffset - 4,
+    //             (screen().height >> 1) - (textFont.charHeight >> 1),
+    //             (numberOfMeasurementsCenteringOffset * 2) + 1,
+    //             textFont.charHeight + 2,
+    //             4
+    //         )
+
+    //         screen().fillRect(
+    //             screen().width - textXOffset - periodCenteringOffset - 3,
+    //             (screen().height >> 1) - (textFont.charHeight >> 1) + 1,
+    //             (periodCenteringOffset * 2) + 2,
+    //             textFont.charHeight + 3,
+    //             15
+    //         )
+
+    //         screen().fillRect(
+    //             screen().width - textXOffset - periodCenteringOffset - 4,
+    //             (screen().height >> 1) - (textFont.charHeight >> 1),
+    //             (periodCenteringOffset * 2) + 1,
+    //             textFont.charHeight + 2,
+    //             4
+    //         )
+
+    //         for (let i = 0; i < 2; i++) { // Embolden
+    //             screen().print(
+    //                 sensorName,
+    //                 (screen().width >> 1) - ((sensorName.length * font.charWidth) >> 1) + 4 + i,
+    //                 5 + 2,
+    //                 15
+    //             )
+
+    //             screen().print(
+    //                 "" + this.numberOfMeasurements,
+    //                 textXOffset - i - numberOfMeasurementsCenteringOffset,
+    //                 (screen().height >> 1) - (textFont.charHeight >> 1),
+    //                 15,
+    //                 textFont
+    //             )
+
+    //             screen().print(
+    //                 "" + this.periodSeconds,
+    //                 screen().width - textXOffset - i - periodCenteringOffset,
+    //                 (screen().height >> 1) - (textFont.charHeight >> 1),
+    //                 15,
+    //                 textFont
+    //             )
+    //         }
+
+    //         let xOffset =
+    //             (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
+    //                 screen().width - 30 : (screen().width >> 1);
+
+    //         screen().fillRect(
+    //             xOffset - (screen().width >> 1) + 2,
+    //             25 - 1,
+    //             (screen().width >> 1) + 24,
+    //             screen().height - 40,
+    //             15
+    //         )
+
+    //         screen().fillRect(
+    //             xOffset - (screen().width >> 1) + 4,
+    //             25 + 1,
+    //             (screen().width >> 1) + 24 - 5,
+    //             screen().height - 40 - 5,
+    //             6
+    //         )
+
+    //         screen().fillRect(
+    //             xOffset - (screen().width >> 1) + 6,
+    //             25 + 6,
+    //             3,
+    //             3,
+    //             15
+    //         )
+
+    //         const tips = (this.guiState == GUI_STATE.CHANGING_NUMBER_OF_MEASUREMENTS) ?
+    //             ["Use Up and Down\nto change the\nnumber of\nmeasurements.",
+    //                 "Press Right to\nprogress."] :
+    //             ["Use Up and Down\nto change the\nseconds between\nmeasurements.",
+    //                 "Press A when\nyou're done."];
+
+    //         screen().print(
+    //             tips[0],
+    //             xOffset - (screen().width >> 1) + 10,
+    //             25 + 4,
+    //             15
+    //         )
+
+    //         screen().fillRect(
+    //             xOffset - (screen().width >> 1) + 6,
+    //             75 + 6,
+    //             3,
+    //             3,
+    //             15
+    //         )
+
+    //         screen().print(
+    //             tips[1],
+    //             xOffset - (screen().width >> 1) + 10,
+    //             75 + 4,
+    //             15
+    //         )
+    //     }
+    // }
 
     export class LoggingModeSelection extends CursorSceneWithPriorPage {
         constructor(app: AppInterface) {
@@ -276,7 +624,7 @@ namespace microdata {
                     y,
                     onClick: () => {
                         this.app.popScene()
-                        this.app.pushScene(new BasicLoggingScene(this.app))
+                        this.app.pushScene(new IntervalMode(this.app))
                     },
                 }),
 
@@ -289,7 +637,7 @@ namespace microdata {
                     y,
                     onClick: () => {
                         this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+                        this.app.pushScene(new IntervalMode(this.app))
                     },
                 }),
 
