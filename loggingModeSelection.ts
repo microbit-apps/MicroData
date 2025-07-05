@@ -64,12 +64,12 @@ namespace microdata {
                         this.guiStateAnswer =
                             (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH) ?
                                 this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH_UNITS :
-                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH;
                     } else {
                         this.guiStateAnswer =
                             (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) ?
                                 this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL_UNITS :
-                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL;
                     }
                 }
             )
@@ -86,8 +86,8 @@ namespace microdata {
                     } else {
                         this.guiStateAnswer =
                             (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) ?
-                            this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL_UNITS :
-                            this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL_UNITS :
+                                this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL
                     }
                 }
             )
@@ -115,7 +115,7 @@ namespace microdata {
                             if (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) {
                                 this.experimentInterval += 1;
                             } else {
-                                this.experimentIntervalUnitsIndex = (this.experimentIntervalUnitsIndex + 1) % EXPERIMENT_UNITS.length;;
+                                this.experimentIntervalUnitsIndex = (this.experimentIntervalUnitsIndex + 1) % EXPERIMENT_UNITS.length;
                             }
                         }
                         basic.pause(100)
@@ -143,14 +143,14 @@ namespace microdata {
                                 this.experimentLength = Math.max(1, this.experimentLength - 1);
                             } else {
                                 const len = EXPERIMENT_UNITS.length;
-                                this.experimentLengthUnitsIndex = (((this.experimentLengthUnitsIndex - 1) % len) + len) % len
+                                this.experimentLengthUnitsIndex = (((this.experimentLengthUnitsIndex - 1) % len) + len) % len;
                             }
                         } else {
                             if (this.guiStateAnswer == GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL) {
                                 this.experimentInterval = Math.max(1, this.experimentInterval - 1);
                             } else {
                                 const len = EXPERIMENT_UNITS.length;
-                                this.experimentIntervalUnitsIndex = (((this.experimentIntervalUnitsIndex - 1) % len) + len) % len
+                                this.experimentIntervalUnitsIndex = (((this.experimentIntervalUnitsIndex - 1) % len) + len) % len;
                             }
                         }
                         basic.pause(100)
@@ -164,13 +164,18 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.A.id,
                 () => { 
-                    basic.showLeds(`
-                        . . . . .
-                        . # . # .
-                        . . . . .
-                        # . . . #
-                        . # # # .
-                    `)
+                    if (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) {
+                        this.guiStateQuestion = GUI_STATE_QUESTION.ASKING_INTERVAL
+                        this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_INTERVAL
+                    } else {
+                        basic.showLeds(`
+                            . . . . .
+                            . # . # .
+                            . . . . .
+                            # . . . #
+                            . # # # .
+                        `)
+                    }
                 }
             )
 
@@ -178,8 +183,13 @@ namespace microdata {
                 ControllerButtonEvent.Pressed,
                 controller.B.id,
                 () => {
-                    this.app.popScene();
-                    this.app.pushScene(new LoggingModeSelection(this.app))
+                    if (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) {
+                        this.app.popScene();
+                        this.app.pushScene(new LoggingModeSelection(this.app))
+                    } else {
+                        this.guiStateQuestion = GUI_STATE_QUESTION.ASKING_HOW_LONG
+                        this.guiStateAnswer = GUI_STATE_USER_ANSWER.CHANGING_EXPERIMENT_LENGTH
+                    }
                 }
             )
         }
@@ -210,10 +220,17 @@ namespace microdata {
                 6
             ) // End of Sensor name Box
 
+            const firstColValue: string =
+                (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) ?
+                    this.experimentLength.toString() :
+                    this.experimentInterval.toString();
 
-            const firstColValue: string = this.experimentLength.toString()
+            const secondColValue: string =
+                (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) ?
+                    EXPERIMENT_UNITS[this.experimentLengthUnitsIndex] :
+                    EXPERIMENT_UNITS[this.experimentIntervalUnitsIndex];
+
             const colSpacingValue: string = (firstColValue.length % 2) ? "  " : " ";
-            const secondColValue: string = EXPERIMENT_UNITS[this.experimentLengthUnitsIndex]
 
             const totalLength = firstColValue.length + colSpacingValue.length + secondColValue.length;
             const xCenteringOffset = (screen().width - (totalLength * textFont.charWidth)) >> 1;
@@ -280,7 +297,7 @@ namespace microdata {
             screen().fillRect(
                 boxXOffset,
                 22,
-                90,
+                108,
                 26,
                 15
             )
@@ -288,7 +305,7 @@ namespace microdata {
             screen().fillRect(
                 boxXOffset,
                 22,
-                90,
+                108,
                 26 - 2,
                 6
             )
@@ -301,8 +318,13 @@ namespace microdata {
                 1
             ) // Bulletpoint
 
+            const question = 
+                (this.guiStateQuestion == GUI_STATE_QUESTION.ASKING_HOW_LONG) ?
+                    "How long is\nyour experiment?" :
+                    "How long between\nmeasurements?"
+
             screen().print(
-                "How long your\nexperiment?",
+                question,
                 boxXOffset + 10,
                 25,
             ) // End of Question
