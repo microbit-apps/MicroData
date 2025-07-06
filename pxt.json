@@ -27,7 +27,7 @@
         "liveDataViewer.ts",
         "dataViewSelect.ts",
         "loggingConfig.ts",
-        "LoggingModeSelection.ts",
+        "loggingModeSelection.ts",
         "sensorSelect.ts",
         "dataRecorder.ts",
         "tabularDataViewer.ts",
