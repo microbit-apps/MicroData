@@ -35,8 +35,8 @@ namespace microdata {
             const arcadeShieldConnected = shieldhelpers.shieldPresent();
             if (arcadeShieldConnected)
                 this.pushScene(new microdata.Home(this));
-            else
-                new HeadlessMode(this);
+            // else
+            //     new HeadlessMode(this);
         }
 
         public pushScene(scene: Scene) {

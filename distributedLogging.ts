@@ -588,7 +588,7 @@ namespace microdata {
             DistributedLoggingScreen.streamingDone = true
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             control.onEvent(

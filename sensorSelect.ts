@@ -19,15 +19,10 @@ namespace microdata {
      * Used to ensure that Jacdac sensors are appropriately enabled/disabled.
      */
     const START_OF_JACDAC_BUTTONS_INDEX: number = 14
-
     const TUTORIAL_MODE: boolean = true;
-
     const NUMBER_OF_TUTORIAL_HINTS: number = 4;
-
-
     const TUTORIAL_TEXT_BOT_ALIGNMENT = Screen.BOTTOM_EDGE - 34;
     const TUTORIAL_TET_TOP_ALIGNMENT = -54;
-
 
     /**
      * Responsible for allowing the user to select sensors to record or view live readings from.
@@ -47,7 +42,7 @@ namespace microdata {
             super(app, function () {
                 this.app.popScene(); 
                 this.app.pushScene(new Home(this.app))
-            }, new GridNavigator());
+            }, new GridNavigator()); 
             
             this.btns = [[], [], [], []]; // For our 4x5 grid
             this.selectedSensorAriaIDs = [];
@@ -57,9 +52,9 @@ namespace microdata {
             this.userHasPressedABtn = false;
         }
 
-        /* override */ startup() {
-            super.startup()
-            this.overrideControllerButtonBindings();
+        /* override */ startup(controlSetupFn?: () => void) {
+            const a = () => this.overrideControllerButtonBindings();
+            super.startup(a)
 
             this.cursor.resetOutlineColourOnMove = true
             const icons: string[] = [
@@ -193,13 +188,34 @@ namespace microdata {
             }))
 
 
-            this.navigator.setBtns(this.btns)
+            this.navigator.setBtns(this.btns);
+        }
+
+        /**
+         * Modify the mutability of all of the Jacdac buttons at once.
+         * Neccessary since only one Jacdac sensor should be selected at once.
+         * @param pressableStatus to set all Jacdac buttons to.
+         * @param buttonToIgnore Optional case that ignores the pressableStatus
+         */
+        private setOtherJacdacButtonsTo(pressableStatus: boolean, buttonToIgnore?: Button) {
+            let currentIndex = 0;
+
+            for (let i = 0; i < this.btns.length; i++) {
+                for (let j = 0; j < this.btns[0].length; j++) {
+                    if (currentIndex >= START_OF_JACDAC_BUTTONS_INDEX && currentIndex != (4 * 5) - 1) // Don't touch the last button ('Done')
+                        this.btns[i][j].pressable = pressableStatus
+                    currentIndex++;
+                }
+            }
+
+            if (buttonToIgnore)
+                buttonToIgnore.pressable = !pressableStatus
         }
 
         private overrideControllerButtonBindings() {
             const tutorialTextCountDownTimer = () => {
                 control.inBackground(() => {
-                    basic.pause(5000)
+                    basic.pause(3000)
                     this.tutorialHintIndex = 3
                     basic.pause(5000)
                     this.tutorialHintIndex = NUMBER_OF_TUTORIAL_HINTS
@@ -219,6 +235,7 @@ namespace microdata {
                     this.moveCursor(CursorDir.Right)
                 }
             )
+
             control.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.up.id,
@@ -240,6 +257,7 @@ namespace microdata {
                     this.moveCursor(CursorDir.Up)
                 }
             )
+
             control.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.down.id,
@@ -287,31 +305,18 @@ namespace microdata {
                     this.cursor.click()
                 }
             )
-        }
 
-        /**
-         * Modify the mutability of all of the Jacdac buttons at once.
-         * Neccessary since only one Jacdac sensor should be selected at once.
-         * @param pressableStatus to set all Jacdac buttons to.
-         * @param buttonToIgnore Optional case that ignores the pressableStatus
-         */
-        private setOtherJacdacButtonsTo(pressableStatus: boolean, buttonToIgnore?: Button) {
-            let currentIndex = 0;
-
-            for (let i = 0; i < this.btns.length; i++) {
-                for (let j = 0; j < this.btns[0].length; j++) {
-                    if (currentIndex >= START_OF_JACDAC_BUTTONS_INDEX && currentIndex != (4 * 5) - 1) // Don't touch the last button ('Done')
-                        this.btns[i][j].pressable = pressableStatus
-                    currentIndex++;
+            control.onEvent(
+                ControllerButtonEvent.Pressed,
+                controller.B.id,
+                () => {
+                    this.app.popScene()
+                    this.app.pushScene(new Home(this.app))
                 }
-            }
-
-            if (buttonToIgnore)
-                buttonToIgnore.pressable = !pressableStatus
+            )
         }
 
         draw() {
-            super.draw()
             Screen.fillRect(
                 Screen.LEFT_EDGE,
                 Screen.TOP_EDGE,
@@ -322,7 +327,7 @@ namespace microdata {
 
             this.navigator.drawComponents();
             super.draw()
-            
+
             if (TUTORIAL_MODE) {
                 const drawTutorialTextBox = () => {
                     Screen.fillRect(
@@ -385,16 +390,6 @@ namespace microdata {
                             15
                         )
 
-                        // screen().fillTriangle(
-                        //     (screen().width >> 1) + 31,
-                        //     this.tutorialTextYOffset + (screen().height >> 1) - 1,
-                        //     (screen().width >> 1) + 50,
-                        //     this.tutorialTextYOffset + (screen().height >> 1) + 11,
-                        //     (screen().width >> 1) + 31,
-                        //     this.tutorialTextYOffset + (screen().height >> 1) + 24,
-                        //     15
-                        // )
-
                         Screen.fillRect(
                             Screen.LEFT_EDGE,
                             this.tutorialTextYOffset + 2,
@@ -402,16 +397,6 @@ namespace microdata {
                             35 - 4,
                             6
                         )
-
-                        // screen().fillTriangle(
-                        //     (screen().width >> 1) + 33,
-                        //     this.tutorialTextYOffset + (screen().height >> 1) - 1,
-                        //     (screen().width >> 1) + 47,
-                        //     this.tutorialTextYOffset + (screen().height >> 1) + 11,
-                        //     (screen().width >> 1) + 33,
-                        //     this.tutorialTextYOffset + (screen().height >> 1) + 24,
-                        //     6
-                        // )
 
                         Screen.print(
                             "When you're ready\nclick Done in the\nbottom-right corner.",

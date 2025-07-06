@@ -23,7 +23,7 @@ namespace microdata {
             })
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             // Includes the header:

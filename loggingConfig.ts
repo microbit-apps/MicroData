@@ -116,7 +116,7 @@ namespace microdata {
             }
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => {}) {
             super.startup()
 
             control.onEvent(

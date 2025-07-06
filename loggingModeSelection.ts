@@ -54,7 +54,7 @@ namespace microdata {
             super(app)
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => {}) {
             super.startup()
             control.onEvent(
                 ControllerButtonEvent.Pressed,
@@ -631,7 +631,7 @@ namespace microdata {
             super(app, () => {this.app.popScene(); this.app.pushScene(new Home(this.app))})
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             const y = 36;

@@ -12,7 +12,7 @@ namespace microdata {
             super(app)
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             const y = 25
@@ -41,7 +41,7 @@ namespace microdata {
                     onClick: () => {
                         this.app.popScene()
                         // this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
-                        this.app.pushScene(new LoggingModeSelection(this.app))
+                        // this.app.pushScene(new LoggingModeSelection(this.app))
                     },
                 }),
 
