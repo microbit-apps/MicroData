@@ -549,22 +549,10 @@ namespace microdata {
         public static streamingDone: boolean = true
         private static streamDataBack: boolean = true
 
-        private static setupDone: boolean = false;
-
         private targetIDCache: number[]
 
         constructor(app: AppInterface, sensors?: Sensor[], configs?: RecordingConfig[]) {
             super(app)
-
-            // This DistributedLoggingScreen can take a while to start on account of the DistributedLoggingProtocol.
-            // Because of this it is important to unbind the buttons so that they cannot be invoked during setup.
-            control.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => { });
-            control.onEvent(ControllerButtonEvent.Pressed, controller.down.id, () => { });
-            control.onEvent(ControllerButtonEvent.Pressed, controller.left.id, () => { });
-            control.onEvent(ControllerButtonEvent.Pressed, controller.right.id, () => { });
-            control.onEvent(ControllerButtonEvent.Pressed, controller.A.id, () => { });
-            control.onEvent(ControllerButtonEvent.Pressed, controller.B.id, () => { });
-
             this.uiState = UI_STATE.SHOWING_OPTIONS
             this.distributedLogger = new DistributedLoggingProtocol(app, true, this)
 
@@ -580,30 +568,26 @@ namespace microdata {
                     this.app.pushScene(new TabularDataViewer(this.app, function() { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }))
                 }
             }
-
-            DistributedLoggingScreen.setupDone = true;
         }
 
         callback(msg: string) {
             DistributedLoggingScreen.streamingDone = true
         }
 
-        /* override */ startup(controlSetupFn?: () => void) {
+        /* override */ startup(controlSetupfn: () => void) {
             super.startup()
 
             control.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.B.id,
                 () => {
-                    if (DistributedLoggingScreen.setupDone) {
-                        if (this.uiState != UI_STATE.SHOWING_OPTIONS) {
-                            this.uiState = UI_STATE.SHOWING_OPTIONS
-                            this.cursor.visible = true
-                        }
-                        else if (DistributedLoggingScreen.streamingDone) {
-                            this.app.popScene()
-                            this.app.pushScene(new Home(this.app));
-                        }
+                    if (this.uiState != UI_STATE.SHOWING_OPTIONS) {
+                        this.uiState = UI_STATE.SHOWING_OPTIONS
+                        this.cursor.visible = true
+                    }
+                    else if (DistributedLoggingScreen.streamingDone) {
+                        this.app.popScene()
+                        this.app.pushScene(new Home(this.app));
                     }
                 }
             )

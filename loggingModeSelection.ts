@@ -1,4 +1,3 @@
-
 namespace microdata {
     import Screen = user_interface_base.Screen
     import Scene = user_interface_base.Scene
@@ -54,7 +53,7 @@ namespace microdata {
             super(app)
         }
 
-        /* override */ startup(controlSetupFn?: () => {}) {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
             control.onEvent(
                 ControllerButtonEvent.Pressed,
@@ -118,7 +117,7 @@ namespace microdata {
                                 this.experimentIntervalUnitsIndex = (this.experimentIntervalUnitsIndex + 1) % EXPERIMENT_UNITS.length;
                             }
                         }
-                        basic.pause(100)
+                        basic.pause(200)
                     }
                     // Reset binding
                     control.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
@@ -153,7 +152,7 @@ namespace microdata {
                                 this.experimentIntervalUnitsIndex = (((this.experimentIntervalUnitsIndex - 1) % len) + len) % len;
                             }
                         }
-                        basic.pause(100)
+                        basic.pause(200)
                     }
                     // Reset binding
                     control.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
@@ -775,4 +774,3 @@ namespace microdata {
         }
     }
 }
-
