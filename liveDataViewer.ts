@@ -132,7 +132,7 @@ namespace microdata {
             this.setGlobalMinAndMax()
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             //--------------------------------

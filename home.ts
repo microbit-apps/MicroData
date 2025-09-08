@@ -12,7 +12,7 @@ namespace microdata {
             super(app)
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             const y = 25
@@ -74,7 +74,7 @@ namespace microdata {
 
         private drawVersion() {
             const font = bitmaps.font5
-            const text = "v1.7.3"
+            const text = "v1.7.4"
             Screen.print(
                 text,
                 Screen.RIGHT_EDGE - (font.charWidth * text.length),

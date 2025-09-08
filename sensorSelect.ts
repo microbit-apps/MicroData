@@ -42,7 +42,7 @@ namespace microdata {
             this.jacdacSensorSelected = false;
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             this.cursor.resetOutlineColourOnMove = true

@@ -141,7 +141,7 @@ namespace microdata {
             this.goBack1PageFn = goBack1PageFn
         }
 
-        /* override */ startup() {
+        /* override */ startup(controlSetupFn?: () => void) {
             super.startup()
 
             TabularDataViewer.currentRowOffset = 0
