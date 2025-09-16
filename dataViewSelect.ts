@@ -25,6 +25,7 @@ namespace microdata {
 
         /* override */ startup() {
             super.startup()
+            basic.pause(50);
 
             // Includes the header:
             this.dataloggerEmpty = datalogger.getNumberOfRows() <= 1
