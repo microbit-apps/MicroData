@@ -45,7 +45,7 @@ You need to use https://makecode.microbit.org/beta currently to build MicroData.
 #### Via VS Code MakeCode extension
 
 1.	Clone https://github.com/microsoft/vscode-makecode
-2.	cd to vscode-makecode repo directory and checkout branch dev/riknoll/simx
+2.	cd vscode-makecode
 3.	yarn install
 4.	code .
 5.	F5 to run new instance of VS Code
