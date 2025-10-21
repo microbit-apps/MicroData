@@ -141,7 +141,8 @@ namespace microdata {
       this.goBack1PageFn = goBack1PageFn
     }
 
-        /* override */ startup() {
+
+        /* override */ startup(_: () => void) {
       super.startup()
       basic.pause(50);
 

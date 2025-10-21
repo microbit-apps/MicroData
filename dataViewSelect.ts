@@ -23,7 +23,7 @@ namespace microdata {
             })
         }
 
-        /* override */ startup() {
+        /* override */ startup(_: () => void) {
             super.startup()
             basic.pause(50);
 

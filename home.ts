@@ -12,7 +12,8 @@ namespace microdata {
       super(app)
     }
 
-        /* override */ startup() {
+
+        /* override */ startup(_: () => void) {
       super.startup()
       basic.pause(50);
 

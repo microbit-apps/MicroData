@@ -132,7 +132,8 @@ namespace microdata {
       this.setGlobalMinAndMax()
     }
 
-        /* override */ startup() {
+
+        /* override */ startup(_: () => void) {
       super.startup()
       basic.pause(50);
 
