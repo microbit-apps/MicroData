@@ -1,7 +1,6 @@
 namespace microdata {
   import Screen = user_interface_base.Screen
   import Scene = user_interface_base.Scene
-  import CursorSceneEnum = user_interface_base.CursorSceneEnum
   import AppInterface = user_interface_base.AppInterface
   import font = user_interface_base.font
 
@@ -90,9 +89,9 @@ namespace microdata {
     private currentConfigMode: CONFIG_MODE
     private sensorConfigIsSet: boolean[]
 
-    private nextSceneEnum: CursorSceneEnum
+    private nextSceneEnum: MicroDataSceneEnum
 
-    constructor(app: AppInterface, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
+    constructor(app: AppInterface, sensors: Sensor[], nextSceneEnum?: MicroDataSceneEnum) {
       super(app, "measurementConfigSelect")
       this.guiState = GUI_STATE.SENSOR_SELECT
 
@@ -148,7 +147,7 @@ namespace microdata {
 
                 this.app.popScene()
 
-                if (this.nextSceneEnum == CursorSceneEnum.DistributedLogging) {
+                if (this.nextSceneEnum == MicroDataSceneEnum.DistributedLogging) {
                   this.app.pushScene(new DistributedLoggingScreen(this.app, this.sensors, this.sensorConfigs)); // Temp disabled with Distributedlogging (no mem)
                 }
                 else {

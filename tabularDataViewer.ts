@@ -156,7 +156,7 @@ namespace microdata {
       // Controls:
       //----------
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
@@ -173,7 +173,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
@@ -191,12 +191,12 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.up.id,
         () => {
           let tick = true;
-          control.onEvent(
+          context.onEvent(
             ControllerButtonEvent.Released,
             controller.up.id,
             () => tick = false
@@ -230,16 +230,16 @@ namespace microdata {
           }
 
           // Reset binding
-          control.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
+          context.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.down.id,
         () => {
           let tick = true;
-          control.onEvent(
+          context.onEvent(
             ControllerButtonEvent.Released,
             controller.down.id,
             () => tick = false
@@ -282,11 +282,11 @@ namespace microdata {
             }
             basic.pause(100)
           }
-          control.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
+          context.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
@@ -294,7 +294,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.right.id,
         () => {
@@ -490,7 +490,6 @@ namespace microdata {
             columnValue,
             Screen.LEFT_EDGE + cumulativeColOffset + (this.headerStringLengths[colID] >> 1) - ((font.charWidth * columnValue.length) >> 1),
             Screen.TOP_EDGE + (row * tabularRowBufferSize) + (tabularRowBufferSize >> 1) - 4,
-            // 0xb,
             1,
             bitmaps.font8
           )

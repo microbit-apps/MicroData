@@ -1,125 +1,130 @@
 namespace microdata {
-    import Screen = user_interface_base.Screen
-    import CursorSceneWithPriorPage = user_interface_base.CursorSceneWithPriorPage
-    import CursorSceneEnum = user_interface_base.CursorSceneEnum
-    import Button = user_interface_base.Button
-    import ButtonStyles = user_interface_base.ButtonStyles
-    import AppInterface = user_interface_base.AppInterface
+  import Screen = user_interface_base.Screen
+  import CursorScene = user_interface_base.CursorScene
+  import Button = user_interface_base.Button
+  import ButtonStyles = user_interface_base.ButtonStyles
+  import AppInterface = user_interface_base.AppInterface
 
-    /**
-     * Choose between:
-     *      Resetting Datalogger
-     *      A tabular view of the recorded data
-     *      A graph of the recorded data
-     */
-    export class DataViewSelect extends CursorSceneWithPriorPage {
-        private dataloggerEmpty: boolean
+  /**
+   * Choose between:
+   *      Resetting Datalogger
+   *      A tabular view of the recorded data
+   *      A graph of the recorded data
+   */
+  export class DataViewSelect extends CursorScene {
+    private dataloggerEmpty: boolean
 
-        constructor(app: AppInterface) { 
-            super(app,
-                function () {
-                this.app.popScene(); 
-                this.app.pushScene(new Home(this.app))
-            })
-        }
+    constructor(app: AppInterface) {
+      super(app);
+    }
 
         /* override */ startup() {
-            super.startup()
-            basic.pause(50);
+      super.startup()
+      basic.pause(50);
 
-            // Includes the header:
-            this.dataloggerEmpty = datalogger.getNumberOfRows() <= 1
-            
-            //---------
-            // Control:
-            //---------
+      // Includes the header:
+      this.dataloggerEmpty = datalogger.getNumberOfRows() <= 1
 
-            // No data in log (first row are headers)
-            if (this.dataloggerEmpty) {
-                control.onEvent(
-                    ControllerButtonEvent.Pressed,
-                    controller.A.id,
-                    () => {
-                        this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
-                    }
-                )
-            }
+      const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
 
-            const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
-            
-            this.navigator.setBtns([[
-                new Button({
-                    parent: null,
-                    style: ButtonStyles.Transparent,
-                    icon: "largeDisk",
-                    ariaId: "View Data",
-                    x: -50,
-                    y,
-                    onClick: () => {
-                        this.app.popScene()
-                        this.app.pushScene(new TabularDataViewer(this.app, function () {this.app.popScene(); this.app.pushScene(new DataViewSelect(this.app))}))
-                    },
-                }),
+      this.navigator.setBtns([[
+        new Button({
+          parent: null,
+          style: ButtonStyles.Transparent,
+          icon: "largeDisk",
+          ariaId: "View Data",
+          x: -50,
+          y,
+          onClick: () => {
+            this.app.popScene()
+            this.app.pushScene(new TabularDataViewer(this.app, function () { this.app.popScene(); this.app.pushScene(new DataViewSelect(this.app)) }))
+          },
+        }),
 
-                new Button({
-                    parent: null,
-                    style: ButtonStyles.Transparent,
-                    icon: "linear_graph_1",
-                    ariaId: "View Graph",
-                    x: 0,
-                    y,
-                    onClick: () => {
-                        this.app.popScene()
-                        this.app.pushScene(new GraphGenerator(this.app))
-                    },
-                }),
+        new Button({
+          parent: null,
+          style: ButtonStyles.Transparent,
+          icon: "linear_graph_1",
+          ariaId: "View Graph",
+          x: 0,
+          y,
+          onClick: () => {
+            this.app.popScene()
+            this.app.pushScene(new GraphGenerator(this.app))
+          },
+        }),
 
-                new Button({
-                    parent: null,
-                    style: ButtonStyles.Transparent,
-                    icon: "largeSettingsGear",
-                    ariaId: "Reset Datalogger",
-                    x: 50,
-                    y,
-                    onClick: () => {
-                        datalogger.deleteLog()
-                        this.dataloggerEmpty = true
-                        
-                        control.onEvent(
-                            ControllerButtonEvent.Pressed,
-                            controller.A.id,
-                            () => {
-                                this.app.popScene()
-                                this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
-                            }
-                        )
-                    },
-                })
-            ]])
-        }
+        new Button({
+          parent: null,
+          style: ButtonStyles.Transparent,
+          icon: "largeSettingsGear",
+          ariaId: "Reset Datalogger",
+          x: 50,
+          y,
+          onClick: () => {
+            datalogger.deleteLog()
+            this.dataloggerEmpty = true
 
-        draw() {
-            Screen.fillRect(
-                Screen.LEFT_EDGE,
-                Screen.TOP_EDGE,
-                Screen.WIDTH,
-                Screen.HEIGHT,
-                0xC
+            control.onEvent(
+              ControllerButtonEvent.Pressed,
+              controller.A.id,
+              () => {
+                this.app.popScene()
+                this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+              }
             )
+          },
+        })
+      ]])
 
-            if (this.dataloggerEmpty) {
-                screen().printCenter("No data has been recorded", 5)
-                screen().printCenter("Press A to Record some!", Screen.HALF_HEIGHT)
-                return;
-            }
+      //---------
+      // Control:
+      //---------
 
-            else {
-                screen().printCenter("Recorded Data Options", 5)
-                this.navigator.drawComponents();
-            }
+      // No data in log (first row are headers)
+      if (this.dataloggerEmpty) {
+        context.onEvent(
+          ControllerButtonEvent.Pressed,
+          controller.A.id,
+          () => {
+            this.app.popScene()
+            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+          }
+        )
+      }
 
-            super.draw()
+      // Back btn:
+      context.onEvent(
+        ControllerButtonEvent.Pressed,
+        controller.B.id,
+        () => {
+          this.app.popScene()
+          this.app.pushScene(new Home(this.app));
         }
+      )
     }
+
+    draw() {
+      Screen.fillRect(
+        Screen.LEFT_EDGE,
+        Screen.TOP_EDGE,
+        Screen.WIDTH,
+        Screen.HEIGHT,
+        0xC
+      )
+
+      if (this.dataloggerEmpty) {
+        screen().printCenter("No data has been recorded", 5)
+        screen().printCenter("Press A to Record some!", Screen.HALF_HEIGHT)
+        return;
+      }
+
+      else {
+        screen().printCenter("Recorded Data Options", 5)
+        this.navigator.drawComponents();
+      }
+
+      super.draw()
+    }
+  }
 }

@@ -422,7 +422,7 @@ namespace microdata {
                     name: "Magnet",
                     rName: "M",
                     f: () => input.magneticForce(Dimension.Strength),
-                    min: -5000,
+                    min: 0,
                     max: 5000,
                     isJacdacSensor: false
                 });

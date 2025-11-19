@@ -1,7 +1,6 @@
 namespace microdata {
   import Screen = user_interface_base.Screen
   import CursorScene = user_interface_base.CursorScene
-  import CursorSceneEnum = user_interface_base.CursorSceneEnum
   import Button = user_interface_base.Button
   import ButtonStyles = user_interface_base.ButtonStyles
   import AppInterface = user_interface_base.AppInterface
@@ -637,7 +636,7 @@ namespace microdata {
               DistributedLoggingScreen.streamDataBack = false
 
               this.app.popScene()
-              this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.DistributedLogging))
+              this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.DistributedLogging))
             }
           }
         }),
@@ -654,7 +653,7 @@ namespace microdata {
               DistributedLoggingScreen.streamDataBack = true
 
               this.app.popScene()
-              this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.DistributedLogging))
+              this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.DistributedLogging))
             }
           },
           flipIcon: true

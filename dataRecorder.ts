@@ -51,12 +51,35 @@ namespace microdata {
             this.showCancelRecordingScreen = false;
             this.currentlyCancelling = false;
 
+            // For cancelling the current recording:
+
+            this.yesBtn = new Sprite({ img: Icons.get("tile_button_a") })
+            this.yesBtn.bindXfrm(new Affine())
+            this.yesBtn.xfrm.parent = new Affine()
+            this.yesBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
+            this.yesBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
+            this.yesBtn.xfrm.localPos.x = -40
+            this.yesBtn.xfrm.localPos.y = 12
+
+            this.noBtn = new Sprite({ img: Icons.get("tile_button_b") })
+            this.noBtn.bindXfrm(new Affine())
+            this.noBtn.xfrm.parent = new Affine()
+            this.noBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
+            this.noBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
+            this.noBtn.xfrm.localPos.x = 40
+            this.noBtn.xfrm.localPos.y = 12
+
+            this.log()
+        }
+
+        startup() {
+            super.startup()
             //---------------
             // User Controls:
             //---------------
 
             // Go Back:
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.B.id,
                 () => {
@@ -72,7 +95,7 @@ namespace microdata {
             )
 
             // Clear whatever A was previously bound to
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.A.id,
                 () => {
@@ -87,7 +110,7 @@ namespace microdata {
             )
 
             // Scroll Up
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.up.id,
                 () => {
@@ -101,7 +124,7 @@ namespace microdata {
             )
 
             // Scroll Down
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.down.id,
                 () => {
@@ -113,27 +136,7 @@ namespace microdata {
                     this.update()
                 }
             )
-
-
-            // For cancelling the current recording:
-
-            this.yesBtn = new Sprite({ img: icons.get("tile_button_a") })
-            this.yesBtn.bindXfrm(new Affine())
-            this.yesBtn.xfrm.parent = new Affine()
-            this.yesBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
-            this.yesBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
-            this.yesBtn.xfrm.localPos.x = -40
-            this.yesBtn.xfrm.localPos.y = 12
-
-            this.noBtn = new Sprite({ img: icons.get("tile_button_b") })
-            this.noBtn.bindXfrm(new Affine())
-            this.noBtn.xfrm.parent = new Affine()
-            this.noBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
-            this.noBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
-            this.noBtn.xfrm.localPos.x = 40
-            this.noBtn.xfrm.localPos.y = 12
-
-            this.log()
+        
         }
 
         log() { this.scheduler.start() }

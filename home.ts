@@ -4,7 +4,6 @@ namespace microdata {
   import Button = user_interface_base.Button
   import ButtonStyles = user_interface_base.ButtonStyles
   import AppInterface = user_interface_base.AppInterface
-  import CursorSceneEnum = user_interface_base.CursorSceneEnum
   import font = user_interface_base.font
 
   export class Home extends CursorScene {
@@ -28,7 +27,7 @@ namespace microdata {
           y,
           onClick: () => {
             this.app.popScene()
-            this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.LiveDataViewer))
+            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.LiveDataViewer))
           },
         }),
 
@@ -41,7 +40,7 @@ namespace microdata {
           y,
           onClick: () => {
             this.app.popScene()
-            this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
           },
         }),
 
@@ -75,7 +74,7 @@ namespace microdata {
 
     private drawVersion() {
       const font = bitmaps.font5
-      const text = "v1.7.4"
+      const text = "v1.8.1"
       Screen.print(
         text,
         Screen.RIGHT_EDGE - (font.charWidth * text.length),
@@ -95,8 +94,8 @@ namespace microdata {
         0xc
       )
 
-      const microbitLogo = icons.get("microbitLogo")
-      const microdataLogo = icons.get("microdataLogo")
+      const microbitLogo = Icons.get("microbitLogo")
+        const microdataLogo = Icons.get("microdataLogo")
 
       this.yOffset = Math.min(0, this.yOffset + 2)
       const t = control.millis()
