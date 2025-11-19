@@ -1,7 +1,6 @@
 namespace microdata {
     import Screen = user_interface_base.Screen
-    import CursorSceneWithPriorPage = user_interface_base.CursorSceneWithPriorPage
-    import CursorSceneEnum = user_interface_base.CursorSceneEnum
+    import CursorScene = user_interface_base.CursorScene
     import Button = user_interface_base.Button
     import ButtonStyles = user_interface_base.ButtonStyles
     import AppInterface = user_interface_base.AppInterface
@@ -12,15 +11,11 @@ namespace microdata {
      *      A tabular view of the recorded data
      *      A graph of the recorded data
      */
-    export class DataViewSelect extends CursorSceneWithPriorPage {
+    export class DataViewSelect extends CursorScene {
         private dataloggerEmpty: boolean
 
         constructor(app: AppInterface) { 
-            super(app,
-                function () {
-                this.app.popScene(); 
-                this.app.pushScene(new Home(this.app))
-            })
+            super(app);
         }
 
         /* override */ startup() {
@@ -36,12 +31,21 @@ namespace microdata {
 
             // No data in log (first row are headers)
             if (this.dataloggerEmpty) {
-                control.onEvent(
+                context.onEvent(
                     ControllerButtonEvent.Pressed,
                     controller.A.id,
                     () => {
                         this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+                        this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+                    }
+                )
+
+                context.onEvent(
+                    ControllerButtonEvent.Pressed,
+                    controller.B.id,
+                    () => {
+                        this.app.popScene()
+                        this.app.pushScene(new Home(this.app))
                     }
                 )
             }
@@ -86,12 +90,12 @@ namespace microdata {
                         datalogger.deleteLog()
                         this.dataloggerEmpty = true
                         
-                        control.onEvent(
+                        context.onEvent(
                             ControllerButtonEvent.Pressed,
                             controller.A.id,
                             () => {
                                 this.app.popScene()
-                                this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+                                this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
                             }
                         )
                     },

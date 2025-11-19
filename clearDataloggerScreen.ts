@@ -15,10 +15,10 @@ namespace microdata {
       // Data logger already empty:
       if (datalogger.getNumberOfRows(0) <= 1) {
         this.app.popScene()
-        this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+        this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
       }
 
-      this.yesBtn = new Sprite({ img: icons.get("tile_button_a") })
+      this.yesBtn = new Sprite({ img: Icons..get("tile_button_a") })
       this.yesBtn.bindXfrm(new Affine())
       this.yesBtn.xfrm.parent = new Affine()
       this.yesBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
@@ -26,7 +26,7 @@ namespace microdata {
       this.yesBtn.xfrm.localPos.x = -39
       this.yesBtn.xfrm.localPos.y = 20
 
-      this.noBtn = new Sprite({ img: icons.get("tile_button_b") })
+      this.noBtn = new Sprite({ img: Icons..get("tile_button_b") })
       this.noBtn.bindXfrm(new Affine())
       this.noBtn.xfrm.parent = new Affine()
       this.noBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
@@ -41,7 +41,7 @@ namespace microdata {
 
       this.unbindButtons()
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
@@ -51,16 +51,16 @@ namespace microdata {
           datalogger.deleteLog(datalogger.DeleteType.Fast)
 
           this.app.popScene()
-          this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+          this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
           this.app.popScene()
-          this.app.pushScene(new SensorSelect(this.app, CursorSceneEnum.RecordingConfigSelect))
+          this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
         }
       )
     }
@@ -71,12 +71,12 @@ namespace microdata {
      * Invocations to other functions can be particularly prone to crashing if during datalogger.deleteLog()
      */
     private unbindButtons() {
-      control.onEvent(ControllerButtonEvent.Pressed, controller.A.id, () => { })
-      control.onEvent(ControllerButtonEvent.Pressed, controller.B.id, () => { })
-      control.onEvent(ControllerButtonEvent.Pressed, controller.left.id, () => { })
-      control.onEvent(ControllerButtonEvent.Pressed, controller.right.id, () => { })
-      control.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => { })
-      control.onEvent(ControllerButtonEvent.Pressed, controller.down.id, () => { })
+      context.onEvent(ControllerButtonEvent.Pressed, controller.A.id, () => { })
+      context.onEvent(ControllerButtonEvent.Pressed, controller.B.id, () => { })
+      context.onEvent(ControllerButtonEvent.Pressed, controller.left.id, () => { })
+      context.onEvent(ControllerButtonEvent.Pressed, controller.right.id, () => { })
+      context.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => { })
+      context.onEvent(ControllerButtonEvent.Pressed, controller.down.id, () => { })
     }
 
     draw() {

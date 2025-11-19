@@ -33,14 +33,15 @@ namespace microdata {
         ACCELERATION,
         TEMPERATURE,
         LIGHT,
-        MAGNET,
-        RADIO
+        MAGNET
     };
 
     /** For module inside of B button. */
-    const UI_SENSOR_SELECT_STATE_LEN = 5;
+    const UI_SENSOR_SELECT_STATE_LEN = 4;
     /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
     const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
+
+    // const SENSOR_CFG: RecordingConfig = {measurements: undefined, period: undefined, }
 
     /**
      * Simple class to enable the use of MicroData w/o an Arcade Shield for recording data for the sensors listed in UI_SENSOR_SELECT_STATE.
@@ -64,15 +65,19 @@ namespace microdata {
         /** Mutated by the B button & .dynamicSensorSelectionLoop() */
         private uiSensorSelectState: UI_SENSOR_SELECT_STATE;
 
+        private continueLogging: boolean;
+
         constructor(app: App) {
             this.app = app;
             this.uiMode = UI_MODE.SENSOR_SELECTION;
             this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
+            this.continueLogging = false;
 
             // A Button
             input.onButtonPressed(1, () => {
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
                     this.uiMode = UI_MODE.LOGGING;
+                    this.continueLogging = !this.continueLogging;
                     this.log();
                 }
             })
@@ -285,28 +290,6 @@ namespace microdata {
                             break;
                         }
 
-                        case UI_SENSOR_SELECT_STATE.RADIO: {
-                            basic.showLeds(`
-                                . . . . .
-                                . . . . .
-                                . # # # .
-                                # . . . #
-                                . . # . . 
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
-
-                            basic.showLeds(`
-                                . # # # .
-                                # . . . #
-                                . # # # .
-                                # . . . #
-                                . . # . .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
-
-                            break;
-                        }
-
                         default:
                             break;
                     }
@@ -322,23 +305,39 @@ namespace microdata {
         private log() {
             const sensors = this.uiSelectionToSensors();
             let time = 0;
-
             control.inBackground(() => {
-                while (this.uiMode == UI_MODE.LOGGING) {
+                while (this.uiMode == UI_MODE.LOGGING && this.continueLogging) {
                     let start = input.runningTime();
-                    sensors.forEach(sensor => {
-                        datalogger.log(
-                            datalogger.createCV("Sensor", sensor.getName()),
-                            datalogger.createCV("Time (ms)", time),
-                            datalogger.createCV("Reading", sensor.getReading()),
-                            datalogger.createCV("Event", "N/A")
-                        );
+
+                    const priorReadings: number[] = sensors.map((_) => undefined)
+                    const EVENT_THRESHOLD_NORM = 0.2;
+                    sensors.forEach((sensor, index) => {
+                        // datalogger.log(
+                        //     datalogger.createCV("Sensor", sensor.getName()),
+                        //     datalogger.createCV("Time (ms)", time),
+                        //     datalogger.createCV("Reading", sensor.getReading()),Magnet
+                        //     datalogger.createCV("Event", "N/A")
+                        // );
+                        
+                        const reading = sensor.getNormalisedReading();
+                        if (priorReadings[index] == undefined) {
+                            priorReadings[index] = reading;
+                        } else if (Math.abs(priorReadings[index] - reading) >= EVENT_THRESHOLD_NORM) {
+                            datalogger.log(
+                                datalogger.createCV("Sensor", sensor.getName()),
+                                datalogger.createCV("Time (ms)", time),
+                                datalogger.createCV("Reading", sensor.getReading()),
+                                datalogger.createCV("Event", "N/A")
+                            );
+                        }
                     });
 
-                    if (this.uiMode == UI_MODE.LOGGING)
-                        basic.showNumber((time / 1000));
-                    if (!this.waitUntilUIModeChanges(Math.max(0, 1000 - (input.runningTime() - start)), 80, UI_MODE.LOGGING)) break;
-                    time += 1000;
+                    const WAIT_TIME_MS = 20;
+                    // if (this.uiMode == UI_MODE.LOGGING)
+                    //     basic.showNumber((time / 1000));
+                    if (!this.waitUntilUIModeChanges(Math.max(0, WAIT_TIME_MS - (input.runningTime() - start)), 80, UI_MODE.LOGGING))
+                        break;
+                    time += WAIT_TIME_MS;
                 }
                 return;
             });
@@ -366,10 +365,6 @@ namespace microdata {
 
                 case UI_SENSOR_SELECT_STATE.MAGNET:
                     return [Sensor.getFromName("Magnet")]
-
-                case UI_SENSOR_SELECT_STATE.RADIO:
-                    new DistributedLoggingProtocol(this.app, false);
-                    return []
 
                 default:
                     return []

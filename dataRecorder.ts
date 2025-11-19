@@ -56,7 +56,7 @@ namespace microdata {
             //---------------
 
             // Go Back:
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.B.id,
                 () => {
@@ -72,7 +72,7 @@ namespace microdata {
             )
 
             // Clear whatever A was previously bound to
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.A.id,
                 () => {
@@ -87,7 +87,7 @@ namespace microdata {
             )
 
             // Scroll Up
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.up.id,
                 () => {
@@ -101,7 +101,7 @@ namespace microdata {
             )
 
             // Scroll Down
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.down.id,
                 () => {
@@ -117,7 +117,7 @@ namespace microdata {
 
             // For cancelling the current recording:
 
-            this.yesBtn = new Sprite({ img: icons.get("tile_button_a") })
+            this.yesBtn = new Sprite({ img: Icons.get("tile_button_a") })
             this.yesBtn.bindXfrm(new Affine())
             this.yesBtn.xfrm.parent = new Affine()
             this.yesBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
@@ -125,7 +125,7 @@ namespace microdata {
             this.yesBtn.xfrm.localPos.x = -40
             this.yesBtn.xfrm.localPos.y = 12
 
-            this.noBtn = new Sprite({ img: icons.get("tile_button_b") })
+            this.noBtn = new Sprite({ img: Icons.get("tile_button_b") })
             this.noBtn.bindXfrm(new Affine())
             this.noBtn.xfrm.parent = new Affine()
             this.noBtn.xfrm.worldPos.x = Screen.HALF_WIDTH

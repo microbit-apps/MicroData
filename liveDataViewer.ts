@@ -141,7 +141,7 @@ namespace microdata {
       //--------------------------------
 
       // Zoom in:
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
@@ -168,7 +168,7 @@ namespace microdata {
       )
 
       // Zoom out, if not ZOOMED_IN then go back to home
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
@@ -194,7 +194,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.up.id,
         () => {
@@ -221,7 +221,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.down.id,
         () => {
@@ -248,7 +248,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
@@ -258,7 +258,7 @@ namespace microdata {
             // this.update() // For fast response to the above change
 
             let tick = true;
-            control.onEvent(
+            context.onEvent(
               ControllerButtonEvent.Released,
               controller.left.id,
               () => tick = false
@@ -271,18 +271,18 @@ namespace microdata {
               basic.pause(isFirstTick ? 100 : 33)
               isFirstTick = false
             }
-            control.onEvent(ControllerButtonEvent.Released, controller.left.id, () => { })
+            context.onEvent(ControllerButtonEvent.Released, controller.left.id, () => { })
           }
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.right.id,
         () => {
           if (this.guiState == GUI_STATE.ZOOMED_IN) {
             let tick = true;
-            control.onEvent(
+            context.onEvent(
               ControllerButtonEvent.Released,
               controller.right.id,
               () => tick = false
@@ -294,7 +294,7 @@ namespace microdata {
               basic.pause(isFirstTick ? 100 : 33)
               isFirstTick = false
             }
-            control.onEvent(ControllerButtonEvent.Released, controller.right.id, () => { })
+            context.onEvent(ControllerButtonEvent.Released, controller.right.id, () => { })
           }
         }
       )

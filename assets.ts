@@ -6,11 +6,13 @@ namespace microdata {
 
   }
 
-  export class icons {
-    public static get(name: string, nullIfMissing = false): Bitmap {
+  export class Icons {
+    public static get(name: string | number, nullIfMissing = false): Bitmap {
       if (name == "microdataLogo") return microdataLogo
 
-      return user_interface_base.icons.get(name, nullIfMissing);
+      if (typeof name === "string")
+        return user_interface_base.icons.get(name, nullIfMissing)
+      return MISSING
     }
   }
 
@@ -37,5 +39,25 @@ namespace microdata {
     ...1bbbbbbf......1bbbbbbf1bbbbbf..bbbbbbbbbbbff.1bbbbbf.........bbbbbbbbbbbff.bbbbbbbbbbbbbff..fbbbbbbbbbbbbbbb..fbbbbbbbbbbbbf..fbbbbbbbbbbbbbbbb.....
     ....bbbbbff.......bbbbbff.bbbbff...fbbbbbbbfff...bbbbff..........fbbbbbbbfff...fbbbbbbbbbff.....fbbbbbbbbbbbbff...fbbbbbbbbbbf....fbbbbbbbbbbbbbff.....
     .....fffff.........fffff...ffff......fffffff......ffff.............fffffff......fffffffff........fffffffffffff.....ffffffffff......ffffffffffffff......
+`
+
+  //TODO: Move into user_interface_base/coreAssets.ts
+  export const MISSING = bmp`
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . 2 2 2 2 2 2 2 2 2 2 . . .
+    . . . 2 2 . . . . . . 2 2 . . .
+    . . . 2 . 2 . . . . 2 . 2 . . .
+    . . . 2 . . 2 . . 2 . . 2 . . .
+    . . . 2 . . . 2 2 . . . 2 . . .
+    . . . 2 . . . 2 2 . . . 2 . . .
+    . . . 2 . . 2 . . 2 . . 2 . . .
+    . . . 2 . 2 . . . . 2 . 2 . . .
+    . . . 2 2 . . . . . . 2 2 . . .
+    . . . 2 2 2 2 2 2 2 2 2 2 . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
+    . . . . . . . . . . . . . . . .
 `
 }
