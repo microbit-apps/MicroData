@@ -75,7 +75,7 @@ namespace microdata {
 
     private drawVersion() {
       const font = bitmaps.font5
-      const text = "v1.7.4"
+      const text = "v1.7.5"
       Screen.print(
         text,
         Screen.RIGHT_EDGE - (font.charWidth * text.length),

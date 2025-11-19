@@ -24,31 +24,6 @@ namespace microdata {
 
             // Includes the header:
             this.dataloggerEmpty = datalogger.getNumberOfRows() <= 1
-            
-            //---------
-            // Control:
-            //---------
-
-            // No data in log (first row are headers)
-            if (this.dataloggerEmpty) {
-                context.onEvent(
-                    ControllerButtonEvent.Pressed,
-                    controller.A.id,
-                    () => {
-                        this.app.popScene()
-                        this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
-                    }
-                )
-
-                context.onEvent(
-                    ControllerButtonEvent.Pressed,
-                    controller.B.id,
-                    () => {
-                        this.app.popScene()
-                        this.app.pushScene(new Home(this.app))
-                    }
-                )
-            }
 
             const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
             
@@ -101,6 +76,31 @@ namespace microdata {
                     },
                 })
             ]])
+
+            //---------
+            // Control:
+            //---------
+
+            // No data in log (first row are headers)
+            if (this.dataloggerEmpty) {
+                context.onEvent(
+                    ControllerButtonEvent.Pressed,
+                    controller.A.id,
+                    () => {
+                        this.app.popScene()
+                        this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+                    }
+                )
+            }
+
+            context.onEvent(
+                ControllerButtonEvent.Pressed,
+                controller.B.id,
+                () => {
+                    this.app.popScene()
+                    this.app.pushScene(new Home(this.app))
+                }
+            )
         }
 
         draw() {
