@@ -13,7 +13,10 @@
         "jacdac-soil-moisture": "github:jacdac/pxt-jacdac/soil-moisture#v1.9.40",
         "jacdac-distance": "github:jacdac/pxt-jacdac/distance#v1.9.40",
         "jacdac-temperature": "github:jacdac/pxt-jacdac/temperature#v1.9.40",
-        "jacdac-flex": "github:jacdac/pxt-jacdac/flex#v1.9.40"
+        "jacdac-flex": "github:jacdac/pxt-jacdac/flex#v1.9.40",
+        "jacdac-led": "github:jacdac/pxt-jacdac/led#v1.9.40",
+        "jacdac-led-strip": "github:jacdac/pxt-jacdac/led-strip#v1.9.40",
+        "jacdac-color": "github:jacdac/pxt-jacdac/color#v1.9.40"
     },
     "files": [
         "analytics.ts",
@@ -32,7 +35,8 @@
         "tabularDataViewer.ts",
         "generateGraph.ts",
         "distributedLogging.ts",
-        "headlessMode.ts"
+        "headlessMode.ts",
+        "experiments.ts"
     ],
     "testFiles": [
         "test.ts"

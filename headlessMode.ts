@@ -1,374 +1,274 @@
 namespace microdata {
-    /**
-     * This is presently unused on this /main branch due to memory constraints. The distributedLoggingProtocol is used in its stead.
-     * The no-jacdac-mode uses this feature fully, but with no Jacdac support.
-     * 
-     * This version supports the Radio logging in addition to its other logging modes.
-     * 
-     * In the future there shouldn't be a trade-off between these features.
-     */
+  /**
+   * Sensor Selection cycles between 'animations' of the options; animations are an LED loop specific to that sensor.
+   * Mutated by the A & B button
+   */
+  const enum UI_MODE {
+    SENSOR_SELECTION,
+    LOGGING
+  };
 
 
-    /**
-     * Sensor Selection cycles between 'animations' of the options; animations are an LED loop specific to that sensor.
-     * Mutated by the A & B button
-     */
-    const enum UI_MODE {
-        SENSOR_SELECTION,
-        LOGGING
-    };
+  /**
+   * Represents the internal state of the UI diplay when in SENSOR_SELECTION UI_MODE;
+   * 
+   * Mutated by the A & B button & .dynamicSensorSelectionLoop()
+   * 
+   * Which LED should be shown and what Sensor object should it be converted to when complete.
+   * see .uiSelectionToSensor()
+   * 
+   * Notice the RADIO element; which is not a sensor; see .uiSelectionToSensor() since it is handled differently.
+   */
+  const enum UI_SENSOR_SELECT_STATE {
+    ACCELERATION,
+    TEMPERATURE,
+    LIGHT,
+    MAGNET
+  };
 
+  /** For module inside of B button. */
+  const UI_SENSOR_SELECT_STATE_LEN = 4;
+  /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
+  const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
 
-    /**
-     * Represents the internal state of the UI diplay when in SENSOR_SELECTION UI_MODE;
-     * 
-     * Mutated by the A & B button & .dynamicSensorSelectionLoop()
-     * 
-     * Which LED should be shown and what Sensor object should it be converted to when complete.
-     * see .uiSelectionToSensor()
-     * 
-     * Notice the RADIO element; which is not a sensor; see .uiSelectionToSensor() since it is handled differently.
-     */
-    const enum UI_SENSOR_SELECT_STATE {
-        ACCELERATION,
-        TEMPERATURE,
-        LIGHT,
-        MAGNET
-    };
+  /**
+   * Simple class to enable the use of MicroData w/o an Arcade Shield for recording data for the sensors listed in UI_SENSOR_SELECT_STATE.
+   * Invoked if an arcade shield is not detected from app.ts
+   * The LED is used to represent sensor options, the user can press A to select one; which starts logging.
+   * Or press B to move onto the next one.
+   * 
+   * Logging happens every second and is indefinite. The user may cancel the logging via the B button.
+   * 
+   * Whilst the sensors are cycled between the sensor being displayed may dynamically update if the readings from that sensor are in excess.
+   *      See .dynamicSensorSelectionLoop()
+   *      It checks all sensors inside UI_SENSOR_SELECT_STATE; if there is one that has a reading beyond the threshold then it will switch this.uiSensorSelectState to that sensor.
+   *      This allows the user to cycle between UI elements phsyically - by shining light on or shaking the microbit.
+   * 
+   * Fibers and special waiting functions .waitUntilSensorSelectStateChange & .waitUntilUIModeChanges are required to maintain low-latency and the dynamic behaviour described above.
+   */
+  export class HeadlessMode {
+    /** Mutated by the A & B button */
+    private uiMode: UI_MODE;
+    /** Mutated by the B button & .dynamicSensorSelectionLoop() */
+    private uiSensorSelectState: UI_SENSOR_SELECT_STATE;
 
-    /** For module inside of B button. */
-    const UI_SENSOR_SELECT_STATE_LEN = 4;
-    /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
-    const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
+    constructor() {
+      this.uiMode = UI_MODE.SENSOR_SELECTION;
+      this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
 
-    // const SENSOR_CFG: RecordingConfig = {measurements: undefined, period: undefined, }
-
-    /**
-     * Simple class to enable the use of MicroData w/o an Arcade Shield for recording data for the sensors listed in UI_SENSOR_SELECT_STATE.
-     * Invoked if an arcade shield is not detected from app.ts
-     * The LED is used to represent sensor options, the user can press A to select one; which starts logging.
-     * Or press B to move onto the next one.
-     * 
-     * Logging happens every second and is indefinite. The user may cancel the logging via the B button.
-     * 
-     * Whilst the sensors are cycled between the sensor being displayed may dynamically update if the readings from that sensor are in excess.
-     *      See .dynamicSensorSelectionLoop()
-     *      It checks all sensors inside UI_SENSOR_SELECT_STATE; if there is one that has a reading beyond the threshold then it will switch this.uiSensorSelectState to that sensor.
-     *      This allows the user to cycle between UI elements phsyically - by shining light on or shaking the microbit.
-     * 
-     * Fibers and special waiting functions .waitUntilSensorSelectStateChange & .waitUntilUIModeChanges are required to maintain low-latency and the dynamic behaviour described above.
-     */
-    export class HeadlessMode {
-        private app: App;
-        /** Mutated by the A & B button */
-        private uiMode: UI_MODE;
-        /** Mutated by the B button & .dynamicSensorSelectionLoop() */
-        private uiSensorSelectState: UI_SENSOR_SELECT_STATE;
-
-        private continueLogging: boolean;
-
-        constructor(app: App) {
-            this.app = app;
-            this.uiMode = UI_MODE.SENSOR_SELECTION;
-            this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
-            this.continueLogging = false;
-
-            // A Button
-            input.onButtonPressed(1, () => {
-                if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                    this.uiMode = UI_MODE.LOGGING;
-                    this.continueLogging = !this.continueLogging;
-                    this.log();
-                }
-            })
-
-            // B Button
-            input.onButtonPressed(2, () => {
-                if (this.uiMode == UI_MODE.SENSOR_SELECTION)
-                    this.uiSensorSelectState = (this.uiSensorSelectState + 1) % UI_SENSOR_SELECT_STATE_LEN
-                else if (this.uiMode == UI_MODE.LOGGING) {
-                    this.uiMode = UI_MODE.SENSOR_SELECTION;
-                    this.dynamicSensorSelectionLoop();
-                    this.showSensorIcon();
-                }
-            })
-
-            this.dynamicSensorSelectionLoop();
-            this.showSensorIcon();
+      // A Button
+      input.onButtonPressed(1, () => {
+        if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
+          this.uiMode = UI_MODE.LOGGING;
+        } else if (this.uiMode == UI_MODE.LOGGING) {
+          this.uiMode = UI_MODE.SENSOR_SELECTION;
         }
+      })
 
-
-        /**
-         * Runs in background fiber.
-         * Polls all UI_SENSOR_SELECT_STATE except RADIO for abormally high readings.
-         * If the reading is beyond the threshold then this.uiSensorSelectState is mutated.
-         * 
-         * Turned off if not in UI_MODE.SENSOR_SELECTION
-         * 
-         * Invoked at start and when moving back from logging via pressing the B button.
-         */
-        private dynamicSensorSelectionLoop() {
-            const dynamicInfo = [
-                { sensor: Sensor.getFromName("Accel. X"), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25 },
-                { sensor: Sensor.getFromName("Accel. Y"), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25 },
-                { sensor: Sensor.getFromName("Accel. Z"), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25 },
-                { sensor: Sensor.getFromName("Light"), uiState: UI_SENSOR_SELECT_STATE.LIGHT, threshold: 0.85 },
-                { sensor: Sensor.getFromName("Magnet"), uiState: UI_SENSOR_SELECT_STATE.MAGNET, threshold: 0.80 },
-            ];
-
-            // Don't trigger the same sensor selection twice in a row:
-            let ignore: boolean[] = dynamicInfo.map(_ => false);
-            control.inBackground(() => {
-                while (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                    dynamicInfo.forEach((info, idx) => {
-                        if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
-                            this.uiSensorSelectState = info.uiState;
-
-                            ignore = dynamicInfo.map(_ => false);
-                            ignore[idx] = true;
-                            basic.pause(1000)
-                        }
-                        basic.pause(100)
-                    })
-                    basic.pause(100)
-                }
-                return;
-            })
+      // B Button
+      input.onButtonPressed(2, () => {
+        if (this.uiMode == UI_MODE.SENSOR_SELECTION)
+          this.uiSensorSelectState = (this.uiSensorSelectState + 1) % UI_SENSOR_SELECT_STATE_LEN
+        else if (this.uiMode == UI_MODE.LOGGING) {
+          this.uiMode = UI_MODE.SENSOR_SELECTION;
         }
+      })
 
-
-        //-------------------------
-        // Special Waiting Methods:
-        //-------------------------
-
-        /**
-         * Wait time number of milliseconds but in increments of check_n_times. Exit if initialState changes.
-         * To show led animations you need to wait inbetween each frame. But you need to switch to another state if a button is pressed immediately.
-         * used by .showSensorIcon()
-         * 
-         * @param time milliseconds
-         * @param check_n_times period = time / check_n_times
-         * @param initialState this.uiSensorSelectState != causes pre-mature exit; returning false.
-         * @returns true if neither this.uiSensorSelectState nor this.uiMode changed; meaning that the full time was waited.
-         */
-        private waitUntilSensorSelectStateChange(time: number, check_n_times: number, initialState: UI_SENSOR_SELECT_STATE): boolean {
-            const period = time / check_n_times;
-
-            for (let n = 0; n < check_n_times; n++) {
-                if (this.uiSensorSelectState != initialState || this.uiMode != UI_MODE.SENSOR_SELECTION)
-                    return false;
-
-                basic.pause(period)
-            }
-            return true;
-        }
-
-        /**
-         * Wait time number of milliseconds but in increments of check_n_times. Exit if initialState changes.
-         * To show led animations you need to wait inbetween each frame. But you need to switch to another state if a button is pressed immediately.
-         * used by .log()
-         * 
-         * @param time milliseconds
-         * @param check_n_times period = time / check_n_times
-         * @param initialState this.uiMode != causes pre-mature exit; returning false.
-         * @returns true if this.uiMode did not change; meaning that the full time was waited.
-         */
-        private waitUntilUIModeChanges(time: number, check_n_times: number, initialState: UI_MODE): boolean {
-            const period = time / check_n_times;
-
-            for (let n = 0; n < check_n_times; n++) {
-                if (this.uiMode != initialState) {
-                    return false;
-                }
-                basic.pause(period)
-            }
-            return true;
-        }
-
-
-        //-----------------
-        // Display Methods:
-        //-----------------
-
-
-        /**
-         * Starts a fiber that loops through UI_SENSOR_SELECT_STATE:
-         *      Showing each as an animation, checking for this.uiMode & this.uiSensorSelectState changes whilst waiting.
-         * Invoked at start & by the B button if re-entering SENSOR_SELECTION UI_MODE from the LOGGING UI_MODE
-         */
-        private showSensorIcon() {
-            control.inBackground(() => {
-                while (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                    switch (this.uiSensorSelectState) {
-                        case UI_SENSOR_SELECT_STATE.ACCELERATION: {
-                            // basic.showLeds() requires a '' literal; thus the following is un-loopable: 
-
-                            basic.showLeds(`
-                                # # # . .
-                                # # . . .
-                                # . # . .
-                                . . . # .
-                                . . . . .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
-
-                            basic.showLeds(`
-                                . . # . .
-                                . . # . .
-                                # # # # #
-                                . # # # .
-                                . . # . .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
-
-                            basic.showLeds(`
-                                . . # . .
-                                . . # # .
-                                # # # # #
-                                . . # # .
-                                . . # . .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
-
-                            break;
-                        }
-
-                        case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
-                            basic.showLeds(`
-                                # . . . .
-                                . . # # .
-                                . # . . .
-                                . # . . .
-                                . . # # .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS), 50, UI_SENSOR_SELECT_STATE.TEMPERATURE)) break;
-
-                            break;
-                        }
-
-                        case UI_SENSOR_SELECT_STATE.LIGHT: {
-                            basic.showLeds(`
-                                . . . . .
-                                . # # # .
-                                . . # . .
-                                . . . . .
-                                . . # . .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
-
-                            basic.showLeds(`
-                                . # # # .
-                                . # # # .
-                                . # # # .
-                                . . . . .
-                                . . # . .
-                            `);
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
-
-                            break;
-                        }
-
-                        case UI_SENSOR_SELECT_STATE.MAGNET: {
-                            basic.showLeds(`
-                                . # # # .
-                                # # # # #
-                                # # . # #
-                                . . . . .
-                                . . . . .
-                            `)
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
-
-                            basic.showLeds(`
-                                . # # # .
-                                # # # # #
-                                # # . # #
-                                . . . . .
-                                # # . # #
-                            `)
-                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
-
-                            break;
-                        }
-
-                        default:
-                            break;
-                    }
-                }
-            });
-        }
-
-
-        /**
-         * Get the sensor(s) that the user selected and start logging them.
-         * Exit if the UI_MODE changes back to SENSOR_SELECTION (upon the user pressing B)
-         */
-        private log() {
-            const sensors = this.uiSelectionToSensors();
-            let time = 0;
-            control.inBackground(() => {
-                while (this.uiMode == UI_MODE.LOGGING && this.continueLogging) {
-                    let start = input.runningTime();
-
-                    const priorReadings: number[] = sensors.map((_) => undefined)
-                    const EVENT_THRESHOLD_NORM = 0.2;
-                    sensors.forEach((sensor, index) => {
-                        // datalogger.log(
-                        //     datalogger.createCV("Sensor", sensor.getName()),
-                        //     datalogger.createCV("Time (ms)", time),
-                        //     datalogger.createCV("Reading", sensor.getReading()),Magnet
-                        //     datalogger.createCV("Event", "N/A")
-                        // );
-                        
-                        const reading = sensor.getNormalisedReading();
-                        if (priorReadings[index] == undefined) {
-                            priorReadings[index] = reading;
-                        } else if (Math.abs(priorReadings[index] - reading) >= EVENT_THRESHOLD_NORM) {
-                            datalogger.log(
-                                datalogger.createCV("Sensor", sensor.getName()),
-                                datalogger.createCV("Time (ms)", time),
-                                datalogger.createCV("Reading", sensor.getReading()),
-                                datalogger.createCV("Event", "N/A")
-                            );
-                        }
-                    });
-
-                    const WAIT_TIME_MS = 20;
-                    // if (this.uiMode == UI_MODE.LOGGING)
-                    //     basic.showNumber((time / 1000));
-                    if (!this.waitUntilUIModeChanges(Math.max(0, WAIT_TIME_MS - (input.runningTime() - start)), 80, UI_MODE.LOGGING))
-                        break;
-                    time += WAIT_TIME_MS;
-                }
-                return;
-            });
-        }
-
-
-        /**
-         * this.uiSensorSelectState -> relevant sensors
-         * Most are only 1 sensor, but UI_SENSOR_SELECT_STATE.ACCELERATION gives all X,Y,Z sensors.
-         * 
-         * Special note to UI_SENSOR_SELECT_STATE.RADIO which leaves NoArcadeShieldMode & starts the DistributedLoggingProtocol().
-         * 
-         * @returns sensors used by .log()
-         */
-        private uiSelectionToSensors(): Sensor[] {
-            switch (this.uiSensorSelectState) {
-                case UI_SENSOR_SELECT_STATE.ACCELERATION:
-                    return [Sensor.getFromName("Accel. X"), Sensor.getFromName("Accel. Y"), Sensor.getFromName("Accel. Z")]
-
-                case UI_SENSOR_SELECT_STATE.TEMPERATURE:
-                    return [Sensor.getFromName("Temp.")]
-
-                case UI_SENSOR_SELECT_STATE.LIGHT:
-                    return [Sensor.getFromName("Light")]
-
-                case UI_SENSOR_SELECT_STATE.MAGNET:
-                    return [Sensor.getFromName("Magnet")]
-
-                default:
-                    return []
-            }
-        }
+      this.loop();
     }
+
+    private loop() {
+      while (1) {
+        if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
+          switch (this.uiSensorSelectState) {
+            case UI_SENSOR_SELECT_STATE.ACCELERATION: {
+              // basic.showLeds() requires a '' literal; thus the following is un-loopable: 
+
+              basic.showLeds(`
+                  # # # . .
+                  # # . . .
+                  # . # . .
+                  . . . # .
+                  . . . . .
+              `);
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
+
+              basic.showLeds(`
+                  . . # . .
+                  . . # . .
+                  # # # # #
+                  . # # # .
+                  . . # . .
+              `);
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
+
+              basic.showLeds(`
+                  . . # . .
+                  . . # # .
+                  # # # # #
+                  . . # # .
+                  . . # . .
+              `);
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
+
+              break;
+            }
+
+            case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
+              basic.showLeds(`
+                  # . . . .
+                  . . # # .
+                  . # . . .
+                  . # . . .
+                  . . # # .
+              `);
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS), 50, UI_SENSOR_SELECT_STATE.TEMPERATURE)) break;
+
+              break;
+            }
+
+            case UI_SENSOR_SELECT_STATE.LIGHT: {
+              basic.showLeds(`
+                . . . . .
+                . # # # .
+                . . # . .
+                . . . . .
+                . . # . .
+              `);
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+
+              basic.showLeds(`
+                  . # # # .
+                  . # # # .
+                  . # # # .
+                  . . . . .
+                  . . # . .
+              `);
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+
+              break;
+            }
+
+            case UI_SENSOR_SELECT_STATE.MAGNET: {
+              basic.showLeds(`
+                                . # # # .
+                                # # # # #
+                                # # . # #
+                                . . . . .
+                                . . . . .
+                            `)
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+
+              basic.showLeds(`
+                                . # # # .
+                                # # # # #
+                                # # . # #
+                                . . . . .
+                                # # . # #
+                            `)
+              if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS >> 1), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+
+              break;
+            }
+
+            default:
+              break;
+          }
+        } else if (this.uiMode == UI_MODE.LOGGING) {
+          const sensors = this.uiSelectionToSensors();
+          let time = 0;
+
+          basic.showLeds(`
+            . . . . .
+            . . . . .
+            . . . . .
+            . . . . .
+            . # # # .
+          `)
+
+          // control.inBackground(() => {
+          const WAIT_TIME_MS = 50;
+          let start = input.runningTime();
+          while (this.uiMode == UI_MODE.LOGGING) {
+            sensors.forEach((sensor, index) => {
+              datalogger.log(
+                datalogger.createCV("Sensor", sensor.getName()),
+                datalogger.createCV("Time (ms)", time),
+                datalogger.createCV("Reading", sensor.getReading()),
+                datalogger.createCV("Event", "N/A")
+              );
+            });
+            time += WAIT_TIME_MS;
+
+            const loop = input.runningTime();
+            basic.pause(WAIT_TIME_MS - (loop - start));
+            start = loop;
+          }
+
+          basic.showLeds(`
+            . . . . .
+            . # . # .
+            . . . . .
+            # . . . #
+            . # # # .
+          `)
+          basic.pause(1000)
+        }
+      }
+    }
+
+    //-------------------------
+    // Special Waiting Methods:
+    //-------------------------
+
+    /**
+     * Wait time number of milliseconds but in increments of check_n_times. Exit if initialState changes.
+     * To show led animations you need to wait inbetween each frame. But you need to switch to another state if a button is pressed immediately.
+     * used by .showSensorIcon()
+     * 
+     * @param time milliseconds
+     * @param check_n_times period = time / check_n_times
+     * @param initialState this.uiSensorSelectState != causes pre-mature exit; returning false.
+     * @returns true if neither this.uiSensorSelectState nor this.uiMode changed; meaning that the full time was waited.
+     */
+    private waitUntilSensorSelectStateChange(time: number, check_n_times: number, initialState: UI_SENSOR_SELECT_STATE): boolean {
+      const period = time / check_n_times;
+
+      for (let n = 0; n < check_n_times; n++) {
+        if (this.uiSensorSelectState != initialState || this.uiMode != UI_MODE.SENSOR_SELECTION)
+          return false;
+
+        basic.pause(period)
+      }
+      return true;
+    }
+
+
+    /**
+     * this.uiSensorSelectState -> relevant sensors
+     * Most are only 1 sensor, but UI_SENSOR_SELECT_STATE.ACCELERATION gives all X,Y,Z sensors.
+     * 
+     * Special note to UI_SENSOR_SELECT_STATE.RADIO which leaves NoArcadeShieldMode & starts the DistributedLoggingProtocol().
+     * 
+     * @returns sensors used by .log()
+     */
+    private uiSelectionToSensors(): Sensor[] {
+      switch (this.uiSensorSelectState) {
+        case UI_SENSOR_SELECT_STATE.ACCELERATION:
+          return [Sensor.getFromName("Accel. X"), Sensor.getFromName("Accel. Y"), Sensor.getFromName("Accel. Z")]
+
+        case UI_SENSOR_SELECT_STATE.TEMPERATURE:
+          return [Sensor.getFromName("Temp.")]
+
+        case UI_SENSOR_SELECT_STATE.LIGHT:
+          return [Sensor.getFromName("Light")]
+
+        case UI_SENSOR_SELECT_STATE.MAGNET:
+          return [Sensor.getFromName("Magnet")]
+
+        default:
+          return []
+      }
+    }
+  }
 }
