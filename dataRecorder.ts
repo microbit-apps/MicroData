@@ -80,6 +80,7 @@ namespace microdata {
                         this.currentlyCancelling = true
                         this.scheduler.stop()
 
+                        basic.pause(1000)
                         this.app.popScene()
                         this.app.pushScene(new Home(this.app))
                     }
