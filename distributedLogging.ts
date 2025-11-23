@@ -565,7 +565,7 @@ namespace microdata {
 
         if (DistributedLoggingScreen.showTabularData) {
           this.app.popScene()
-          this.app.pushScene(new TabularDataViewer(this.app, function () { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }))
+          this.app.pushScene(new TabularDataViewer(this.app, () => { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }))
         }
       }
     }
@@ -670,7 +670,7 @@ namespace microdata {
           onClick: () => {
             if (DistributedLoggingScreen.showTabularData) {
               this.app.popScene();
-              this.app.pushScene(new TabularDataViewer(this.app, function () { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }));
+              this.app.pushScene(new TabularDataViewer(this.app, () => { this.app.popScene(); this.app.pushScene(new DistributedLoggingScreen(this.app)) }));
             }
           },
         })

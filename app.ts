@@ -8,6 +8,7 @@ namespace microdata {
   * Used to control the flow between scenes,
   * The SensorSelect scene is used to set the sensors before the RecordData, DistributedLogging and LiveDataViewer scenes
   * This enum may be passed to the constructors of these scenes so that they can dynamically control this flow.
+  *
   */
   export enum MicroDataSceneEnum {
     LiveDataViewer,
@@ -45,11 +46,24 @@ namespace microdata {
       this.sceneManager = new SceneManager()
       datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
+
+      // datalogger.deleteLog(datalogger.DeleteType.Fast)
+      // for (let i = 0; i < 10; i++) {
+      //     datalogger.log(
+      //       datalogger.createCV("Sensor", "test"),
+      //       datalogger.createCV("Time (ms)", i * 1000),
+      //       datalogger.createCV("Reading", (i * 43) % 5000),
+      //       datalogger.createCV("Event", "N/A")
+      //     )
+      //     basic.pause(1)
+      // }
+      // this.pushScene(new microdata.TabularDataViewer(this, () => {}));
+
       const arcadeShieldConnected = shieldhelpers.shieldPresent();
       if (arcadeShieldConnected)
         this.pushScene(new microdata.Home(this));
       else
-        new HeadlessMode(this);
+        new HeadlessMode();
     }
 
     public pushScene(scene: Scene) {

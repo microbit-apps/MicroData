@@ -15,7 +15,6 @@ namespace microdata {
 
       // A:
       input.onButtonPressed(1, () => {
-        // basic.showNumber(1)
         const red = 0xFF0000
         for (let i = 0; i < modules.led1.numPixels(); i++) {
           modules.led1.setPixelColor(i, red)
@@ -26,7 +25,6 @@ namespace microdata {
 
       // B:
       input.onButtonPressed(2, () => {
-        // basic.showNumber(2)
         const blue = 0x0000FF
         for (let i = 0; i < modules.led1.numPixels(); i++) {
           modules.led1.setPixelColor(i, blue)
