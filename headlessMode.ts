@@ -26,6 +26,13 @@ namespace microdata {
     MAGNET
   };
 
+  const sensorEventThresholds: { [id: number]: number } = {
+    [UI_SENSOR_SELECT_STATE.ACCELERATION]: 300, // in milli-g for 2g (-2048 to 2047)
+    [UI_SENSOR_SELECT_STATE.TEMPERATURE]: 1,
+    [UI_SENSOR_SELECT_STATE.LIGHT]: 25,
+    [UI_SENSOR_SELECT_STATE.MAGNET]: 100,
+  }
+
   /** For module inside of B button. */
   const UI_SENSOR_SELECT_STATE_LEN = 4;
   /** How long should each LED picture be shown for? Series of pictures divide this by how many there are. */
@@ -55,6 +62,8 @@ namespace microdata {
     constructor() {
       this.uiMode = UI_MODE.SENSOR_SELECTION;
       this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
+      datalogger.deleteLog(datalogger.DeleteType.Fast)
+
 
       // A Button
       input.onButtonPressed(1, () => {
@@ -187,16 +196,30 @@ namespace microdata {
           `)
 
           // control.inBackground(() => {
-          const WAIT_TIME_MS = 50;
+          const WAIT_TIME_MS = 30;
           let start = input.runningTime();
+
+          const threshold = this.uiSelectionToSensorEventThresholds();
+          let priorReadings: number[] = sensors.map(sensor => sensor.getReading());
           while (this.uiMode == UI_MODE.LOGGING) {
             sensors.forEach((sensor, index) => {
-              datalogger.log(
-                datalogger.createCV("Sensor", sensor.getName()),
-                datalogger.createCV("Time (ms)", time),
-                datalogger.createCV("Reading", sensor.getReading()),
-                datalogger.createCV("Event", "N/A")
-              );
+              // datalogger.log(
+              //   datalogger.createCV("Sensor", sensor.getName()),
+              //   datalogger.createCV("Time (ms)", time),
+              //   datalogger.createCV("Reading", sensor.getReading()),
+              //   datalogger.createCV("Event", "N/A")
+              // );
+
+              const reading = sensor.getReading();
+              if (Math.abs(reading - priorReadings[index]) > threshold) {
+                datalogger.log(
+                  datalogger.createCV("Sensor", sensor.getName()),
+                  datalogger.createCV("Time (ms)", time),
+                  datalogger.createCV("Reading", reading),
+                  datalogger.createCV("Event", "delta")
+                );
+              }
+              priorReadings[index] = reading;
             });
             time += WAIT_TIME_MS;
 
@@ -269,6 +292,10 @@ namespace microdata {
         default:
           return []
       }
+    }
+
+    private uiSelectionToSensorEventThresholds(): number {
+      return sensorEventThresholds[this.uiSensorSelectState];
     }
   }
 }

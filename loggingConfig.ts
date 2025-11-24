@@ -1,9 +1,10 @@
 namespace microdata {
   import Screen = user_interface_base.Screen
   import Scene = user_interface_base.Scene
-  
+
   import AppInterface = user_interface_base.AppInterface
   import font = user_interface_base.font
+
 
   /**
    * Generated at recordingConfigSelection 
@@ -324,8 +325,17 @@ namespace microdata {
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
-          if (this.guiState == GUI_STATE.SENSOR_SELECT_CONFIG_ROW && this.configurationIndex == CONFIG_ROW.PERIOD_OR_EVENT)
+          if (this.guiState == GUI_STATE.SENSOR_SELECT_CONFIG_ROW && this.configurationIndex == CONFIG_ROW.PERIOD_OR_EVENT) {
             this.currentConfigMode = (this.currentConfigMode == CONFIG_MODE.PERIOD) ? CONFIG_MODE.EVENT : CONFIG_MODE.PERIOD
+
+            // Reset period values if going back to it from Event.
+            // This unncessary in the other direction.
+            if (this.currentConfigMode == CONFIG_MODE.PERIOD) {
+              this.sensorConfigs[this.sensorIndex].period = 1000
+              this.sensorConfigs[this.sensorIndex].inequality = null
+              this.sensorConfigs[this.sensorIndex].comparator = null
+            }
+          }
 
           else if (this.guiState == GUI_STATE.SENSOR_MODIFY_CONFIG_ROW) {
             switch (this.configurationIndex) {

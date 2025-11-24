@@ -9,7 +9,7 @@ namespace microdata {
    * Choose between:
    *      Resetting Datalogger
    *      A tabular view of the recorded data
-   *      A graph of the recorded data
+   *      Jacdac light experiment
    */
   export class DataViewSelect extends CursorScene {
     private dataloggerEmpty: boolean
@@ -18,7 +18,7 @@ namespace microdata {
       super(app);
     }
 
-        /* override */ startup() {
+    /* override */ startup() {
       super.startup()
       basic.pause(50);
 
@@ -27,8 +27,23 @@ namespace microdata {
 
       const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
 
-      this.navigator.setBtns([[
-        new Button({
+      let btns: Button[][] = [[]];
+
+      if (this.dataloggerEmpty) {
+        btns[0].push(new Button({
+          parent: null,
+          style: ButtonStyles.Transparent,
+          icon: "edit_program",
+          ariaId: "Log Data",
+          x: -50,
+          y,
+          onClick: () => {
+            this.app.popScene()
+            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+          },
+        }))
+      } else {
+        btns[0].push(new Button({
           parent: null,
           style: ButtonStyles.Transparent,
           icon: "largeDisk",
@@ -38,60 +53,49 @@ namespace microdata {
           onClick: () => {
             this.app.popScene()
             this.app.pushScene(new TabularDataViewer(this.app, () => { this.app.popScene(); this.app.pushScene(new DataViewSelect(this.app)) }))
-          },
-        }),
+          }
+        }))
+      }
 
-        new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "linear_graph_1",
-          ariaId: "View Graph",
-          x: 0,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new GraphGenerator(this.app))
-          },
-        }),
+      btns[0].push(new Button({
+        parent: null,
+        style: ButtonStyles.Transparent,
+        icon: "linear_graph_1",
+        ariaId: "Jacdac Light Experiment",
+        x: 0,
+        y,
+        onClick: () => {
+          this.app.popScene()
+          this.app.pushScene(new JacdacLightExperiment(this.app))
+        },
+      }))
 
-        new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "largeSettingsGear",
-          ariaId: "Reset Datalogger",
-          x: 50,
-          y,
-          onClick: () => {
-            datalogger.deleteLog()
-            this.dataloggerEmpty = true
+      btns[0].push(new Button({
+        parent: null,
+        style: ButtonStyles.Transparent,
+        icon: "largeSettingsGear",
+        ariaId: "Reset Datalogger",
+        x: 50,
+        y,
+        onClick: () => {
+          datalogger.deleteLog()
+          this.dataloggerEmpty = true
 
-            context.onEvent(
-              ControllerButtonEvent.Pressed,
-              controller.A.id,
-              () => {
-                this.app.popScene()
-                this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
-              }
-            )
-          },
-        })
-      ]])
+          context.onEvent(
+            ControllerButtonEvent.Pressed,
+            controller.A.id,
+            () => {
+              this.app.popScene()
+              this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+            }
+          )
+        },
+      }))
+      this.navigator.setBtns(btns)
 
       //---------
       // Control:
       //---------
-
-      // No data in log (first row are headers)
-      if (this.dataloggerEmpty) {
-        context.onEvent(
-          ControllerButtonEvent.Pressed,
-          controller.A.id,
-          () => {
-            this.app.popScene()
-            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
-          }
-        )
-      }
 
       context.onEvent(
         ControllerButtonEvent.Pressed,
@@ -114,15 +118,14 @@ namespace microdata {
 
       if (this.dataloggerEmpty) {
         screen().printCenter("No data has been recorded", 5)
-        screen().printCenter("Press A to Record some!", Screen.HALF_HEIGHT)
-        return;
+        screen().printCenter("Log Data to collect some!", Screen.HALF_HEIGHT - 30)
       }
 
       else {
-        screen().printCenter("Recorded Data Options", 5)
-        this.navigator.drawComponents();
+        screen().printCenter("View Data, Experiment or Clear Data", 5)
       }
 
+      this.navigator.drawComponents();
       super.draw()
     }
   }

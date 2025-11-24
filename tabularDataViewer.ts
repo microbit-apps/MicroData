@@ -11,9 +11,7 @@ namespace microdata {
    */
   const TABULAR_MAX_ROWS = 8
 
-
-  //** I think this can be far higher. Max row size is easy to calculate. */
-  const MAX_ROWS_TO_CACHE = 20;
+  const LOAD_QTY = 250
 
   /**
    * Locally used to control flow upon button presses: A, B, UP, DOWN
@@ -51,7 +49,9 @@ namespace microdata {
      */
     private static dataRows: string[][];
 
-    private static datalogCache: string[][];
+
+
+    private static cache: string[][];
 
 
     //---------
@@ -83,14 +83,14 @@ namespace microdata {
      * and UP or DOWN is invoked this.currentRowOffset is modified once instead.
      * Modified when pressing UP or DOWN
      */
-    private static currentRow: number
+    private currentRow: number
 
     /**
      * User modified column index; via LEFT & RIGHT.
      * 
      * Used to determine which columns to draw.
      */
-    private static currentCol: number
+    private currentCol: number
 
     /**
      * Used as index into .filteredReadStarts by:
@@ -101,7 +101,7 @@ namespace microdata {
      * 
      * Modified when pressing UP or DOWN
      */
-    private static dataRowsIndex: number
+    private static currentRowOffset: number
 
     /**
      * This is unique per sensor, it is calculated once upon pressing A.
@@ -125,40 +125,43 @@ namespace microdata {
      */
     private filteredReadStarts: number[]
 
-    private static numberOfRows: number;
+    /** TabularDataViewer may be entered from the Command Mode, DataViewSelect or View Data (Home screen 4th button) */
+    private goBack1PageFn: () => void
 
-    private backBtnFn: () => void;
+    private static numOfRows: number;
 
-    constructor(app: AppInterface, backBtnFn: () => void) {
+    private currentlyFiltering: boolean;
+
+    constructor(app: AppInterface, goBack1PageFn: () => void) {
       super(app, "recordedDataViewer")
 
       this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW
+
+      // Start on the 2nd row; since the first row is for headers:
+      this.currentRow = 1
+      this.currentCol = 0
 
       this.numberOfFilteredRows = 0
 
       this.filteredValue = ""
       this.filteredReadStarts = [0]
       this.filteredCol = 0
+      this.currentlyFiltering = false;
 
-      this.backBtnFn = backBtnFn
+      this.goBack1PageFn = goBack1PageFn
     }
 
-    /* override */ startup() {
+        /* override */ startup() {
       super.startup()
+      basic.pause(50);
+      TabularDataViewer.numOfRows = datalogger.getNumberOfRows()
 
-      TabularDataViewer.numberOfRows = datalogger.getNumberOfRows();
-      TabularDataViewer.needToScroll = TabularDataViewer.numberOfRows > TABULAR_MAX_ROWS
+      TabularDataViewer.currentRowOffset = 0
+      TabularDataViewer.dataLoggerHeader = datalogger.getRows(TabularDataViewer.currentRowOffset, 1).split("\n")[0].split(",");
+      TabularDataViewer.currentRowOffset = 1
 
-      // Start on the 2nd row; since the first row is for headers:
-      TabularDataViewer.currentRow = 1
-      TabularDataViewer.currentCol = 0
-
-      TabularDataViewer.dataRowsIndex = 0
-      TabularDataViewer.dataLoggerHeader = datalogger.getRows(TabularDataViewer.dataRowsIndex, 1).split("\n")[0].split(",");
-
-      TabularDataViewer.fillCache();
-      TabularDataViewer.dataRowsIndex = 1 // Don't start the user on the HEADER row, bump to the first row of actual data.
-      TabularDataViewer.updateDataRows();
+      TabularDataViewer.fillCache(0);
+      TabularDataViewer.nextDataChunk();
 
       this.headerStringLengths = TabularDataViewer.dataLoggerHeader.map((header) => (header.length + 5) * font.charWidth)
 
@@ -166,47 +169,51 @@ namespace microdata {
       // Controls:
       //----------
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
-          if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW) {
-            TabularDataViewer.dataRowsIndex = 1
-            TabularDataViewer.currentRow = 1
+          if (this.currentlyFiltering)
+            return;
 
-            TabularDataViewer.updateDataRows();
+          if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW) {
+            TabularDataViewer.currentRowOffset = 1
+            this.currentRow = 1
+
+            TabularDataViewer.nextDataChunk();
             this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW
           }
           else {
-            this.backBtnFn();
+            this.goBack1PageFn()
           }
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
           if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
-            this.filteredCol = TabularDataViewer.currentCol;
-            this.filteredValue = TabularDataViewer.dataRows[TabularDataViewer.currentRow][this.filteredCol]
+            this.filteredCol = this.currentCol;
+            this.filteredValue = TabularDataViewer.dataRows[this.currentRow][this.filteredCol]
 
-            TabularDataViewer.dataRowsIndex = 0
-            TabularDataViewer.currentRow = 1
-
+            TabularDataViewer.currentRowOffset = 0
+            this.currentRow = 1
+            this.currentlyFiltering = true;
             this.nextFilteredDataChunk();
-            this.updateNeedToScroll(); //NOTE:FIX
+            this.updateNeedToScroll();
+            this.currentlyFiltering = false;
             this.guiState = DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW
           }
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.up.id,
         () => {
           let tick = true;
-          control.onEvent(
+          context.onEvent(
             ControllerButtonEvent.Released,
             controller.up.id,
             () => tick = false
@@ -214,46 +221,48 @@ namespace microdata {
 
           // Control logic:
           while (tick) {
-            if (TabularDataViewer.currentRow > 0)
-              TabularDataViewer.currentRow = Math.max(TabularDataViewer.currentRow - 1, 1);
+            if (this.currentlyFiltering)
+              return;
+
+            if (this.currentRow > 0)
+              this.currentRow = Math.max(this.currentRow - 1, 1);
 
             /**
              * When scrolling up the cursor might be at the bottom of the screen; so just move the cursor up one.
              * Or, the cursor could be on the 2nd row of the screen (index 1 since the first row are headers):
              *      So don't move the cursor, load a new chunk of data.
              */
-            if (TabularDataViewer.needToScroll && TabularDataViewer.currentRow == 1) {
-              TabularDataViewer.dataRowsIndex = Math.max(TabularDataViewer.dataRowsIndex - 1, 1);
+            if (TabularDataViewer.needToScroll && this.currentRow == 1) {
+              TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
 
               if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
-                TabularDataViewer.dataRowsIndex = Math.max(TabularDataViewer.dataRowsIndex - 1, 1);
-                TabularDataViewer.updateDataRows();
+                TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
+
+                // if (TabularDataViewer.currentRowOffset % (LOAD_QTY - 6) == 0) {
+                //   TabularDataViewer.fillCache(TabularDataViewer.currentRowOffset);
+                // }
+                TabularDataViewer.nextDataChunk();
               }
               else {
-                TabularDataViewer.dataRowsIndex = Math.max(TabularDataViewer.dataRowsIndex - 1, 0);
+                TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 0);
                 this.nextFilteredDataChunk()
               }
             }
-            if (!controller.up.isPressed())
-              break
+
             basic.pause(100)
           }
 
           // Reset binding
-          control.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
+          context.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
         }
       )
 
-      // LOAD 200 rows to cacheLog
-      // Copy to dataRows.
-      // cacheLog pointer, currentRow pointer.
-
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.down.id,
         () => {
           let tick = true;
-          control.onEvent(
+          context.onEvent(
             ControllerButtonEvent.Released,
             controller.down.id,
             () => tick = false
@@ -261,87 +270,68 @@ namespace microdata {
 
           // Control logic:
           while (tick) {
-            // let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : TabularDataViewer.numberOfRows;
-            control.dmesg(`d: ${(TabularDataViewer.numberOfRows - TABULAR_MAX_ROWS)} ${(TabularDataViewer.dataRowsIndex + TabularDataViewer.currentRow)}`)
+            if (this.currentlyFiltering)
+              return;
 
-            if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
-              if (TabularDataViewer.currentRow < TABULAR_MAX_ROWS - 1) {
-                TabularDataViewer.currentRow++;
-              } else if (TabularDataViewer.needToScroll) {
-                TabularDataViewer.dataRowsIndex++;
-
-                // if (TabularDataViewer.dataRowsIndex % MAX_ROWS_TO_CACHE == 0) {
-                if ((TabularDataViewer.dataRowsIndex + TABULAR_MAX_ROWS - 1) % MAX_ROWS_TO_CACHE == 0) {
-                  TabularDataViewer.fillCache();
-                }
-                TabularDataViewer.updateDataRows();
-              }
-            }
+            let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : TabularDataViewer.numOfRows;
+            // control.dmesg(`d ${(TabularDataViewer.currentRowOffset)}`)
 
             /**
              * Same situation as when scrolling UP:
              * When scrolling down the cursor might be at the top of the screen; so just move the cursor down one.
              * Or, the cursor could be on the last row of the screen:
              *      So don't move the cursor, load a new chunk of data.
-            */
+             */
 
             // Boundary where there are TABULAR_MAX_ROWS - 1 number of rows:
-            // let beforeMs = control.millis()
+            if (TabularDataViewer.numOfRows == TABULAR_MAX_ROWS)
+              rowQty = TABULAR_MAX_ROWS - 1
 
-            // if (TabularDataViewer.numberOfRows == TABULAR_MAX_ROWS)
-            //   rowQty = TABULAR_MAX_ROWS - 1
+            if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW)
+              rowQty = this.numberOfFilteredRows
 
-            // control.dmesg(`getNumberOfRows: ${(control.millis() - beforeMs)}`)
+            if (TabularDataViewer.needToScroll) {
+              // if (true) {
+              if (this.currentRow + 1 < TABULAR_MAX_ROWS)
+                this.currentRow += 1;
 
-            // if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW)
-            //   rowQty = this.numberOfFilteredRows
-            // if (TabularDataViewer.needToScroll) {
-            //   if (TabularDataViewer.currentRow + 1 < TABULAR_MAX_ROWS - 1)
-            //     TabularDataViewer.currentRow += 1;
+              else if (TabularDataViewer.currentRowOffset <= rowQty - TABULAR_MAX_ROWS - 1) {
+                TabularDataViewer.currentRowOffset += 1;
 
-            //   else if (TabularDataViewer.currentRowOffset <= rowQty - TABULAR_MAX_ROWS) {
-            //     TabularDataViewer.currentRowOffset += 1;
+                if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
+                  // if (TabularDataViewer.currentRowOffset % (LOAD_QTY - 7) == 0) {
+                  //   TabularDataViewer.fillCache(TabularDataViewer.currentRowOffset - this.currentRow - TABULAR_MAX_ROWS);
+                  // }
 
-            //     if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
-            //       if ((TabularDataViewer.currentRowOffset + TABULAR_MAX_ROWS) % MAX_ROWS_TO_CACHE == 0) {
-            //         basic.showNumber(9)
+                  TabularDataViewer.nextDataChunk();
+                } else
+                  this.nextFilteredDataChunk()
+              }
+            }
 
-            //         // -2 since we start +1 from the header, and we want to move forward again.
-            //         const nextCacheStart = TabularDataViewer.currentRow - TabularDataViewer.currentRowOffset + TABULAR_MAX_ROWS - 2
-            //         TabularDataViewer.fillCache(nextCacheStart);
-            //       }
-            //       TabularDataViewer.nextDataChunk();
-            //     } else {
-            //       this.nextFilteredDataChunk()
-            //     }
-            //   }
-            // }
-
-            // else if (TabularDataViewer.currentRow < rowQty)
-            //   TabularDataViewer.currentRow += 1;
-
-            if (!controller.down.isPressed())
-              break
+            else if (this.currentRow < rowQty) {
+              this.currentRow += 1;
+            }
             basic.pause(100)
           }
-          control.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
+          context.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
-          TabularDataViewer.currentCol = Math.max(TabularDataViewer.currentCol - 1, 0)
+          this.currentCol = Math.max(this.currentCol - 1, 0)
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.right.id,
         () => {
-          if (TabularDataViewer.currentCol + 1 < TabularDataViewer.dataRows[0].length - 1)
-            TabularDataViewer.currentCol += 1
+          if (this.currentCol + 1 < TabularDataViewer.dataRows[0].length - 1)
+            this.currentCol += 1
         }
       )
     }
@@ -351,27 +341,19 @@ namespace microdata {
     // STATIC METHODS:
     //----------------
 
-    // public static updateDataChunks() {
-    //   TabularDataViewer.nextDataChunk()
-    // }
+    public static updateDataChunks() {
+      TabularDataViewer.nextDataChunk()
+    }
 
-    public static fillCache() {
-      // const from = (TabularDataViewer.dataRowsIndex < 5) ? TabularDataViewer.dataRowsIndex : TabularDataViewer.dataRowsIndex - TabularDataViewer.currentRow;
-      const from = TabularDataViewer.dataRowsIndex;
+    private static fillCache(from: number) {
+      const rows = datalogger.getRows(from, LOAD_QTY).split("\n");
+      // const rows = datalogger.getRows(TabularDataViewer.currentRowOffset, TABULAR_MAX_ROWS).split("\n");
 
-      // let beforeMs = control.millis()
-      const rows = datalogger.getRows(from, MAX_ROWS_TO_CACHE).split("\n");
-      // control.dmesg(`fcl: ${(rows.length)}`)
-      // control.dmesg(`readTime: ${(control.millis() - beforeMs)}`)
-
-      // beforeMs = control.millis()
-      let nextDataChunk = [TabularDataViewer.dataLoggerHeader]
+      TabularDataViewer.cache = []
       for (let i = 0; i < rows.length; i++) {
-        if (rows[i][0] != "") //NOTE: neccessary check now?
-          nextDataChunk.push(rows[i].split(","));
+        if (rows[i][0] != "")
+          TabularDataViewer.cache.push(rows[i].split(","));
       }
-      TabularDataViewer.datalogCache = nextDataChunk
-      // control.dmesg(`else: ${(control.millis() - beforeMs)}`)
     }
 
     /**
@@ -379,53 +361,9 @@ namespace microdata {
      * Invoked when this.tabularYScrollOffset reaches its screen boundaries.
      * Mutates: this.dataRows
      */
-    private static updateDataRows() {
-      // const rows = datalogger.getRows(TabularDataViewer.currentRowOffset, TABULAR_MAX_ROWS).split("\n");
-      // TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS
-      //
-      // let nextDataChunk = [TabularDataViewer.dataLoggerHeader]
-      // for (let i = 0; i < rows.length; i++) {
-      //   if (rows[i][0] != "")
-      //     nextDataChunk.push(rows[i].split(","));
-      // }
-      // TabularDataViewer.dataRows = nextDataChunk
-
-
-      // control.dmesg(`b: ${(control.millis())}`)
-      // TabularDataViewer.needToScroll = TabularDataViewer.numberOfRows > TABULAR_MAX_ROWS
-      // TabularDataViewer.needToScroll = TabularDataViewer.numberOfRows - TABULAR_MAX_ROWS > TabularDataViewer.dataRowsIndex + TabularDataViewer.currentRow // YES
-      // if (!TabularDataViewer.needToScroll)
-      //   basic.showNumber(5)
-
-      // const nextCacheStart = TabularDataViewer.currentRow - TabularDataViewer.currentRowOffset + TABULAR_MAX_ROWS - 2
-      // const endIndex = TabularDataViewer.currentRowOffset + TabularDataViewer.currentRow + TABULAR_MAX_ROWS;
-
-      // const numTimesCachFilled = Math.floor((TabularDataViewer.currentRowOffset + TabularDataViewer.currentRow - 2) / MAX_ROWS_TO_CACHE)
-      // const start = TabularDataViewer.currentRowOffset - (MAX_ROWS_TO_CACHE * (numTimesCachFilled + 0));
-      // const start = TabularDataViewer.currentRowOffset % (MAX_ROWS_TO_CACHE + TabularDataViewer.currentRow);
-
-
-      // YES to 3:
-      // const start = TabularDataViewer.dataRowsIndex;
-      // const end = start + TABULAR_MAX_ROWS;
-      // TabularDataViewer.dataRows = TabularDataViewer.datalogCache.slice(start, end)
-
-      // control.dmesg(`s: ${(start)}, ${(end)}`)
-      // control.dmesg(`a: ${(TabularDataViewer.dataRows.length)}, ${(TabularDataViewer.datalogCache.length)}`)
-      // control.dmesg(`a: ${(control.millis())}`)
-
-
-      // control.dmesg(`a: ${(TabularDataViewer.needToScroll)} ${(TabularDataViewer.dataRows.length)} ${(TabularDataViewer.datalogCache.length)}`)
-      //
-      // Balance this eq:
-      // control.dmesg(`d: ${(TabularDataViewer.numberOfRows)} ${(TabularDataViewer.dataRowsIndex - TABULAR_MAX_ROWS)}`)
-      control.dmesg(`u: ${(TabularDataViewer.numberOfRows)} ${(TabularDataViewer.dataRowsIndex - TABULAR_MAX_ROWS)} ${(TabularDataViewer.numberOfRows)}`)
-      TabularDataViewer.needToScroll = TabularDataViewer.dataRowsIndex + TabularDataViewer.currentRow < TabularDataViewer.numberOfRows // YES
-      // TabularDataViewer.needToScroll = TabularDataViewer.dataRowsIndex + TabularDataViewer.currentRow < MAX_ROWS_TO_CACHE // YES
-
-      const start = TabularDataViewer.dataRowsIndex % MAX_ROWS_TO_CACHE;
-      const end = start + TABULAR_MAX_ROWS;
-      TabularDataViewer.dataRows = TabularDataViewer.datalogCache.slice(start, end)
+    private static nextDataChunk() {
+      TabularDataViewer.needToScroll = TabularDataViewer.numOfRows > TABULAR_MAX_ROWS
+      TabularDataViewer.dataRows = [TabularDataViewer.dataLoggerHeader].concat(TabularDataViewer.cache.slice(TabularDataViewer.currentRowOffset, TabularDataViewer.currentRowOffset + TABULAR_MAX_ROWS));
     }
 
 
@@ -442,32 +380,35 @@ namespace microdata {
      * Mutates: this.filteredReadStarts[this.yScrollOffset + 1]
      */
     private nextFilteredDataChunk() {
-      let start = this.filteredReadStarts[TabularDataViewer.dataRowsIndex];
+      let start = this.filteredReadStarts[TabularDataViewer.currentRowOffset];
 
       let nextFilteredDataChunk = [TabularDataViewer.dataLoggerHeader]
       // if (TabularDataViewer.currentRowOffset == 0)
       //     TabularDataViewer.dataRows.push(datalogger.getRows(1, 1).split("\n")[0].split(",")); // 0 -> 1;
 
-      while (start < TabularDataViewer.numberOfRows && nextFilteredDataChunk.length < TABULAR_MAX_ROWS) {
-        const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
+      // while (start < TabularDataViewer.numOfRows && nextFilteredDataChunk.length < TABULAR_MAX_ROWS) {
+      //   const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
 
-        // Turn each row into a column of data:
-        for (let i = 0; i < rows.length; i++) {
-          const cols = rows[i].split(",");
+      const rows = [TabularDataViewer.dataLoggerHeader].concat(TabularDataViewer.cache.slice(start, start + LOAD_QTY));
 
-          // Only add if it's what we're looking for:
-          if (cols[this.filteredCol] == this.filteredValue) {
-            nextFilteredDataChunk.push(cols);
+      // Turn each row into a column of data:
+      for (let i = 0; i < rows.length; i++) {
+        // const cols = rows[i].split(",");
 
-            // Document where this read started from, so the next read starts in the correct position:
-            // Either 3 or 2; since the first read has headers (1 additional row):
-            if (nextFilteredDataChunk.length == ((TabularDataViewer.dataRowsIndex == 0) ? 3 : 2)) {
-              this.filteredReadStarts[TabularDataViewer.dataRowsIndex + 1] = start + i
-            }
-          }
+        // Only add if it's what we're looking for:
+        if (rows[i][this.filteredCol] == this.filteredValue) {
+          nextFilteredDataChunk.push(rows[i]);
+
+          // Document where this read started from, so the next read starts in the correct position:
+          // Either 3 or 2; since the first read has headers (1 additional row):
+          // if (nextFilteredDataChunk.length == ((TabularDataViewer.currentRowOffset == 0) ? 3 : 2)) {
+          // this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = start + i
+          this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = this.filteredReadStarts[TabularDataViewer.currentRowOffset] + TABULAR_MAX_ROWS - 1
+          // }
         }
-        start += Math.min(TABULAR_MAX_ROWS, TabularDataViewer.numberOfRows)
       }
+      //   start += Math.min(TABULAR_MAX_ROWS, TabularDataViewer.numOfRows - start) // NOTE: -start here
+      // }
 
       TabularDataViewer.dataRows = nextFilteredDataChunk
     }
@@ -478,16 +419,18 @@ namespace microdata {
      * Based upon this.filteredValue
      */
     private updateNeedToScroll() {
-      const chunkSize = Math.min(20, TabularDataViewer.numberOfRows); // 20 as limit for search
+      // const chunkSize = Math.min(20, TabularDataViewer.numOfRows); // 20 as limit for search
+      const chunkSize = Math.min(LOAD_QTY, TabularDataViewer.numOfRows); // 20 as limit for search
 
       this.numberOfFilteredRows = 0
-      for (let chunk = 0; chunk < TabularDataViewer.numberOfRows; chunk += chunkSize) {
-        const rows = datalogger.getRows(chunk, chunkSize).split("\n");
-        for (let i = 0; i < rows.length; i++) {
-          if (rows[i].split(",", 1)[this.filteredCol] == this.filteredValue) {
-            this.numberOfFilteredRows += 1
-          }
+      // for (let chunk = 0; chunk < TabularDataViewer.numOfRows; chunk += chunkSize) {
+      //   const rows = datalogger.getRows(chunk, chunkSize).split("\n");
+      const rows = TabularDataViewer.cache.slice(0, chunkSize);
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][this.filteredCol] == this.filteredValue) {
+          this.numberOfFilteredRows += 1
         }
+        // }
       }
 
       // Are there more rows that we could display?
@@ -522,7 +465,7 @@ namespace microdata {
             Screen.TOP_EDGE,
             Screen.LEFT_EDGE + cumulativeColOffset,
             Screen.HEIGHT,
-            15 // black
+            15
           )
         }
       }
@@ -533,17 +476,17 @@ namespace microdata {
           Screen.TOP_EDGE + rowOffset,
           Screen.WIDTH,
           Screen.TOP_EDGE + rowOffset,
-          15 // black
+          15
         )
       }
 
       // Draw selected box:
       Screen.drawRect(
         Screen.LEFT_EDGE,
-        Screen.TOP_EDGE + (TabularDataViewer.currentRow * rowBufferSize),
+        Screen.TOP_EDGE + (this.currentRow * rowBufferSize),
         colBufferSizes[0],
         rowBufferSize,
-        6 // blue
+        6
       )
     }
 
@@ -553,23 +496,24 @@ namespace microdata {
         Screen.TOP_EDGE,
         Screen.WIDTH,
         Screen.HEIGHT,
-        0xC // Purple
+        0xC
       )
 
       if (TabularDataViewer.updateDataRowsOnNextFrame)
-        TabularDataViewer.updateDataRows()
+        TabularDataViewer.nextDataChunk()
+
 
       // Could be optimised by calculating the Col line boundaries once & re-using them, instead of each frame:
       const tabularRowBufferSize = Screen.HEIGHT / Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS);
-      this.drawGridOfVariableColSize(this.headerStringLengths.slice(TabularDataViewer.currentCol), tabularRowBufferSize)
+      this.drawGridOfVariableColSize(this.headerStringLengths.slice(this.currentCol), tabularRowBufferSize)
 
       // Write the data into the grid:
       for (let row = 0; row < Math.min(TabularDataViewer.dataRows.length, TABULAR_MAX_ROWS); row++) {
         let cumulativeColOffset = 0;
 
         // Go through each column:
-        for (let col = 0; col < TabularDataViewer.dataRows[0].length - TabularDataViewer.currentCol; col++) {
-          const colID: number = col + TabularDataViewer.currentCol;
+        for (let col = 0; col < TabularDataViewer.dataRows[0].length - this.currentCol; col++) {
+          const colID: number = col + this.currentCol;
 
           let columnValue: string = TabularDataViewer.dataRows[row][colID];
 
@@ -587,6 +531,7 @@ namespace microdata {
             columnValue,
             Screen.LEFT_EDGE + cumulativeColOffset + (this.headerStringLengths[colID] >> 1) - ((font.charWidth * columnValue.length) >> 1),
             Screen.TOP_EDGE + (row * tabularRowBufferSize) + (tabularRowBufferSize >> 1) - 4,
+            // 0xb,
             1,
             bitmaps.font8
           )

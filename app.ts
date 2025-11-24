@@ -46,11 +46,10 @@ namespace microdata {
       this.sceneManager = new SceneManager()
       datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
-
       // datalogger.deleteLog(datalogger.DeleteType.Fast)
-      // for (let i = 0; i < 10; i++) {
+      // for (let i = 0; i < 400; i++) {
       //     datalogger.log(
-      //       datalogger.createCV("Sensor", "test"),
+      //       datalogger.createCV("Sensor", "testtest"),
       //       datalogger.createCV("Time (ms)", i * 1000),
       //       datalogger.createCV("Reading", (i * 43) % 5000),
       //       datalogger.createCV("Event", "N/A")

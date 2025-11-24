@@ -44,7 +44,6 @@ namespace microdata {
    *      Multiple sensors may be plotted at once
    *      Display modes may be toggled per sensor
    * 
-   * 
    * UI elements have been scaled to allow for Arcade Shields of different dimensions.
    * Where this is the case the raw value for an Arcade Shield of Height 128 is commented alongside it.
    */
@@ -98,7 +97,6 @@ namespace microdata {
     /** Greatest of sensor.maximum for all sensors: required to write at the top of the y-axis */
     private globalSensorMaximum: number;
 
-
     constructor(app: AppInterface, sensors: Sensor[]) {
       super(app, "liveDataViewer")
       this.backgroundColor = 3
@@ -132,7 +130,7 @@ namespace microdata {
       this.setGlobalMinAndMax()
     }
 
-        /* override */ startup() {
+    /* override */ startup() {
       super.startup()
       basic.pause(50);
 
@@ -155,7 +153,11 @@ namespace microdata {
 
             const sensor = this.sensors[this.oscSensorIndex];
             this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength() >> 1);
-            this.oscReading = sensor.getNthHeightNormalisedReading(this.oscXCoordinate);
+
+            // Silly:
+            const yScaledToBufHeight = sensor.getNthHeightNormalisedReading(this.oscXCoordinate)
+            const yScaledToFullheight = (yScaledToBufHeight / BUFFERED_SCREEN_HEIGHT) * (Screen.HEIGHT)
+            this.oscReading = yScaledToFullheight;
 
             this.windowLeftBuffer = 0;
             this.windowRightBuffer = 0;

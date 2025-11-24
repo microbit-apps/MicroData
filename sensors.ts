@@ -98,7 +98,7 @@ namespace microdata {
       // There's a bug where the control.inBackground() doesn't die properly.
       // So when you enter another scene it re-triggers some code - causing it to go back to home twice.
       context.onEvent(ControllerButtonEvent.Pressed, controller.A.id, () => { })
-      context.onEvent(ControllerButtonEvent.Pressed, controller.B.id, () => { })
+      // context.onEvent(ControllerButtonEvent.Pressed, controller.B.id, () => { })
       context.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => { })
       context.onEvent(ControllerButtonEvent.Pressed, controller.down.id, () => { })
       context.onEvent(ControllerButtonEvent.Pressed, controller.left.id, () => { })

@@ -48,16 +48,13 @@ namespace microdata {
         new Button({
           parent: null,
           style: ButtonStyles.Transparent,
-          // icon: "radio_set_group",
-          // ariaId: "Command Mode",
-          icon: "largeSettingsGear",
-          ariaId: "Experiments",
+          icon: "radio_set_group",
+          ariaId: "Command Mode",
           x: 20,
           y,
           onClick: () => {
             this.app.popScene()
-            // this.app.pushScene(new DistributedLoggingScreen(this.app))
-            this.app.pushScene(new JacdacLightExperiment(this.app))
+            this.app.pushScene(new DistributedLoggingScreen(this.app))
           },
         }),
 
@@ -65,7 +62,7 @@ namespace microdata {
           parent: null,
           style: ButtonStyles.Transparent,
           icon: "largeDisk",
-          ariaId: "View Data",
+          ariaId: "View Data & Settings",
           x: 58,
           y,
           onClick: () => {
