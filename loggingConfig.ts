@@ -1,9 +1,10 @@
 namespace microdata {
   import Screen = user_interface_base.Screen
   import Scene = user_interface_base.Scene
-  import CursorSceneEnum = user_interface_base.CursorSceneEnum
+
   import AppInterface = user_interface_base.AppInterface
   import font = user_interface_base.font
+
 
   /**
    * Generated at recordingConfigSelection 
@@ -90,9 +91,9 @@ namespace microdata {
     private currentConfigMode: CONFIG_MODE
     private sensorConfigIsSet: boolean[]
 
-    private nextSceneEnum: CursorSceneEnum
+    private nextSceneEnum: MicroDataSceneEnum
 
-    constructor(app: AppInterface, sensors: Sensor[], nextSceneEnum?: CursorSceneEnum) {
+    constructor(app: AppInterface, sensors: Sensor[], nextSceneEnum?: MicroDataSceneEnum) {
       super(app, "measurementConfigSelect")
       this.guiState = GUI_STATE.SENSOR_SELECT
 
@@ -120,7 +121,7 @@ namespace microdata {
       super.startup()
       basic.pause(50);
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
@@ -148,7 +149,7 @@ namespace microdata {
 
                 this.app.popScene()
 
-                if (this.nextSceneEnum == CursorSceneEnum.DistributedLogging) {
+                if (this.nextSceneEnum == MicroDataSceneEnum.DistributedLogging) {
                   this.app.pushScene(new DistributedLoggingScreen(this.app, this.sensors, this.sensorConfigs)); // Temp disabled with Distributedlogging (no mem)
                 }
                 else {
@@ -210,7 +211,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
@@ -235,7 +236,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.up.id,
         () => {
@@ -276,7 +277,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.down.id,
         () => {
@@ -320,12 +321,21 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
-          if (this.guiState == GUI_STATE.SENSOR_SELECT_CONFIG_ROW && this.configurationIndex == CONFIG_ROW.PERIOD_OR_EVENT)
+          if (this.guiState == GUI_STATE.SENSOR_SELECT_CONFIG_ROW && this.configurationIndex == CONFIG_ROW.PERIOD_OR_EVENT) {
             this.currentConfigMode = (this.currentConfigMode == CONFIG_MODE.PERIOD) ? CONFIG_MODE.EVENT : CONFIG_MODE.PERIOD
+
+            // Reset period values if going back to it from Event.
+            // This unncessary in the other direction.
+            if (this.currentConfigMode == CONFIG_MODE.PERIOD) {
+              this.sensorConfigs[this.sensorIndex].period = 1000
+              this.sensorConfigs[this.sensorIndex].inequality = null
+              this.sensorConfigs[this.sensorIndex].comparator = null
+            }
+          }
 
           else if (this.guiState == GUI_STATE.SENSOR_MODIFY_CONFIG_ROW) {
             switch (this.configurationIndex) {
@@ -347,7 +357,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.right.id,
         () => {

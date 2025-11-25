@@ -128,12 +128,12 @@ namespace microdata {
 
             // Unbind all controls - since .processReadings() may take some time if there are an immense amount of readings:
             // Pressing a button during this early stage of processing may crash:
-            control.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => {});
-            control.onEvent(ControllerButtonEvent.Pressed, controller.down.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed, controller.left.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed, controller.right.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed, controller.A.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed, controller.B.id,() => {});
+            context.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => {});
+            context.onEvent(ControllerButtonEvent.Pressed, controller.down.id,() => {});
+            context.onEvent(ControllerButtonEvent.Pressed, controller.left.id,() => {});
+            context.onEvent(ControllerButtonEvent.Pressed, controller.right.id,() => {});
+            context.onEvent(ControllerButtonEvent.Pressed, controller.A.id,() => {});
+            context.onEvent(ControllerButtonEvent.Pressed, controller.B.id,() => {});
 
             this.lowestPeriod = 0;
             this.greatestPeriod = 0;
@@ -145,7 +145,7 @@ namespace microdata {
             // Bind Controls:
             //---------------
 
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.up.id,
                 () => {
@@ -162,7 +162,7 @@ namespace microdata {
                 }
             )
 
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.down.id,
                 () => {
@@ -180,7 +180,7 @@ namespace microdata {
                 }
             )
 
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.left.id,
                 () => {
@@ -193,7 +193,7 @@ namespace microdata {
                 }
             )
 
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.right.id,
                 () => {
@@ -207,7 +207,7 @@ namespace microdata {
             )
 
             // Select/Deselect a sensor to be drawn:
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.A.id,
                 () => {
@@ -219,7 +219,7 @@ namespace microdata {
                 }
             )
 
-            control.onEvent(
+            context.onEvent(
                 ControllerButtonEvent.Pressed,
                 controller.B.id,
                 () => {

@@ -44,7 +44,6 @@ namespace microdata {
    *      Multiple sensors may be plotted at once
    *      Display modes may be toggled per sensor
    * 
-   * 
    * UI elements have been scaled to allow for Arcade Shields of different dimensions.
    * Where this is the case the raw value for an Arcade Shield of Height 128 is commented alongside it.
    */
@@ -98,7 +97,6 @@ namespace microdata {
     /** Greatest of sensor.maximum for all sensors: required to write at the top of the y-axis */
     private globalSensorMaximum: number;
 
-
     constructor(app: AppInterface, sensors: Sensor[]) {
       super(app, "liveDataViewer")
       this.backgroundColor = 3
@@ -132,7 +130,7 @@ namespace microdata {
       this.setGlobalMinAndMax()
     }
 
-        /* override */ startup() {
+    /* override */ startup() {
       super.startup()
       basic.pause(50);
 
@@ -141,7 +139,7 @@ namespace microdata {
       //--------------------------------
 
       // Zoom in:
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
@@ -155,7 +153,11 @@ namespace microdata {
 
             const sensor = this.sensors[this.oscSensorIndex];
             this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength() >> 1);
-            this.oscReading = sensor.getNthHeightNormalisedReading(this.oscXCoordinate);
+
+            // Silly:
+            const yScaledToBufHeight = sensor.getNthHeightNormalisedReading(this.oscXCoordinate)
+            const yScaledToFullheight = (yScaledToBufHeight / BUFFERED_SCREEN_HEIGHT) * (Screen.HEIGHT)
+            this.oscReading = yScaledToFullheight;
 
             this.windowLeftBuffer = 0;
             this.windowRightBuffer = 0;
@@ -168,7 +170,7 @@ namespace microdata {
       )
 
       // Zoom out, if not ZOOMED_IN then go back to home
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
@@ -194,7 +196,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.up.id,
         () => {
@@ -221,7 +223,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.down.id,
         () => {
@@ -248,7 +250,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
@@ -258,7 +260,7 @@ namespace microdata {
             // this.update() // For fast response to the above change
 
             let tick = true;
-            control.onEvent(
+            context.onEvent(
               ControllerButtonEvent.Released,
               controller.left.id,
               () => tick = false
@@ -271,18 +273,18 @@ namespace microdata {
               basic.pause(isFirstTick ? 100 : 33)
               isFirstTick = false
             }
-            control.onEvent(ControllerButtonEvent.Released, controller.left.id, () => { })
+            context.onEvent(ControllerButtonEvent.Released, controller.left.id, () => { })
           }
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.right.id,
         () => {
           if (this.guiState == GUI_STATE.ZOOMED_IN) {
             let tick = true;
-            control.onEvent(
+            context.onEvent(
               ControllerButtonEvent.Released,
               controller.right.id,
               () => tick = false
@@ -294,7 +296,7 @@ namespace microdata {
               basic.pause(isFirstTick ? 100 : 33)
               isFirstTick = false
             }
-            control.onEvent(ControllerButtonEvent.Released, controller.right.id, () => { })
+            context.onEvent(ControllerButtonEvent.Released, controller.right.id, () => { })
           }
         }
       )

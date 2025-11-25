@@ -11,6 +11,8 @@ namespace microdata {
    */
   const TABULAR_MAX_ROWS = 8
 
+  const LOAD_QTY = 250
+
   /**
    * Locally used to control flow upon button presses: A, B, UP, DOWN
    */
@@ -46,6 +48,10 @@ namespace microdata {
      *      .nextFilteredDataChunk()
      */
     private static dataRows: string[][];
+
+
+
+    private static cache: string[][];
 
 
     //---------
@@ -122,11 +128,14 @@ namespace microdata {
     /** TabularDataViewer may be entered from the Command Mode, DataViewSelect or View Data (Home screen 4th button) */
     private goBack1PageFn: () => void
 
+    private static numOfRows: number;
+
+    private currentlyFiltering: boolean;
+
     constructor(app: AppInterface, goBack1PageFn: () => void) {
       super(app, "recordedDataViewer")
 
       this.guiState = DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW
-      TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS
 
       // Start on the 2nd row; since the first row is for headers:
       this.currentRow = 1
@@ -137,6 +146,7 @@ namespace microdata {
       this.filteredValue = ""
       this.filteredReadStarts = [0]
       this.filteredCol = 0
+      this.currentlyFiltering = false;
 
       this.goBack1PageFn = goBack1PageFn
     }
@@ -144,10 +154,13 @@ namespace microdata {
         /* override */ startup() {
       super.startup()
       basic.pause(50);
+      TabularDataViewer.numOfRows = datalogger.getNumberOfRows()
 
       TabularDataViewer.currentRowOffset = 0
       TabularDataViewer.dataLoggerHeader = datalogger.getRows(TabularDataViewer.currentRowOffset, 1).split("\n")[0].split(",");
       TabularDataViewer.currentRowOffset = 1
+
+      TabularDataViewer.fillCache(0);
       TabularDataViewer.nextDataChunk();
 
       this.headerStringLengths = TabularDataViewer.dataLoggerHeader.map((header) => (header.length + 5) * font.charWidth)
@@ -156,10 +169,13 @@ namespace microdata {
       // Controls:
       //----------
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.B.id,
         () => {
+          if (this.currentlyFiltering)
+            return;
+
           if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW) {
             TabularDataViewer.currentRowOffset = 1
             this.currentRow = 1
@@ -173,7 +189,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.A.id,
         () => {
@@ -183,28 +199,31 @@ namespace microdata {
 
             TabularDataViewer.currentRowOffset = 0
             this.currentRow = 1
-
+            this.currentlyFiltering = true;
             this.nextFilteredDataChunk();
             this.updateNeedToScroll();
+            this.currentlyFiltering = false;
             this.guiState = DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW
           }
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.up.id,
         () => {
           let tick = true;
-          control.onEvent(
+          context.onEvent(
             ControllerButtonEvent.Released,
             controller.up.id,
             () => tick = false
           )
 
-
           // Control logic:
           while (tick) {
+            if (this.currentlyFiltering)
+              return;
+
             if (this.currentRow > 0)
               this.currentRow = Math.max(this.currentRow - 1, 1);
 
@@ -218,6 +237,10 @@ namespace microdata {
 
               if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
                 TabularDataViewer.currentRowOffset = Math.max(TabularDataViewer.currentRowOffset - 1, 1);
+
+                // if (TabularDataViewer.currentRowOffset % (LOAD_QTY - 6) == 0) {
+                //   TabularDataViewer.fillCache(TabularDataViewer.currentRowOffset);
+                // }
                 TabularDataViewer.nextDataChunk();
               }
               else {
@@ -230,16 +253,16 @@ namespace microdata {
           }
 
           // Reset binding
-          control.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
+          context.onEvent(ControllerButtonEvent.Released, controller.up.id, () => { })
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.down.id,
         () => {
           let tick = true;
-          control.onEvent(
+          context.onEvent(
             ControllerButtonEvent.Released,
             controller.down.id,
             () => tick = false
@@ -247,7 +270,11 @@ namespace microdata {
 
           // Control logic:
           while (tick) {
-            let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : datalogger.getNumberOfRows();
+            if (this.currentlyFiltering)
+              return;
+
+            let rowQty = (TabularDataViewer.dataRows.length < TABULAR_MAX_ROWS) ? TabularDataViewer.dataRows.length - 1 : TabularDataViewer.numOfRows;
+            // control.dmesg(`d ${(TabularDataViewer.currentRowOffset)}`)
 
             /**
              * Same situation as when scrolling UP:
@@ -257,22 +284,27 @@ namespace microdata {
              */
 
             // Boundary where there are TABULAR_MAX_ROWS - 1 number of rows:
-            if (datalogger.getNumberOfRows() == TABULAR_MAX_ROWS)
+            if (TabularDataViewer.numOfRows == TABULAR_MAX_ROWS)
               rowQty = TABULAR_MAX_ROWS - 1
 
             if (this.guiState == DATA_VIEW_DISPLAY_MODE.FILTERED_DATA_VIEW)
               rowQty = this.numberOfFilteredRows
 
             if (TabularDataViewer.needToScroll) {
+              // if (true) {
               if (this.currentRow + 1 < TABULAR_MAX_ROWS)
                 this.currentRow += 1;
 
               else if (TabularDataViewer.currentRowOffset <= rowQty - TABULAR_MAX_ROWS - 1) {
                 TabularDataViewer.currentRowOffset += 1;
 
-                if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW)
+                if (this.guiState == DATA_VIEW_DISPLAY_MODE.UNFILTERED_DATA_VIEW) {
+                  // if (TabularDataViewer.currentRowOffset % (LOAD_QTY - 7) == 0) {
+                  //   TabularDataViewer.fillCache(TabularDataViewer.currentRowOffset - this.currentRow - TABULAR_MAX_ROWS);
+                  // }
+
                   TabularDataViewer.nextDataChunk();
-                else
+                } else
                   this.nextFilteredDataChunk()
               }
             }
@@ -282,11 +314,11 @@ namespace microdata {
             }
             basic.pause(100)
           }
-          control.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
+          context.onEvent(ControllerButtonEvent.Released, controller.down.id, () => { })
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.left.id,
         () => {
@@ -294,7 +326,7 @@ namespace microdata {
         }
       )
 
-      control.onEvent(
+      context.onEvent(
         ControllerButtonEvent.Pressed,
         controller.right.id,
         () => {
@@ -313,21 +345,25 @@ namespace microdata {
       TabularDataViewer.nextDataChunk()
     }
 
+    private static fillCache(from: number) {
+      const rows = datalogger.getRows(from, LOAD_QTY).split("\n");
+      // const rows = datalogger.getRows(TabularDataViewer.currentRowOffset, TABULAR_MAX_ROWS).split("\n");
+
+      TabularDataViewer.cache = []
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][0] != "")
+          TabularDataViewer.cache.push(rows[i].split(","));
+      }
+    }
+
     /**
      * Used to retrieve the next chunk of data.
      * Invoked when this.tabularYScrollOffset reaches its screen boundaries.
      * Mutates: this.dataRows
      */
     private static nextDataChunk() {
-      const rows = datalogger.getRows(TabularDataViewer.currentRowOffset, TABULAR_MAX_ROWS).split("\n");
-      TabularDataViewer.needToScroll = datalogger.getNumberOfRows() > TABULAR_MAX_ROWS
-
-      let nextDataChunk = [TabularDataViewer.dataLoggerHeader]
-      for (let i = 0; i < rows.length; i++) {
-        if (rows[i][0] != "")
-          nextDataChunk.push(rows[i].split(","));
-      }
-      TabularDataViewer.dataRows = nextDataChunk
+      TabularDataViewer.needToScroll = TabularDataViewer.numOfRows > TABULAR_MAX_ROWS
+      TabularDataViewer.dataRows = [TabularDataViewer.dataLoggerHeader].concat(TabularDataViewer.cache.slice(TabularDataViewer.currentRowOffset, TabularDataViewer.currentRowOffset + TABULAR_MAX_ROWS));
     }
 
 
@@ -350,26 +386,29 @@ namespace microdata {
       // if (TabularDataViewer.currentRowOffset == 0)
       //     TabularDataViewer.dataRows.push(datalogger.getRows(1, 1).split("\n")[0].split(",")); // 0 -> 1;
 
-      while (start < datalogger.getNumberOfRows() && nextFilteredDataChunk.length < TABULAR_MAX_ROWS) {
-        const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
+      // while (start < TabularDataViewer.numOfRows && nextFilteredDataChunk.length < TABULAR_MAX_ROWS) {
+      //   const rows = datalogger.getRows(start, TABULAR_MAX_ROWS).split("\n"); // each row as 1 string
 
-        // Turn each row into a column of data:
-        for (let i = 0; i < rows.length; i++) {
-          const cols = rows[i].split(",");
+      const rows = [TabularDataViewer.dataLoggerHeader].concat(TabularDataViewer.cache.slice(start, start + LOAD_QTY));
 
-          // Only add if it's what we're looking for:
-          if (cols[this.filteredCol] == this.filteredValue) {
-            nextFilteredDataChunk.push(cols);
+      // Turn each row into a column of data:
+      for (let i = 0; i < rows.length; i++) {
+        // const cols = rows[i].split(",");
 
-            // Document where this read started from, so the next read starts in the correct position:
-            // Either 3 or 2; since the first read has headers (1 additional row):
-            if (nextFilteredDataChunk.length == ((TabularDataViewer.currentRowOffset == 0) ? 3 : 2)) {
-              this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = start + i
-            }
-          }
+        // Only add if it's what we're looking for:
+        if (rows[i][this.filteredCol] == this.filteredValue) {
+          nextFilteredDataChunk.push(rows[i]);
+
+          // Document where this read started from, so the next read starts in the correct position:
+          // Either 3 or 2; since the first read has headers (1 additional row):
+          // if (nextFilteredDataChunk.length == ((TabularDataViewer.currentRowOffset == 0) ? 3 : 2)) {
+          // this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = start + i
+          this.filteredReadStarts[TabularDataViewer.currentRowOffset + 1] = this.filteredReadStarts[TabularDataViewer.currentRowOffset] + TABULAR_MAX_ROWS - 1
+          // }
         }
-        start += Math.min(TABULAR_MAX_ROWS, datalogger.getNumberOfRows(start))
       }
+      //   start += Math.min(TABULAR_MAX_ROWS, TabularDataViewer.numOfRows - start) // NOTE: -start here
+      // }
 
       TabularDataViewer.dataRows = nextFilteredDataChunk
     }
@@ -380,16 +419,18 @@ namespace microdata {
      * Based upon this.filteredValue
      */
     private updateNeedToScroll() {
-      const chunkSize = Math.min(20, datalogger.getNumberOfRows()); // 20 as limit for search
+      // const chunkSize = Math.min(20, TabularDataViewer.numOfRows); // 20 as limit for search
+      const chunkSize = Math.min(LOAD_QTY, TabularDataViewer.numOfRows); // 20 as limit for search
 
       this.numberOfFilteredRows = 0
-      for (let chunk = 0; chunk < datalogger.getNumberOfRows(); chunk += chunkSize) {
-        const rows = datalogger.getRows(chunk, chunkSize).split("\n");
-        for (let i = 0; i < rows.length; i++) {
-          if (rows[i].split(",", 1)[this.filteredCol] == this.filteredValue) {
-            this.numberOfFilteredRows += 1
-          }
+      // for (let chunk = 0; chunk < TabularDataViewer.numOfRows; chunk += chunkSize) {
+      //   const rows = datalogger.getRows(chunk, chunkSize).split("\n");
+      const rows = TabularDataViewer.cache.slice(0, chunkSize);
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][this.filteredCol] == this.filteredValue) {
+          this.numberOfFilteredRows += 1
         }
+        // }
       }
 
       // Are there more rows that we could display?
