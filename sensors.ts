@@ -477,66 +477,20 @@ namespace microdata {
           max: 360,
           isJacdacSensor: false
         });
-
+      else 
+        return new Sensor({
+          name: "Microphone",
+          rName: "V",
+          f: () => input.soundLevel(),
+          min: 0,
+          max: 255,
+          isJacdacSensor: false
+        });
       //--------------------------------------------
       // Jacdac Sensors:
       // See https://github.com/microsoft/pxt-jacdac
       //--------------------------------------------
 
-      else if (name == "Jac Light" || name == "Jacdac Light" || name == "JL")
-        return new Sensor({
-          name: "Jac Light",
-          rName: "JL",
-          f: () => modules.lightLevel1.isConnected() ? modules.lightLevel1.lightLevel() : undefined,
-          min: 0,
-          max: 100,
-          isJacdacSensor: true,
-          setupFn: () => modules.lightLevel1.start()
-        });
-
-      else if (name == "Jac Moist" || name == "Jacdac Moisture" || name == "JM")
-        return new Sensor({
-          name: "Jac Moist",
-          rName: "JM",
-          f: () => modules.soilMoisture1.isConnected() ? modules.soilMoisture1.moisture() : undefined,
-          min: 0,
-          max: 100,
-          isJacdacSensor: true,
-          setupFn: () => modules.soilMoisture1.start()
-        });
-
-      else if (name == "Jac Dist" || name == "Jacdac Distance" || name == "JD")
-        return new Sensor({
-          name: "Jac Dist",
-          rName: "JD",
-          f: () => modules.distance1.isConnected() ? modules.distance1.distance() : undefined,
-          min: 0,
-          max: 4,
-          isJacdacSensor: true,
-          setupFn: () => modules.distance1.start()
-        });
-
-      else if (name == "Jac Flex" || name == "Jacdac Flex" || name == "JF")
-        return new Sensor({
-          name: "Jac Flex",
-          rName: "JF",
-          f: () => modules.flex1.isConnected() ? modules.flex1.bending() : undefined,
-          min: -100,
-          max: 100,
-          isJacdacSensor: true,
-          setupFn: () => modules.flex1.start()
-        });
-
-      else
-        return new Sensor({
-          name: "Jac Temp",
-          rName: "JT",
-          f: () => modules.temperature1.isConnected() ? modules.temperature1.temperature() : undefined,
-          min: -40,
-          max: 120,
-          isJacdacSensor: true,
-          setupFn: () => modules.temperature1.start()
-        });
     }
 
 

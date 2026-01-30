@@ -57,18 +57,18 @@ namespace microdata {
         }))
       }
 
-      btns[0].push(new Button({
-        parent: null,
-        style: ButtonStyles.Transparent,
-        icon: "linear_graph_1",
-        ariaId: "Jacdac Light Experiment",
-        x: 0,
-        y,
-        onClick: () => {
-          this.app.popScene()
-          this.app.pushScene(new JacdacLightExperiment(this.app))
-        },
-      }))
+      // btns[0].push(new Button({
+      //   parent: null,
+      //   style: ButtonStyles.Transparent,
+      //   icon: "linear_graph_1",
+      //   ariaId: "Jacdac Light Experiment",
+      //   x: 0,
+      //   y,
+      //   onClick: () => {
+      //     this.app.popScene()
+      //     this.app.pushScene(new JacdacLightExperiment(this.app))
+      //   },
+      // }))
 
       btns[0].push(new Button({
         parent: null,
