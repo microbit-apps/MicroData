@@ -1,5 +1,8 @@
 namespace microdata {
   export class Home extends ui.UiScreen {
+    // Necessary to prevent crash if you press A immediately on startup
+    // Possibly fixable if we had a basic.pause(50) inside main.ts instead
+    private state: "ready" | "starting" = "starting";
     private btns: ui.UiButton[];
 
     constructor(runtime: ui.UiRuntime) {
@@ -12,6 +15,7 @@ namespace microdata {
           bitmap: linearGraph1,
           onActivate: () => {
             this.runtime.pop()
+            this.runtime.push(new LiveSensorGraph(this.runtime))
           },
           style: ui.UiButtonStyles.Transparent,
           size: { width: 30, height: 30 }
@@ -53,6 +57,8 @@ namespace microdata {
 
       const centerY: number = ui.STANDARD_DISPLAY_HEIGHT - 32;
       this.btns.forEach((btn, idx) => this.add(btn, { centerX: 20 + (40 * idx), centerY }));
+
+      this.state = "ready";
     }
 
     // What do we think about handling left/right this way?
@@ -62,6 +68,8 @@ namespace microdata {
     //
     // Text label Z-height is wrong
     public handleInput(event: ui.UiInputEvent): boolean | undefined {
+      if (this.state !== "ready") return undefined;
+
       let handled = super.handleInput(event);
       if (handled !== undefined) return handled;
 
