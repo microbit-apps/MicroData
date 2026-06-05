@@ -6,14 +6,30 @@ namespace microdata {
 
   }
 
-  export class Icons {
-    public static get(name: string | number, nullIfMissing = false): Bitmap {
-      if (name == "microdataLogo") return microdataLogo
 
-      if (typeof name === "string")
-        return user_interface_base.icons.get(name, nullIfMissing)
-      return MISSING
-    }
+  export class AppAssets implements ui.UiAssetResolver {
+      public getBitmap(
+          id: string | number,
+          nullIfMissing?: boolean,
+      ): Bitmap | undefined {
+          if (id == "start") {
+              return bmp`
+                  . 7 .
+                  7 7 7
+                  . 7 .
+              `
+          }
+
+          if (nullIfMissing) return undefined
+          if (id == "microdataLogo") return microdataLogo;
+
+          return bmp`.`
+      }
+
+      public getText(id: string): string {
+          if (id == "startLabel") return "Start"
+          return ""
+      }
   }
 
   export const microdataLogo = bmp` 
