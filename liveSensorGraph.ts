@@ -1,4 +1,6 @@
 namespace microdata {
+  import Sensor = sensors.Sensor
+
   export class LiveSensorGraph extends ui.UiScreen {
     private state: "running" | "adding sensor"
     private values: number[]
@@ -7,7 +9,7 @@ namespace microdata {
     private valueLabel: ui.UiLabel
     private addSensorBtn: ui.UiButton
 
-    // private sensors: Sensor[];
+    private sensors: Sensor[];
 
     // Shorter btn at bottom, with "+" for adding sensor
     // Added sensors appear as btns too, they can be removed by pressing them
@@ -22,7 +24,8 @@ namespace microdata {
 
       this.addSensorBtn = new ui.UiButton("addSensorBtn", "Add sensor", () => {
         this.state = "adding sensor"
-      })
+      });
+
       this.values = [
         24, 28, 35, 40, 46, 52, 58, 63, 68, 72, 70, 66, 60, 54, 48, 42, 36,
         31, 27, 25,
