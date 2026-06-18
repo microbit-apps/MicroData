@@ -22,6 +22,7 @@ namespace microdata {
 
       if (nullIfMissing) return undefined
       if (id == "microdataLogo") return microdataLogo;
+      if (id == "microbitLogo") return microbitLogo;
 
       return bmp`.`
     }
@@ -29,6 +30,65 @@ namespace microdata {
     public getText(id: string): string {
       if (id == "startLabel") return "Start"
       return ""
+    }
+  }
+
+  /**
+  * NOTE: Need to add the correct Jacdac logo
+  */
+  export function sensorNameToBitmap(name: string): Bitmap | undefined {
+    switch (name) {
+      case "Accelerometer X": {
+        return accelerometer;
+      }
+      case "Accelerometer Y": {
+        return accelerometer;
+      }
+      case "Accelerometer Z": {
+        return accelerometer;
+      }
+      case "Pitch": {
+        return car_right_turn;
+      }
+      case "Roll": {
+        return car_right_spin;
+      }
+      case "Analog Pin 0": {
+        return pin_0;
+      }
+      case "Analog Pin 1": {
+        return pin_1;
+      }
+      case "Analog Pin 2": {
+        return pin_2;
+      }
+      case "Light": {
+        return led_light_sensor;
+      }
+      case "Temperature": {
+        return thermometer;
+      }
+      case "Magnetometer": {
+        return magnet;
+      }
+      case "Logo": {
+        return finger_press;
+      }
+      case "Volume": {
+        return microphone;
+      }
+      case "Compass": {
+        return compass;
+      }
+
+      //NOTE: Need to add Jacdac logo:
+      case "Jacdac": {
+        return microbitLogoWhiteBackground;
+      }
+
+      default: {
+        return undefined;
+      }
     }
   }
 

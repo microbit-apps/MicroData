@@ -14,7 +14,6 @@ namespace microdata {
           focusLabel: "Real-time Data",
           bitmap: linearGraph1,
           onActivate: () => {
-            this.runtime.pop()
             this.runtime.push(new LiveSensorGraph(this.runtime))
           },
           style: ui.UiButtonStyles.Transparent,
@@ -78,7 +77,7 @@ namespace microdata {
 
       if (idx === -1) return undefined // Maybe we want it to crash?
 
-      if (event.action === "left" && (event.phase === "pressed" || event.phase === "repeated" )) {
+      if (event.action === "left" && (event.phase === "pressed" || event.phase === "repeated")) {
         this.focus.setActiveScope(ids[(idx - 1 + this.btns.length) % this.btns.length]); return true;
       }
 
