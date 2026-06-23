@@ -1,91 +1,65 @@
 namespace microdata {
-  export class Home extends ui.UiScreen {
-    // Necessary to prevent crash if you press A immediately on startup
-    // Possibly fixable if we had a basic.pause(50) inside main.ts instead
-    private state: "ready" | "starting" = "starting";
-    private btns: ui.UiButton[];
+  type HomeAction = "realtime" | "log" | "command" | "view"
 
+  const HOME_ACTION_SCOPE = "home/actions"
+  const HOME_ACTION_SIZE = 30
+  const HOME_ACTION_GAP = 10
+  const HOME_ACTION_CENTER_Y = ui.STANDARD_DISPLAY_HEIGHT - 32
+
+  export class Home extends ui.UiScreen {
     constructor(runtime: ui.UiRuntime) {
       super(runtime);
 
-      this.btns = [
-        new ui.UiButton({
-          id: "btn1",
-          focusLabel: "Real-time Data",
-          bitmap: linearGraph1,
-          onActivate: () => {
-            this.runtime.push(new LiveSensorGraph(this.runtime))
-          },
-          style: ui.UiButtonStyles.Transparent,
-          size: { width: 30, height: 30 }
-        }),
+      const actions = new ui.UiRow<HomeAction>({
+        scopeId: HOME_ACTION_SCOPE,
+        controls: this.createActions(),
+        controlSize: { width: HOME_ACTION_SIZE, height: HOME_ACTION_SIZE },
+        gap: HOME_ACTION_GAP,
+        controlStyle: ui.UiButtonStyles.Transparent,
+        labelBounds: new ui.Rect(
+          0,
+          0,
+          ui.STANDARD_DISPLAY_WIDTH,
+          ui.STANDARD_DISPLAY_HEIGHT
+        ),
+        wrap: true,
+      });
 
-        new ui.UiButton({
-          id: "btn2",
-          focusLabel: "Log Data",
-          bitmap: largeEditIcon,
-          onActivate: () => {
-            this.runtime.pop()
-          },
-          style: ui.UiButtonStyles.Transparent,
-          size: { width: 30, height: 30 }
-        }),
-
-        new ui.UiButton({
-          id: "btn3",
-          focusLabel: "Command Mode",
-          bitmap: radio_set_group,
-          onActivate: () => {
-            this.runtime.pop()
-          },
-          style: ui.UiButtonStyles.Transparent,
-          size: { width: 30, height: 30 }
-        }),
-
-        new ui.UiButton({
-          id: "btn4",
-          focusLabel: "View Data & Settings",
-          bitmap: largeDisk,
-          onActivate: () => {
-            this.runtime.pop()
-          },
-          style: ui.UiButtonStyles.Transparent,
-          size: { width: 30, height: 30 }
-        })
-      ];
-
-      const centerY: number = ui.STANDARD_DISPLAY_HEIGHT - 32;
-      this.btns.forEach((btn, idx) => this.add(btn, { centerX: 20 + (40 * idx), centerY }));
-
-      this.state = "ready";
+      this.addCentered(
+        actions,
+        HOME_ACTION_CENTER_Y,
+        ui.STANDARD_DISPLAY_WIDTH,
+        HOME_ACTION_SIZE
+      );
     }
 
-    // What do we think about handling left/right this way?
-    // What about the btn ids "btn1", "btn2", etc? Should these be local names?
-    // It feels very responsive which is great.
-    // How can I reduce the repeat tick speed?
-    //
-    // Text label Z-height is wrong
-    public handleInput(event: ui.UiInputEvent): boolean | undefined {
-      if (this.state !== "ready") return undefined;
+    private createActions(): ui.UiControl<HomeAction>[] {
+      return [
+        this.action("realtime", ui.linearGraph1, "Real-time Data", () =>
+          this.runtime.push(new LiveSensorGraph(this.runtime))
+        ),
+        this.action("log", ui.largeEditIcon, "Log Data", () => this.runtime.pop()),
+        this.action("command", ui.radio_set_group, "Command Mode", () =>
+          this.runtime.pop()
+        ),
+        this.action("view", ui.largeDisk, "View Data & Settings", () =>
+          this.runtime.pop()
+        ),
+      ];
+    }
 
-      let handled = super.handleInput(event);
-      if (handled !== undefined) return handled;
-
-      const ids = this.btns.map(b => b.scopeId)
-      const idx = ids.indexOf(this.focus.getActiveScopeId())
-
-      if (idx === -1) return undefined // Maybe we want it to crash?
-
-      if (event.action === "left" && (event.phase === "pressed" || event.phase === "repeated")) {
-        this.focus.setActiveScope(ids[(idx - 1 + this.btns.length) % this.btns.length]); return true;
-      }
-
-      if (event.action === "right" && (event.phase === "pressed" || event.phase === "repeated")) {
-        this.focus.setActiveScope(ids[(idx + 1) % this.btns.length]); return true;
-      }
-
-      return undefined;
+    // The row owns a single focus scope and arranges its controls; left/right
+    // navigation and activation are handled by the focus runtime, so no
+    // handleInput override is needed here.
+    private action(
+      id: HomeAction,
+      bitmap: Bitmap,
+      focusLabel: string,
+      onActivate: () => void
+    ): ui.UiControl<HomeAction> {
+      const control = ui.button<HomeAction>(id, { bitmap }, onActivate);
+      control.focusLabel = focusLabel;
+      return control;
     }
 
     private yOffset = -ui.STANDARD_DISPLAY_HEIGHT >> 1
@@ -106,8 +80,8 @@ namespace microdata {
       );
 
       surface.drawBitmap(
-        microbitLogo,
-        ((ui.STANDARD_DISPLAY_WIDTH - microbitLogo.width) >> 1) + dy,
+        ui.microbitLogo,
+        ((ui.STANDARD_DISPLAY_WIDTH - ui.microbitLogo.width) >> 1) + dy,
         y - microdataLogo.height + this.yOffset + margin
       );
 
@@ -133,7 +107,7 @@ namespace microdata {
         { color: 0xb, font }
       )
 
-      super.render(surface) // btns
+      super.render(surface) // row of action buttons
     }
   }
 }
