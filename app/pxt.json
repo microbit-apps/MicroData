@@ -1,6 +1,6 @@
 {
     "name": "MicroData App",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "dependencies": {
         "core": "*",
         "radio": "*",
