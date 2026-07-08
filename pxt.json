@@ -8,13 +8,14 @@
         "microphone": "*",
         "datalogger": "*",
         "ui-controls": "github:humanapp/ui-controls#v0.0.4",
-        "sensors": "github:microbit-apps/sensors#v0.0.29"
+        "sensors": "github:microbit-apps/sensors#v0.0.38"
     },
     "files": [
         "main.ts",
         "assets.ts",
         "home.ts",
-        "liveSensorGraph.ts"
+        "liveSensorGraph.ts",
+        "dataRecorder.ts"
     ],
     "testFiles": [
         "test.ts"

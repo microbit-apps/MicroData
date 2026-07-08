@@ -1,6 +1,6 @@
 namespace microdata {
   interface SensorChoice {
-    sensor: sensors.MicrobitSensors;
+    sensor: sensors.MicrobitAndJacdacSensors;
     name: string;
   }
 
@@ -41,11 +41,14 @@ namespace microdata {
   export class LiveSensorGraph extends ui.UiScreen {
     private tick: number
     private graphRect: ui.Rect
+    private connectedJacdacSensorSrvs: sensors.JacdacSensorSrvs[];
+    private modal: ui.UiPicker<SensorChoice>; // now owned
     private sensorInfos: SensorInfo[]
     private readout: ui.UiStack
     private nameColumn: ui.UiStack
     private valueColumn: ui.UiStack
     private unitColumn: ui.UiStack
+
 
     constructor(runtime: ui.UiRuntime) {
       super(runtime)
@@ -53,6 +56,7 @@ namespace microdata {
       this.backgroundColor = 6
       this.tick = 0
       this.graphRect = new ui.Rect(8, 26, 144, 72)
+
       this.sensorInfos = []
 
       this.nameColumn = new ui.UiStack({ orientation: "column", children: [], gap: 0 })
@@ -79,13 +83,31 @@ namespace microdata {
         ui.STANDARD_DISPLAY_WIDTH,
         SENSOR_ACTION_BAND_HEIGHT
       );
+      this.connectedJacdacSensorSrvs = sensors.getConnectedJacdacSrvs();
+      this.rebuildModal();
+    }
+
+     
+    // I end up just rebuilding and reopening the picker here, which works but
+    // Is there a better way of updating a modal?
+    // I rebuild it instead of updating modal.controls the modal.controls is readonly.
+    // What do you think?
+    public activate(): void {
+      jacdac.bus.on(jacdac.DEVICE_CONNECT, () => this.openSelectSensorsPicker())
+      jacdac.bus.on(jacdac.DEVICE_DISCONNECT, () => this.openSelectSensorsPicker())
+    }
+
+    public deactivate(): void {
+      jacdac.bus.off(jacdac.DEVICE_CONNECT, () => this.openSelectSensorsPicker())
+      jacdac.bus.off(jacdac.DEVICE_DISCONNECT, () => this.openSelectSensorsPicker())
     }
 
     private createActions(): ui.UiControl<SensorAction>[] {
       return [
-        ui.button<SensorAction>("sensors", "Sensors", () =>
+        ui.button<SensorAction>("sensors", "Sensors", () => {
+          this.connectedJacdacSensorSrvs = sensors.getConnectedJacdacSrvs();
           this.openSelectSensorsPicker()
-        ),
+        }),
       ];
     }
 
@@ -108,7 +130,13 @@ namespace microdata {
       } else {
         // At capacity: leave the cell unselected.
         if (this.sensorInfos.length >= MAX_SENSORS) return
-        const sensor = sensors.getMicrobitSensor(choice.sensor)
+        let sensor = undefined;
+        try {
+          sensor = sensors.getMicrobitSensor(choice.sensor as number as sensors.MicrobitSensors);
+        } catch (e) {
+          sensor = sensors.getJacdacSensor(choice.sensor as number as sensors.JacdacSensorSrvs, undefined);
+        }
+
         const nameLabel = new ui.UiLabel(choice.name, 1)
         const valueLabel = new ui.UiLabel({
           text: "--",
@@ -159,21 +187,24 @@ namespace microdata {
       return undefined;
     }
 
-    private openSelectSensorsPicker(): void {
-      const uBitSensors: sensors.MicrobitSensors[] = sensors.listAllMicrobitSensors();
+    private rebuildModal(): void {
+      // Not really a fan of this casting, need to refactor Sensors type/obj system
+      const availableSensors = (sensors.listAllMicrobitSensors() as number[] as sensors.MicrobitAndJacdacSensors[]).concat(this.connectedJacdacSensorSrvs as number[] as sensors.MicrobitAndJacdacSensors[]);
+      const connectedSensorNames = sensors.listAllMicrobitSensorsAsStrings().concat(this.connectedJacdacSensorSrvs.map(srv => sensors.getRolenameForJacdacSensor(srv)));
+
       const sensorControls: ui.UiControl<SensorChoice>[] =
-        sensors.listAllMicrobitSensorsAsStrings().map((name: string, i: number) => ({
+        connectedSensorNames.map((name: string, i: number) => ({
           id: `sensor: ${i}`,
-          value: { sensor: uBitSensors[i], name },
+          value: { sensor: availableSensors[i], name },
           focusLabel: name,
-          bitmap: sensorNameToBitmap(name),
+          bitmap: sensorIDToBitmap(availableSensors[i]),
           // Reflect current selection so reopening the picker shows what's on.
           style: this.activeIndexForName(name) >= 0
             ? SENSOR_SELECTED_STYLE
             : undefined,
         }));
 
-      const modal = new ui.UiPicker<SensorChoice>({
+      this.modal = new ui.UiPicker<SensorChoice>({
         modalScopeId: SENSOR_PICKER_SCOPE,
         title: "Sensors",
         controls: sensorControls,
@@ -189,8 +220,12 @@ namespace microdata {
           control: ui.UiControl<SensorChoice>
         ) => this.toggleSensor(choice, control),
       });
+    }
 
-      this.openModal(modal)
+    private openSelectSensorsPicker(): void {
+      this.connectedJacdacSensorSrvs = sensors.getConnectedJacdacSrvs();
+      this.rebuildModal();
+      this.openModal(this.modal)
     }
 
     public update(): void {
