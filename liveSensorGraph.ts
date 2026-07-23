@@ -214,7 +214,7 @@ namespace microdata {
         rowGap: SENSOR_PICKER_GAP,
         controlStyle: ui.UiButtonStyles.LightShadowedWhite,
         // Stay open so the user can toggle several sensors before backing out.
-        closeOnActivate: false,
+        closeOnActivate: true,
         onActivate: (
           choice: SensorChoice,
           control: ui.UiControl<SensorChoice>

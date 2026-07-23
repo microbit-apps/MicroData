@@ -14,6 +14,7 @@ namespace microdata {
       this.icons = new ui.UiMapAssets({
         microdataLogo: microdataLogo,
         microbitLogo: ui.microbitLogo,
+        btn_plus: btn_plus
       }, bmp`.`)
     }
 
@@ -100,6 +101,7 @@ namespace microdata {
     ....111111.......111111...1111................................................11111111111..............................................................
     ...11bbbbbb.....11bbbbbb.11bbbb...............................................1bbbbbbbbbbff.......................111..................................
     ...1bbbbbbbb...11bbbbbbbf1bbbbbf..............................................1bbbbbbbbbbbff.....................1bbbb.................................
+
     ...1bbbbbbbbb.11bbbbbbbbf1bbbbbf..............................................1bbbbbbbbbbbbff...................1bbbbbf................................
     ...1bbbbbbbbbb1bbbbbbbbbf1bbbbbf..............................................1bbbbfffbbbbbbf...................1bbbbbf................................
     ...1bbbbbbbbbbbbbbbbbbbbf.bbbbff..............................................1bbbf....bbbbbff..................1bbbbbf................................
@@ -119,5 +121,24 @@ namespace microdata {
     ...1bbbbbbf......1bbbbbbf1bbbbbf..bbbbbbbbbbbff.1bbbbbf.........bbbbbbbbbbbff.bbbbbbbbbbbbbff..fbbbbbbbbbbbbbbb..fbbbbbbbbbbbbf..fbbbbbbbbbbbbbbbb.....
     ....bbbbbff.......bbbbbff.bbbbff...fbbbbbbbfff...bbbbff..........fbbbbbbbfff...fbbbbbbbbbff.....fbbbbbbbbbbbbff...fbbbbbbbbbbf....fbbbbbbbbbbbbbff.....
     .....fffff.........fffff...ffff......fffffff......ffff.............fffffff......fffffffff........fffffffffffff.....ffffffffff......ffffffffffffff......
-`
+  `
+
+  export const btn_plus = bmp`
+      . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . .
+      . . . . . . f f f f . . . . . .
+      . . . . . . f 5 5 f . . . . . .
+      . . . . . . f 5 5 f . . . . . .
+      . . . f f f f 5 5 f f f f . . .
+      . . . f 5 5 5 5 5 5 5 5 f . . .
+      . . . f 5 5 5 5 5 5 5 5 f . . .
+      . . . f f f f 5 5 f f f f . . .
+      . . . . . . f 5 5 f . . . . . .
+      . . . . . . f 5 5 f . . . . . .
+      . . . . . . f f f f . . . . . .
+      . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . .
+  `
 }

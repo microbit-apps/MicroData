@@ -1,357 +1,265 @@
-// namespace microdata {
-//     import AppInterface = user_interface_base.AppInterface
-//     import Screen = user_interface_base.Screen
-//     import Scene = user_interface_base.Scene
-//     import Sprite = user_interface_base.Sprite
-//     import Affine = user_interface_base.Affine
-//     import font = user_interface_base.font
-//
-//     /** Number of sensor information boxes that can fit onto the screen at once*/
-//     const MAX_SENSORS_ON_SCREEN: number = 5
-//     /** The colours that will be used for the lines & sensor information boxes */
-//     const SENSOR_BOX_COLORS: number[] = [2, 3, 4, 6, 7, 9]
-//     /** The colours that will be used for writing the information about the sensor. */
-//     const SENSOR_BOX_TEXT_COLORS: number[] = [1, 1, 1, 1, 15, 15]
-//
-//     /**
-//      * Responsible for invoking the logging commands for each sensor,
-//      * Presents information about each sensor's state via colourful collapsing boxes
-//      * 
-//      * Sensors are logged via a scheduler
-//      */
-//     export class DataRecorder extends Scene {
-//         /**  */
-//         private scheduler: SensorScheduler;
-//         /** For displaying their status on the screen and passing to the scheduler. */
-//         private sensors: Sensor[]
-//         /** For faster looping, modulo calculation when pressing UP or DOWN */
-//         private numberOfSensors: number;
-//         /** Sensor to be shown */
-//         private currentSensorIndex: number;
-//         /** Last sensor on the screen */
-//         private sensorIndexOffset: number;
-//         /** For the currentSensorIndex */
-//         private sensorBoxColor: number;
-//
-//         private showCancelRecordingScreen: boolean;
-//         private currentlyCancelling: boolean
-//         private yesBtn: Sprite // currentBtn = 0
-//         private noBtn: Sprite // currentBtn = 1
-//
-//         constructor(app: AppInterface, sensors: Sensor[]) {
-//             super(app, "dataRecorder")
-//
-//             this.scheduler = new SensorScheduler(sensors)
-//             this.sensors = sensors
-//             this.numberOfSensors = sensors.length
-//
-//             this.sensorIndexOffset = 0
-//             this.currentSensorIndex = 0
-//             this.sensorBoxColor = 15
-//             this.showCancelRecordingScreen = false;
-//             this.currentlyCancelling = false;
-//
-//             //---------------
-//             // User Controls:
-//             //---------------
-//
-//             // Go Back:
-//             context.onEvent(
-//                 ControllerButtonEvent.Pressed,
-//                 controller.B.id,
-//                 () => {
-//                     if (this.scheduler.loggingComplete()) {
-//                         this.app.popScene()
-//                         this.app.pushScene(new Home(this.app))
-//                     }
-//
-//                     else {
-//                         this.showCancelRecordingScreen = !this.showCancelRecordingScreen
-//                     }
-//                 }
-//             )
-//
-//             // Clear whatever A was previously bound to
-//             context.onEvent(
-//                 ControllerButtonEvent.Pressed,
-//                 controller.A.id,
-//                 () => {
-//                     if (this.showCancelRecordingScreen) {
-//                         this.currentlyCancelling = true
-//                         this.scheduler.stop()
-//
-//                         basic.pause(1000)
-//                         this.app.popScene()
-//                         this.app.pushScene(new Home(this.app))
-//                     }
-//                 }
-//             )
-//
-//             // Scroll Up
-//             context.onEvent(
-//                 ControllerButtonEvent.Pressed,
-//                 controller.up.id,
-//                 () => {
-//                     this.currentSensorIndex = Math.max(0, this.currentSensorIndex - 1)
-//
-//                     if (this.sensorIndexOffset > 0)
-//                         this.sensorIndexOffset = Math.max(0, this.sensorIndexOffset - 1)
-//
-//                     this.update()
-//                 }
-//             )
-//
-//             // Scroll Down
-//             context.onEvent(
-//                 ControllerButtonEvent.Pressed,
-//                 controller.down.id,
-//                 () => {
-//                     this.currentSensorIndex = Math.min(this.currentSensorIndex + 1, this.numberOfSensors - 1)
-//
-//                     if (this.currentSensorIndex > 4)
-//                         this.sensorIndexOffset = Math.min(this.sensorIndexOffset + 1, this.numberOfSensors - 5)
-//
-//                     this.update()
-//                 }
-//             )
-//
-//
-//             // For cancelling the current recording:
-//
-//             this.yesBtn = new Sprite({ img: Icons.get("tile_button_a") })
-//             this.yesBtn.bindXfrm(new Affine())
-//             this.yesBtn.xfrm.parent = new Affine()
-//             this.yesBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
-//             this.yesBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
-//             this.yesBtn.xfrm.localPos.x = -40
-//             this.yesBtn.xfrm.localPos.y = 12
-//
-//             this.noBtn = new Sprite({ img: Icons.get("tile_button_b") })
-//             this.noBtn.bindXfrm(new Affine())
-//             this.noBtn.xfrm.parent = new Affine()
-//             this.noBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
-//             this.noBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
-//             this.noBtn.xfrm.localPos.x = 40
-//             this.noBtn.xfrm.localPos.y = 12
-//
-//             this.log()
-//         }
-//
-//         log() { this.scheduler.start() }
-//
-//         update(): void {
-//             Screen.fillRect(
-//                 Screen.LEFT_EDGE,
-//                 Screen.TOP_EDGE,
-//                 Screen.WIDTH,
-//                 Screen.HEIGHT,
-//                 0xc
-//             )
-//
-//             // Check if all sensors have finished their work:
-//             if (this.scheduler.loggingComplete()) {
-//                 screen().printCenter("Data Logging Complete.", (screen().height >> 1) - 10);
-//                 screen().printCenter("Press B to back out.", screen().height >> 1);
-//             }
-//
-//             else {
-//                 screen().printCenter("Recording data...", 4);
-//                 let y = 16
-//
-//                 for (let i = this.sensorIndexOffset; i < this.numberOfSensors; i++) {
-//                     if (i - this.sensorIndexOffset > MAX_SENSORS_ON_SCREEN)
-//                         break
-//
-//                     // Get the colour for this box
-//                     this.sensorBoxColor = SENSOR_BOX_COLORS[i % SENSOR_BOX_COLORS.length]
-//
-//                     const boxWidth: number = 142
-//
-//                     // Draw box as collapsed:
-//                     if (i != this.currentSensorIndex) {
-//                         screen().fillRect(
-//                             5,
-//                             y,
-//                             boxWidth,
-//                             16,
-//                             16
-//                         )
-//
-//                         screen().fillRect(
-//                             7,
-//                             y,
-//                             boxWidth + 3,
-//                             14,
-//                             this.sensorBoxColor
-//                         )
-//
-//                         screen().print(
-//                             this.sensors[i].getName(),
-//                             12,
-//                             y + 2,
-//                             15
-//                         )
-//                     }
-//
-//                     // Box is selected: Draw all information:
-//                     else {
-//                         screen().fillRect(
-//                             5,
-//                             y,
-//                             boxWidth,
-//                             62,
-//                             15
-//                         )
-//
-//                         screen().fillRect(
-//                             7,
-//                             y,
-//                             boxWidth + 3,
-//                             60,
-//                             this.sensorBoxColor
-//                         )
-//
-//                         //-------------------------------
-//                         // Information inside sensor box:
-//                         //-------------------------------
-//
-//                         const sensor = this.sensors[i]
-//                         screen().print(
-//                             sensor.getName(),
-//                             12,
-//                             y + 2,
-//                             15
-//                         )
-//
-//                         //------------------------------
-//                         // Write the sensor information:
-//                         //------------------------------
-//                         const sensorInfo: string[] = (sensor.isInEventMode) ? sensor.getEventInformation() : sensor.getRecordingInformation();
-//                         sensorInfo.forEach((info, idx) => {
-//                             y += 12
-//                             screen().print(
-//                                 info,
-//                                 24,
-//                                 y,
-//                                 SENSOR_BOX_TEXT_COLORS[idx]
-//                             )
-//                         });
-//                     }
-//
-//                     y += 14
-//                 }
-//
-//                 if (this.showCancelRecordingScreen) {
-//                     const headerX = Screen.HALF_WIDTH; // Log has data in it
-//
-//                     // Outline:
-//                     screen().fillRect(
-//                         Screen.HALF_WIDTH - 65,
-//                         Screen.HALF_HEIGHT - 30,
-//                         130 + 2,
-//                         60 + 2,
-//                         15 // Black
-//                     )
-//
-//                     screen().fillRect(
-//                         Screen.HALF_WIDTH - 65,
-//                         Screen.HALF_HEIGHT - 30,
-//                         130,
-//                         60,
-//                         4 // Orange
-//                     )
-//
-//                     const tutorialTextLength = ("Cancel recording?".length * font.charWidth)
-//                     screen().print(
-//                         "Cancel recording?",
-//                         headerX - (tutorialTextLength >> 1),
-//                         Screen.HALF_HEIGHT - 30 + 7,
-//                         15 // Black
-//                     )
-//
-//                     // Underline the title:
-//                     screen().fillRect(
-//                         headerX - (tutorialTextLength >> 1) - 1,
-//                         Screen.HALF_HEIGHT - 30 + 16,
-//                         tutorialTextLength,
-//                         2,
-//                         15 // Black
-//                     )
-//
-//                     if (this.currentlyCancelling)
-//                         screen().printCenter("Cancelling...", Screen.HALF_HEIGHT - 9, 15)
-//
-//                     // Draw button prompts:
-//                     screen().print(
-//                         "Yes",
-//                         Screen.HALF_WIDTH - 48,
-//                         Screen.HALF_HEIGHT + 20,
-//                         15
-//                     )
-//
-//                     screen().print(
-//                         "No",
-//                         Screen.HALF_WIDTH + 33,
-//                         Screen.HALF_HEIGHT + 20,
-//                         15
-//                     )
-//
-//                     // White boxes behind yes & no btns:
-//                     screen().fillRect(
-//                         Screen.HALF_WIDTH - 47,
-//                         Screen.HALF_HEIGHT + 6,
-//                         12,
-//                         12,
-//                         1
-//                     )
-//
-//                     screen().fillRect(
-//                         Screen.HALF_WIDTH + 34,
-//                         Screen.HALF_HEIGHT + 6,
-//                         12,
-//                         12,
-//                         1
-//                     )
-//
-//                     this.yesBtn.draw()
-//                     this.noBtn.draw()
-//                 }
-//             }
-//         }
-//     }
-// }
+namespace microdata {
+  /** Number of sensor information boxes that can fit onto the screen at once*/
+  const MAX_SENSORS_ON_SCREEN: number = 5
+  /** The colours that will be used for the lines & sensor information boxes */
+  const SENSOR_BOX_COLORS: number[] = [2, 3, 4, 6, 7, 9]
+  /** The colours that will be used for writing the information about the sensor. */
+  const SENSOR_BOX_TEXT_COLORS: number[] = [1, 1, 1, 1, 15, 15]
+
+  const halfWidth = ui.STANDARD_DISPLAY_WIDTH >> 1
+  const halfHeight = ui.STANDARD_DISPLAY_HEIGHT >> 1
+
+  /**
+   * Responsible for invoking the logging commands for each sensor,
+   * Presents information about each sensor's state via colourful collapsing boxes
+   * 
+   * Sensors are logged via a scheduler
+   */
+  export class DataRecorder extends ui.UiScreen {
+    /**  */
+    private scheduler: sensors.SensorScheduler;
+    /** For displaying their status on the screen and passing to the scheduler. */
+    private sensors: sensors.Sensor[]
+    /** For faster looping, modulo calculation when pressing UP or DOWN */
+    private numberOfSensors: number;
+    /** Sensor to be shown */
+    private currentSensorIndex: number;
+    /** Last sensor on the screen */
+    private sensorIndexOffset: number;
+    /** For the currentSensorIndex */
+    private sensorBoxColor: number;
+
+    private showCancelRecordingScreen: boolean;
+    private currentlyCancelling: boolean
+    // private yesBtn: Sprite // currentBtn = 0
+    // private noBtn: Sprite // currentBtn = 1
+
+    constructor(runtime: ui.UiRuntime, s: sensors.Sensor[]) {
+      super(runtime)
+
+      this.scheduler = new sensors.SensorScheduler(s)
+      this.sensors = s
+      this.numberOfSensors = s.length
+
+      this.sensorIndexOffset = 0
+      this.currentSensorIndex = 0
+      this.sensorBoxColor = 15
+      this.showCancelRecordingScreen = false;
+      this.currentlyCancelling = false;
+
+      //---------------
+      // User Controls:
+      //---------------
+
+      // // Go Back:
+      // context.onEvent(
+      //   ControllerButtonEvent.Pressed,
+      //   controller.B.id,
+      //   () => {
+      //     if (this.scheduler.loggingComplete()) {
+      //       this.app.popScene()
+      //       this.app.pushScene(new Home(this.app))
+      //     }
+      //
+      //     else {
+      //       this.showCancelRecordingScreen = !this.showCancelRecordingScreen
+      //     }
+      //   }
+      // )
+      //
+      // // Clear whatever A was previously bound to
+      // context.onEvent(
+      //   ControllerButtonEvent.Pressed,
+      //   controller.A.id,
+      //   () => {
+      //     if (this.showCancelRecordingScreen) {
+      //       this.currentlyCancelling = true
+      //       this.scheduler.stop()
+      //
+      //       basic.pause(1000)
+      //       this.app.popScene()
+      //       this.app.pushScene(new Home(this.app))
+      //     }
+      //   }
+      // )
+      //
+      // // Scroll Up
+      // context.onEvent(
+      //   ControllerButtonEvent.Pressed,
+      //   controller.up.id,
+      //   () => {
+      //     this.currentSensorIndex = Math.max(0, this.currentSensorIndex - 1)
+      //
+      //     if (this.sensorIndexOffset > 0)
+      //       this.sensorIndexOffset = Math.max(0, this.sensorIndexOffset - 1)
+      //
+      //     this.update()
+      //   }
+      // )
+      //
+      // // Scroll Down
+      // context.onEvent(
+      //   ControllerButtonEvent.Pressed,
+      //   controller.down.id,
+      //   () => {
+      //     this.currentSensorIndex = Math.min(this.currentSensorIndex + 1, this.numberOfSensors - 1)
+      //
+      //     if (this.currentSensorIndex > 4)
+      //       this.sensorIndexOffset = Math.min(this.sensorIndexOffset + 1, this.numberOfSensors - 5)
+      //
+      //     this.update()
+      //   }
+      // )
+      //
+      //
+      // // For cancelling the current recording:
+      //
+      // this.yesBtn = new Sprite({ img: Icons.get("tile_button_a") })
+      // this.yesBtn.bindXfrm(new Affine())
+      // this.yesBtn.xfrm.parent = new Affine()
+      // this.yesBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
+      // this.yesBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
+      // this.yesBtn.xfrm.localPos.x = -40
+      // this.yesBtn.xfrm.localPos.y = 12
+      //
+      // this.noBtn = new Sprite({ img: Icons.get("tile_button_b") })
+      // this.noBtn.bindXfrm(new Affine())
+      // this.noBtn.xfrm.parent = new Affine()
+      // this.noBtn.xfrm.worldPos.x = Screen.HALF_WIDTH
+      // this.noBtn.xfrm.worldPos.y = Screen.HALF_HEIGHT
+      // this.noBtn.xfrm.localPos.x = 40
+      // this.noBtn.xfrm.localPos.y = 12
+
+      this.log()
+    }
+
+    log() { this.scheduler.start() }
+
+    private drawCenteredText(surface: ui.DrawSurface, text: string, y: number, color: number): void {
+      const size = surface.measureText(text)
+      const x = Math.max(0, Math.idiv(ui.STANDARD_DISPLAY_WIDTH - size.width, 2))
+      surface.drawText(text, x, y, { color })
+    }
+
+    private rect(x: number, y: number, width: number, height: number): ui.Rect {
+      return new ui.Rect(x, y, width, height) // if this constructor exists
+    }
+
+    public render(surface: ui.DrawSurface): void {
+      surface.clear(0xC);
+
+      const halfWidth = ui.STANDARD_DISPLAY_WIDTH >> 1
+      const halfHeight = screen().height >> 1
+
+      if (this.scheduler.loggingComplete()) {
+        this.drawCenteredText(surface, "Data Logging Complete.", halfHeight - 10, 15);
+        this.drawCenteredText(surface, "Press B to back out.", halfHeight, 15);
+      }
+
+      else {
+        this.drawCenteredText(surface, "Recording data...", 4, 15);
+        let y = 16
+
+        for (let i = this.sensorIndexOffset; i < this.numberOfSensors; i++) {
+          if (i - this.sensorIndexOffset > MAX_SENSORS_ON_SCREEN)
+            break
+
+          this.sensorBoxColor = SENSOR_BOX_COLORS[i % SENSOR_BOX_COLORS.length]
+          const boxWidth: number = 142
+
+          if (i != this.currentSensorIndex) {
+            surface.fillRect(new ui.Rect(5, y, boxWidth, 16), 16)
+            surface.fillRect(new ui.Rect(7, y, boxWidth + 3, 14), this.sensorBoxColor)
+            surface.drawText(this.sensors[i].name, 12, y + 2, { color: 15 })
+          }
+
+          else {
+            surface.fillRect(new ui.Rect(5, y, boxWidth, 62), 15)
+            surface.fillRect(new ui.Rect(7, y, boxWidth + 3, 60), this.sensorBoxColor)
+
+            const sensor = this.sensors[i]
+            surface.drawText(sensor.name, 12, y + 2, { color: 15 })
+
+            const sensorInfo: string[] = sensor.isInEventMode
+              ? sensor.getEventInformation()
+              : sensor.getRecordingInformation();
+
+            sensorInfo.forEach((info, idx) => {
+              y += 12
+              surface.drawText(info, 24, y, { color: SENSOR_BOX_TEXT_COLORS[idx] })
+            });
+          }
+
+          y += 14
+        }
+
+        if (this.showCancelRecordingScreen) {
+          const headerX = halfWidth;
+
+          surface.fillRect(new ui.Rect(halfWidth - 65, halfHeight - 30, 132, 62), 15)
+          surface.fillRect(new ui.Rect(halfWidth - 65, halfHeight - 30, 130, 60), 4)
+
+          const titleText = "Cancel recording?"
+          const titleSize = surface.measureText(titleText)
+          const titleX = headerX - (titleSize.width >> 1)
+          const titleY = halfHeight - 30 + 7
+          surface.drawText(titleText, titleX, titleY, { color: 15 })
+
+          surface.fillRect(new ui.Rect(titleX - 1, halfHeight - 30 + 16, titleSize.width, 2), 15)
+
+          if (this.currentlyCancelling)
+            this.drawCenteredText(surface, "Cancelling...", halfHeight - 9, 15)
+
+          surface.drawText("Yes", halfWidth - 48, halfHeight + 20, { color: 15 })
+          surface.drawText("No", halfWidth + 33, halfHeight + 20, { color: 15 })
+
+          surface.fillRect(new ui.Rect(halfWidth - 47, halfHeight + 6, 12, 12), 1)
+          surface.fillRect(new ui.Rect(halfWidth + 34, halfHeight + 6, 12, 12), 1)
+        }
+      }
+    }
+  }
+}
 
 namespace microdata {
-
   const SENSOR_VALUE_WIDTH = 30
 
   const SENSOR_ACTION_SCOPE = "live-graph/actions"
-  const SENSOR_ACTION_GAP = 8
-  const SENSOR_ACTION_BAND_HEIGHT = 24
-  const SENSOR_ACTION_CENTER_Y = 110
   const MAX_SENSORS = 3
 
-
   interface SensorChoice {
-    sensor: sensors.MicrobitSensors;
-    name: string;
+    sensor: sensors.MicrobitAndJacdacSensors | undefined;
+    name: string | undefined;
   }
 
-  type SensorInfo = {
-    sensor: sensors.Sensor,
-    name: string,
-    nameLabel: ui.UiLabel
-    valueLabel: ui.UiLabel
-    unitLabel: ui.UiLabel
+  // Not sure if this is the best way:
+  interface SensorLoggingInfo extends SensorChoice {
+    number_of_measurements: number | undefined,
+    measurement_interval_ms: number | undefined
   }
+
+  function getDefaultSensorLoggingInfoObj(): SensorLoggingInfo { return { name: undefined, sensor: undefined, number_of_measurements: undefined, measurement_interval_ms: undefined } }
 
   type SensorAction = "sensors"
+  type TimeAction = "time"
+  type DoneAction = "done"
+  type AddAction = "add"
+  type RemoveAction = "remove"
+
+  type GridActions = SensorAction | TimeAction | AddAction | RemoveAction | DoneAction
 
   const SENSOR_PICKER_SCOPE = "select-sensor"
   const SENSOR_PICKER_COLUMNS = 5
-  const SENSOR_PICKER_ITEM = 28
-  const SENSOR_PICKER_GAP = 4
+  const SENSOR_PICKER_ITEM_WIDTH = 28
+  const SENSOR_PICKER_ITEM_HEIGHT = 28
+  const SENSOR_PICKER_GAP = 3
 
+  const SENSOR_ACTION_BAND_HEIGHT = 16
+  const SENSOR_ACTION_WIDTH = 40
+  const SENSOR_ACTION_HEIGHT = 22
+  const SENSOR_ACTION_GAP_H = 8
+  const SENSOR_ACTION_GAP_V = 5
+  const SENSOR_ACTION_CENTER_Y = (SENSOR_PICKER_ITEM_HEIGHT >> 1) + 3
 
   // Selected sensors get a thick yellow rounded border.
   const SENSOR_SELECTED_STYLE: ui.UiButtonStyle = {
@@ -361,28 +269,34 @@ namespace microdata {
     borderThickness: 3,
   }
 
-
-
   export class RecordData extends ui.UiScreen {
-    private sensorInfos: SensorInfo[]
+    private sensorLoggingInfos: SensorLoggingInfo[]
+    private actions: ui.UiGrid<GridActions>;
+    private connectedJacdacSensorSrvs: sensors.JacdacSensorSrvs[];
 
     constructor(runtime: ui.UiRuntime) {
       super(runtime)
 
       this.backgroundColor = 6
-      this.sensorInfos = []
+      this.sensorLoggingInfos = [getDefaultSensorLoggingInfoObj()];
+      this.connectedJacdacSensorSrvs = []
 
-      // const actions = new ui.UiRow<SensorAction>({
-      //   scopeId: SENSOR_ACTION_SCOPE,
-      //   controls: this.createActions(),
-      //   controlStyle: ui.UiButtonStyles.LightShadowedWhite,
-      //   gap: SENSOR_ACTION_GAP,
-      //   wrap: true,
-      // });
-    }
+      this.actions = new ui.UiGrid<GridActions>({
+        scopeId: SENSOR_ACTION_SCOPE,
+        controls: this.getRowOfLoggingActions(0).concat(this.getRowOfAddRemoveDeleteActions()),
+        controlSize: { width: SENSOR_ACTION_WIDTH, height: SENSOR_ACTION_HEIGHT },
+        columnCount: 3,
+        controlStyle: ui.UiButtonStyles.LightShadowedWhite,
+        rowGap: SENSOR_ACTION_GAP_V,
+        columnGap: SENSOR_ACTION_GAP_H,
+      });
 
-    public activate(): void {
-      this.openSelectSensorsPicker();
+      this.addCentered(
+        this.actions,
+        SENSOR_ACTION_CENTER_Y,
+        ui.STANDARD_DISPLAY_WIDTH,
+        SENSOR_ACTION_BAND_HEIGHT
+      );
     }
 
     public handleInput(event: ui.UiInputEvent): undefined | boolean {
@@ -394,114 +308,213 @@ namespace microdata {
       return undefined;
     }
 
-    private openSelectSensorsPicker(): void {
-      const uBitSensors: sensors.MicrobitSensors[] = sensors.listAllMicrobitSensors();
+    private rowIndexForName(name: string): number {
+      for (let i = 0; i < this.sensorLoggingInfos.length; i++) {
+        if (this.sensorLoggingInfos[i].name === name) return i;
+      }
+      return -1;
+    }
+
+    private openSelectSensorsPicker(rowIdx: number): void {
+      // Not really a fan of this casting, need to refactor Sensors type/obj system
+      const availableSensors = (sensors.listAllMicrobitSensors() as number[] as sensors.MicrobitAndJacdacSensors[]).concat(this.connectedJacdacSensorSrvs as number[] as sensors.MicrobitAndJacdacSensors[]);
+      const connectedSensorNames = sensors.listAllMicrobitSensorsAsStrings().concat(this.connectedJacdacSensorSrvs.map(srv => sensors.getRolenameForJacdacSensor(srv)));
+
       const sensorControls: ui.UiControl<SensorChoice>[] =
-        sensors.listAllMicrobitSensorsAsStrings().map((name: string, i: number) => ({
-          id: `sensor: ${i}`,
-          value: { sensor: uBitSensors[i], name },
-          focusLabel: name,
-          bitmap: sensorIDToBitmap(uBitSensors[i] as number as sensors.MicrobitAndJacdacSensors),
-          // Reflect current selection so reopening the picker shows what's on.
-          style: this.activeIndexForName(name) >= 0
-            ? SENSOR_SELECTED_STYLE
-            : undefined,
-        }));
+        connectedSensorNames.map((name: string, i: number) => {
+          const owner = this.rowIndexForName(name);
+          const isMine = owner === rowIdx;
+          const takenByOther = owner >= 0 && !isMine;
+
+          return {
+            id: `sensor: ${i}`,
+            value: { sensor: availableSensors[i], name },
+            focusLabel: takenByOther ? `${name} (in use)` : name,
+            bitmap: sensorIDToBitmap(availableSensors[i]),
+            style: (isMine || takenByOther)
+              ? SENSOR_SELECTED_STYLE
+              : undefined,
+            focusable: !takenByOther,
+          };
+        });
 
       const modal = new ui.UiPicker<SensorChoice>({
-        modalScopeId: SENSOR_ACTION_SCOPE,
-        title: "Select sensors",
+        modalScopeId: SENSOR_PICKER_SCOPE,
+        title: "Sensors",
         controls: sensorControls,
         columnCount: SENSOR_PICKER_COLUMNS,
-        controlSize: { width: SENSOR_PICKER_ITEM, height: SENSOR_PICKER_ITEM },
+        controlSize: { width: SENSOR_PICKER_ITEM_WIDTH, height: SENSOR_PICKER_ITEM_HEIGHT },
         columnGap: SENSOR_PICKER_GAP,
         rowGap: SENSOR_PICKER_GAP,
         controlStyle: ui.UiButtonStyles.LightShadowedWhite,
-        // Stay open so the user can toggle several sensors before backing out.
-        closeOnActivate: false,
+        closeOnActivate: true,
         onActivate: (
           choice: SensorChoice,
           control: ui.UiControl<SensorChoice>
-        ) => this.toggleSensor(choice, control),
-      });
+        ) => {
+          this.sensorLoggingInfos[rowIdx].name = choice.name;
+          this.sensorLoggingInfos[rowIdx].sensor = choice.sensor
+          const sensorButton = this.actions.controls.find(c => c.id === `sensors-${rowIdx}`);
+          sensorButton.bitmap = sensorIDToBitmap(choice.sensor)
+          sensorButton.focusLabel = choice.name
 
+          this.rebuildGrid();
+        },
+      });
       this.openModal(modal)
     }
 
-    private toggleSensor(
-      choice: SensorChoice,
-      control: ui.UiControl<SensorChoice>
-    ): void {
-      const idx = this.activeIndexForName(choice.name)
-      if (idx >= 0) {
-        this.sensorInfos.splice(idx, 1)
-        control.style = undefined
-      } else {
-        // At capacity: leave the cell unselected.
-        if (this.sensorInfos.length >= MAX_SENSORS) return
-        const sensor = sensors.getMicrobitSensor(choice.sensor)
-        const nameLabel = new ui.UiLabel(choice.name, 1)
-        const valueLabel = new ui.UiLabel({
-          text: "--",
-          color: 1,
-          size: { width: SENSOR_VALUE_WIDTH },
-        })
-        const unitLabel = new ui.UiLabel(`${sensor.unitSymbol}`, 1)
-        nameLabel.setColor(15)
-        unitLabel.setColor(15)
-        this.sensorInfos.push({
-          sensor,
-          name: choice.name,
-          nameLabel,
-          valueLabel,
-          unitLabel,
-        })
-        control.style = SENSOR_SELECTED_STYLE
-      }
-      this.rebuildReadout()
+    private openSelectNumMeasurementsPicker(rowIdx: number): void {
+      this.openModal(
+        new ui.UiNumericEntryModal("num-measurements-editor", this.sensorLoggingInfos[0].number_of_measurements, value => {
+          this.sensorLoggingInfos[rowIdx].number_of_measurements = value
+          const sensorButton = this.actions.controls.find(c => c.id === `num_measurements-${rowIdx}`);
+          sensorButton.text = "" + value
+          sensorButton.bitmap = undefined
+
+          this.rebuildGrid()
+        }),
+      )
     }
 
-    // Sets each readout column from the active sensors and assigns each value
-    // label's color to match its graph line.
-    private rebuildReadout(): void {
-      // const names: ui.UiView<any>[] = []
-      // const values: ui.UiView<any>[] = []
-      // const units: ui.UiView<any>[] = []
-      // for (let i = 0; i < this.sensorInfos.length; i++) {
-      //   const info = this.sensorInfos[i]
-      //   info.valueLabel.setColor(2 + i)
-      //   names.push(info.nameLabel)
-      //   values.push(info.valueLabel)
-      //   units.push(info.unitLabel)
-      // }
-      // this.nameColumn.setChildren(names)
-      // this.valueColumn.setChildren(values)
-      // this.unitColumn.setChildren(units)
-      // this.remove(this.readout)
-      // this.add(this.readout, { x: SENSOR_READOUT_X, y: SENSOR_READOUT_Y })
+    private openSelectMeasurementIntervalPicker(rowIdx: number): void {
+      this.openModal(
+        new ui.UiNumericEntryModal("interval-measurements-editor", this.sensorLoggingInfos[0].measurement_interval_ms, value => {
+          this.sensorLoggingInfos[rowIdx].measurement_interval_ms = value
+          const sensorButton = this.actions.controls.find(c => c.id === `interval_measurements-${rowIdx}`);
+          sensorButton.text = "" + value + "ms"
+          sensorButton.bitmap = undefined
+
+          this.rebuildGrid()
+        }),
+      )
     }
 
+    private getRowOfLoggingActions(idx: number): ui.UiControl<GridActions>[] {
+      const info = this.sensorLoggingInfos[idx];
 
-    private createActions(): ui.UiControl<SensorAction>[] {
       return [
-        ui.button<SensorAction>("sensors", "Sensors", () =>
-          this.openSelectSensorsPicker()
-        ),
+        {
+          id: `sensors-${idx}`,
+          value: "sensors",
+          focusLabel: info.name !== undefined
+            ? info.name
+            : "Choose sensor",
+          bitmap: info.sensor !== undefined
+            ? sensorIDToBitmap(info.sensor)
+            : this.assets.getBitmap("btn_plus"),
+          onActivate: () => this.openSelectSensorsPicker(idx),
+        },
+        {
+          id: `num_measurements-${idx}`,
+          value: "time",
+          focusLabel: "Number of measurements",
+          text: info.number_of_measurements !== undefined
+            ? "" + info.number_of_measurements
+            : undefined,
+          bitmap: info.number_of_measurements === undefined
+            ? this.assets.getBitmap("btn_plus")
+            : undefined,
+          onActivate: () => this.openSelectNumMeasurementsPicker(idx),
+        },
+        {
+          id: `interval_measurements-${idx}`,
+          value: "time",
+          focusLabel: "Measurement interval",
+          text: info.measurement_interval_ms === undefined
+            ? undefined
+            : `${info.measurement_interval_ms}ms`,
+          bitmap: info.measurement_interval_ms === undefined
+            ? this.assets.getBitmap("btn_plus")
+            : undefined,
+          onActivate: () => this.openSelectMeasurementIntervalPicker(idx),
+        }
       ];
     }
 
+    // This is almost there, when I click Add the 'Add' and 'Done' become unavailable and a new row appears,
+    // which is the correct behaviour. The only issue is that I can't navigate anymore:
+    private getRowOfAddRemoveDeleteActions(): ui.UiControl<GridActions>[] {
+      let actions: ui.UiControl<GridActions>[] = []
 
-    private activeIndexForName(name: string): number {
-      for (let i = 0; i < this.sensorInfos.length; i++) {
-        if (this.sensorInfos[i].name == name) return i
+      if (this.sensorLoggingInfos.length < MAX_SENSORS) {
+        actions.push(
+          {
+            id: "add",
+            value: "add",
+            text: "Add",
+            onActivate: () => {
+              this.sensorLoggingInfos.push(getDefaultSensorLoggingInfoObj());
+
+              const controls = this.sensorLoggingInfos
+                .reduce<ui.UiControl<GridActions>[]>((acc, _, i) => acc.concat(this.getRowOfLoggingActions(i)), [])
+                .concat(this.getRowOfAddRemoveDeleteActions());
+
+              const oldActions = this.actions;
+              this.actions = new ui.UiGrid<GridActions>({
+                scopeId: SENSOR_ACTION_SCOPE,
+                controls,
+                controlSize: { width: SENSOR_ACTION_WIDTH, height: SENSOR_ACTION_HEIGHT },
+                columnCount: 3,
+                controlStyle: ui.UiButtonStyles.LightShadowedWhite,
+                rowGap: SENSOR_ACTION_GAP_V,
+                columnGap: SENSOR_ACTION_GAP_H,
+              });
+
+              this.remove(oldActions);
+              this.addCentered(this.actions, SENSOR_ACTION_CENTER_Y, ui.STANDARD_DISPLAY_WIDTH, SENSOR_ACTION_BAND_HEIGHT);
+              this.rebuildGrid();
+            },
+            visible: false,
+            focusable: false,
+          },
+
+        )
       }
-      return -1
+      actions.push(
+        {
+          id: "done",
+          value: "done",
+          text: "Done",
+          onActivate: () => {
+            const s: sensors.Sensor[] = this.sensorLoggingInfos.map(info => {
+              let sensor = sensors.getSensor(info.sensor);
+              sensor.setConfig({ measurements: info.number_of_measurements, period: info.measurement_interval_ms })
+              return sensor;
+            })
+
+            this.runtime.push(new DataRecorder(this.runtime, s));
+          },
+          visible: false,
+          focusable: false,
+        },
+      );
+      return actions;
+    }
+
+    private isSensorLoggingInfoFilledIn(info: SensorLoggingInfo): boolean {
+      return info.name !== undefined &&
+        info.sensor !== undefined &&
+        info.number_of_measurements !== undefined &&
+        info.measurement_interval_ms !== undefined;
+    }
+
+    private rebuildGrid() {
+      const complete = this.sensorLoggingInfos.every(info => this.isSensorLoggingInfoFilledIn(info));
+      for (const id of ["add", "done"]) {
+        const control = this.actions.controls.find(c => c.id === id);
+        if (!control) continue; // "add" is absent once MAX_SENSORS is reached
+        control.visible = complete;
+        control.focusable = complete;
+      }
+
+      this.actions.invalidateLayout()
+      this.actions.registerFocusTargets(this.focus)
+      this.actions.registerNavigation(this.focusInput);
     }
 
     public render(surface: ui.DrawSurface): void {
-
       super.render(surface)
     }
-
   }
 }
