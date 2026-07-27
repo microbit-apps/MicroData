@@ -228,17 +228,18 @@ namespace microdata {
   const MAX_SENSORS = 3
 
   interface SensorChoice {
-    sensor: sensors.MicrobitAndJacdacSensors | undefined;
-    name: string | undefined;
+    sensor: sensors.Sensor;
   }
 
-  // Not sure if this is the best way:
-  interface SensorLoggingInfo extends SensorChoice {
+  interface SensorLoggingInfo {
+    sensor: sensors.Sensor | undefined,
     number_of_measurements: number | undefined,
     measurement_interval_ms: number | undefined
   }
 
-  function getDefaultSensorLoggingInfoObj(): SensorLoggingInfo { return { name: undefined, sensor: undefined, number_of_measurements: undefined, measurement_interval_ms: undefined } }
+  function getDefaultSensorLoggingInfoObj(): SensorLoggingInfo {
+    return { sensor: undefined, number_of_measurements: undefined, measurement_interval_ms: undefined }
+  }
 
   type SensorAction = "sensors"
   type TimeAction = "time"
@@ -272,14 +273,12 @@ namespace microdata {
   export class RecordData extends ui.UiScreen {
     private sensorLoggingInfos: SensorLoggingInfo[]
     private actions: ui.UiGrid<GridActions>;
-    private connectedJacdacSensorSrvs: sensors.JacdacSensorSrvs[];
 
     constructor(runtime: ui.UiRuntime) {
       super(runtime)
 
       this.backgroundColor = 6
       this.sensorLoggingInfos = [getDefaultSensorLoggingInfoObj()];
-      this.connectedJacdacSensorSrvs = []
 
       this.actions = new ui.UiGrid<GridActions>({
         scopeId: SENSOR_ACTION_SCOPE,
@@ -304,36 +303,35 @@ namespace microdata {
         this.runtime.pop();
         return true;
       }
-
       return undefined;
     }
 
-    private rowIndexForName(name: string): number {
+    // Sensors are keyed by name for ownership checks (Sensor instances may be
+    // rebuilt between calls, so don't rely on reference equality).
+    private rowIndexForSensor(sensor: sensors.Sensor): number {
       for (let i = 0; i < this.sensorLoggingInfos.length; i++) {
-        if (this.sensorLoggingInfos[i].name === name) return i;
+        if (this.sensorLoggingInfos[i].sensor !== undefined &&
+          this.sensorLoggingInfos[i].sensor.name === sensor.name) return i;
       }
       return -1;
     }
 
     private openSelectSensorsPicker(rowIdx: number): void {
-      // Not really a fan of this casting, need to refactor Sensors type/obj system
-      const availableSensors = (sensors.listAllMicrobitSensors() as number[] as sensors.MicrobitAndJacdacSensors[]).concat(this.connectedJacdacSensorSrvs as number[] as sensors.MicrobitAndJacdacSensors[]);
-      const connectedSensorNames = sensors.listAllMicrobitSensorsAsStrings().concat(this.connectedJacdacSensorSrvs.map(srv => sensors.getRolenameForJacdacSensor(srv)));
+      const availableSensors: sensors.Sensor[] =
+        sensors.getAllMicrobitSensors().concat(sensors.getAllConnectedJacdacSimpleSensors());
 
       const sensorControls: ui.UiControl<SensorChoice>[] =
-        connectedSensorNames.map((name: string, i: number) => {
-          const owner = this.rowIndexForName(name);
+        availableSensors.map((sensor: sensors.Sensor, i: number) => {
+          const owner = this.rowIndexForSensor(sensor);
           const isMine = owner === rowIdx;
           const takenByOther = owner >= 0 && !isMine;
 
           return {
-            id: `sensor: ${i}`,
-            value: { sensor: availableSensors[i], name },
-            focusLabel: takenByOther ? `${name} (in use)` : name,
-            bitmap: sensorIDToBitmap(availableSensors[i]),
-            style: (isMine || takenByOther)
-              ? SENSOR_SELECTED_STYLE
-              : undefined,
+            id: `sensor-${i}`,
+            value: { sensor },
+            focusLabel: takenByOther ? `${sensor.name} (in use)` : sensor.name,
+            bitmap: sensorNameToBitmap(sensor.name, sensor.isJacdacSensor),
+            style: (isMine || takenByOther) ? SENSOR_SELECTED_STYLE : undefined,
             focusable: !takenByOther,
           };
         });
@@ -352,11 +350,10 @@ namespace microdata {
           choice: SensorChoice,
           control: ui.UiControl<SensorChoice>
         ) => {
-          this.sensorLoggingInfos[rowIdx].name = choice.name;
-          this.sensorLoggingInfos[rowIdx].sensor = choice.sensor
+          this.sensorLoggingInfos[rowIdx].sensor = choice.sensor;
           const sensorButton = this.actions.controls.find(c => c.id === `sensors-${rowIdx}`);
-          sensorButton.bitmap = sensorIDToBitmap(choice.sensor)
-          sensorButton.focusLabel = choice.name
+          sensorButton.bitmap = sensorNameToBitmap(choice.sensor.name, choice.sensor.isJacdacSensor)
+          sensorButton.focusLabel = choice.sensor.name
 
           this.rebuildGrid();
         },
@@ -392,16 +389,15 @@ namespace microdata {
 
     private getRowOfLoggingActions(idx: number): ui.UiControl<GridActions>[] {
       const info = this.sensorLoggingInfos[idx];
-
       return [
         {
           id: `sensors-${idx}`,
           value: "sensors",
-          focusLabel: info.name !== undefined
-            ? info.name
+          focusLabel: info.sensor !== undefined
+            ? info.sensor.name
             : "Choose sensor",
           bitmap: info.sensor !== undefined
-            ? sensorIDToBitmap(info.sensor)
+            ? sensorNameToBitmap(info.sensor.name, info.sensor.isJacdacSensor)
             : this.assets.getBitmap("btn_plus"),
           onActivate: () => this.openSelectSensorsPicker(idx),
         },
@@ -432,8 +428,6 @@ namespace microdata {
       ];
     }
 
-    // This is almost there, when I click Add the 'Add' and 'Done' become unavailable and a new row appears,
-    // which is the correct behaviour. The only issue is that I can't navigate anymore:
     private getRowOfAddRemoveDeleteActions(): ui.UiControl<GridActions>[] {
       let actions: ui.UiControl<GridActions>[] = []
 
@@ -468,9 +462,9 @@ namespace microdata {
             visible: false,
             focusable: false,
           },
-
         )
       }
+
       actions.push(
         {
           id: "done",
@@ -478,9 +472,8 @@ namespace microdata {
           text: "Done",
           onActivate: () => {
             const s: sensors.Sensor[] = this.sensorLoggingInfos.map(info => {
-              let sensor = sensors.getSensor(info.sensor);
-              sensor.setConfig({ measurements: info.number_of_measurements, period: info.measurement_interval_ms })
-              return sensor;
+              info.sensor.setConfig({ measurements: info.number_of_measurements, period: info.measurement_interval_ms })
+              return info.sensor;
             })
 
             this.runtime.push(new DataRecorder(this.runtime, s));
@@ -493,8 +486,7 @@ namespace microdata {
     }
 
     private isSensorLoggingInfoFilledIn(info: SensorLoggingInfo): boolean {
-      return info.name !== undefined &&
-        info.sensor !== undefined &&
+      return info.sensor !== undefined &&
         info.number_of_measurements !== undefined &&
         info.measurement_interval_ms !== undefined;
     }
@@ -503,7 +495,7 @@ namespace microdata {
       const complete = this.sensorLoggingInfos.every(info => this.isSensorLoggingInfoFilledIn(info));
       for (const id of ["add", "done"]) {
         const control = this.actions.controls.find(c => c.id === id);
-        if (!control) continue; // "add" is absent once MAX_SENSORS is reached
+        if (!control) continue;
         control.visible = complete;
         control.focusable = complete;
       }

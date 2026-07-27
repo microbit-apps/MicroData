@@ -8,7 +8,7 @@
         "microphone": "*",
         "datalogger": "*",
         "ui-controls": "github:microbit-apps/ui-controls#v0.0.8",
-        "sensors": "github:microbit-apps/sensors#v0.0.38"
+        "sensors": "github:microbit-apps/sensors#v0.0.52"
     },
     "files": [
         "main.ts",

@@ -1,12 +1,10 @@
 namespace microdata {
   interface SensorChoice {
-    sensor: sensors.MicrobitAndJacdacSensors;
-    name: string;
+    sensor: sensors.Sensor;
   }
 
   type SensorInfo = {
     sensor: sensors.Sensor,
-    name: string,
     nameLabel: ui.UiLabel
     valueLabel: ui.UiLabel
     unitLabel: ui.UiLabel
@@ -41,7 +39,6 @@ namespace microdata {
   export class LiveSensorGraph extends ui.UiScreen {
     private tick: number
     private graphRect: ui.Rect
-    private connectedJacdacSensorSrvs: sensors.JacdacSensorSrvs[];
     private modal: ui.UiPicker<SensorChoice>; // now owned
     private sensorInfos: SensorInfo[]
     private readout: ui.UiStack
@@ -49,6 +46,7 @@ namespace microdata {
     private valueColumn: ui.UiStack
     private unitColumn: ui.UiStack
 
+    private onJacdacChange: () => void;
 
     constructor(runtime: ui.UiRuntime) {
       super(runtime)
@@ -83,61 +81,55 @@ namespace microdata {
         ui.STANDARD_DISPLAY_WIDTH,
         SENSOR_ACTION_BAND_HEIGHT
       );
-      this.connectedJacdacSensorSrvs = sensors.getConnectedJacdacSrvs();
+
+      this.onJacdacChange = () => this.openSelectSensorsPicker();
       this.rebuildModal();
     }
 
-     
-    // I end up just rebuilding and reopening the picker here, which works but
-    // Is there a better way of updating a modal?
-    // I rebuild it instead of updating modal.controls the modal.controls is readonly.
-    // What do you think?
     public activate(): void {
-      jacdac.bus.on(jacdac.DEVICE_CONNECT, () => this.openSelectSensorsPicker())
-      jacdac.bus.on(jacdac.DEVICE_DISCONNECT, () => this.openSelectSensorsPicker())
+      jacdac.bus.on(jacdac.DEVICE_CONNECT, this.onJacdacChange)
+      jacdac.bus.on(jacdac.DEVICE_DISCONNECT, this.onJacdacChange)
     }
 
     public deactivate(): void {
-      jacdac.bus.off(jacdac.DEVICE_CONNECT, () => this.openSelectSensorsPicker())
-      jacdac.bus.off(jacdac.DEVICE_DISCONNECT, () => this.openSelectSensorsPicker())
+      jacdac.bus.off(jacdac.DEVICE_CONNECT, this.onJacdacChange)
+      jacdac.bus.off(jacdac.DEVICE_DISCONNECT, this.onJacdacChange)
     }
 
     private createActions(): ui.UiControl<SensorAction>[] {
       return [
-        ui.button<SensorAction>("sensors", "Sensors", () => {
-          this.connectedJacdacSensorSrvs = sensors.getConnectedJacdacSrvs();
-          this.openSelectSensorsPicker()
-        }),
+        ui.button<SensorAction>("sensors", "Sensors", () => this.openSelectSensorsPicker())
       ];
+    }
+
+    private pruneDisconnectedSensors(connectedSensors: sensors.Sensor[]): void {
+      const connectedNames = connectedSensors.map(s => s.name);
+      const stillConnected = (info: SensorInfo) => connectedNames.indexOf(info.sensor.name) >= 0;
+      const removed = this.sensorInfos.some(info => !stillConnected(info));
+      this.sensorInfos = this.sensorInfos.filter(stillConnected);
+      if (removed) this.rebuildReadout();
     }
 
     private activeIndexForName(name: string): number {
       for (let i = 0; i < this.sensorInfos.length; i++) {
-        if (this.sensorInfos[i].name == name) return i
+        if (this.sensorInfos[i].sensor.name == name)
+          return i
       }
       return -1
     }
 
     // Toggles a sensor channel on or off. Selection is keyed by sensor name.
-    private toggleSensor(
-      choice: SensorChoice,
-      control: ui.UiControl<SensorChoice>
-    ): void {
-      const idx = this.activeIndexForName(choice.name)
+    private toggleSensor(choice: SensorChoice, control: ui.UiControl<SensorChoice>): void {
+      const idx = this.activeIndexForName(choice.sensor.name)
       if (idx >= 0) {
         this.sensorInfos.splice(idx, 1)
         control.style = undefined
       } else {
         // At capacity: leave the cell unselected.
         if (this.sensorInfos.length >= MAX_SENSORS) return
-        let sensor = undefined;
-        try {
-          sensor = sensors.getMicrobitSensor(choice.sensor as number as sensors.MicrobitSensors);
-        } catch (e) {
-          sensor = sensors.getJacdacSensor(choice.sensor as number as sensors.JacdacSensorSrvs, undefined);
-        }
 
-        const nameLabel = new ui.UiLabel(choice.name, 1)
+        const sensor = choice.sensor;
+        const nameLabel = new ui.UiLabel(sensor.name, 1)
         const valueLabel = new ui.UiLabel({
           text: "--",
           color: 1,
@@ -148,7 +140,6 @@ namespace microdata {
         unitLabel.setColor(15)
         this.sensorInfos.push({
           sensor,
-          name: choice.name,
           nameLabel,
           valueLabel,
           unitLabel,
@@ -188,21 +179,25 @@ namespace microdata {
     }
 
     private rebuildModal(): void {
-      // Not really a fan of this casting, need to refactor Sensors type/obj system
-      const availableSensors = (sensors.listAllMicrobitSensors() as number[] as sensors.MicrobitAndJacdacSensors[]).concat(this.connectedJacdacSensorSrvs as number[] as sensors.MicrobitAndJacdacSensors[]);
-      const connectedSensorNames = sensors.listAllMicrobitSensorsAsStrings().concat(this.connectedJacdacSensorSrvs.map(srv => sensors.getRolenameForJacdacSensor(srv)));
+      const availableSensors: sensors.Sensor[] =
+        sensors.getAllMicrobitSensors().concat(sensors.getAllConnectedJacdacSimpleSensors());
+
+      this.pruneDisconnectedSensors(availableSensors);
 
       const sensorControls: ui.UiControl<SensorChoice>[] =
-        connectedSensorNames.map((name: string, i: number) => ({
-          id: `sensor: ${i}`,
-          value: { sensor: availableSensors[i], name },
-          focusLabel: name,
-          bitmap: sensorIDToBitmap(availableSensors[i]),
-          // Reflect current selection so reopening the picker shows what's on.
-          style: this.activeIndexForName(name) >= 0
-            ? SENSOR_SELECTED_STYLE
-            : undefined,
-        }));
+        availableSensors.map((sensor: sensors.Sensor, i: number) => (
+          {
+            id: `sensor-${i}`,
+            value: { sensor },
+            focusLabel: sensor.name,
+            bitmap: sensorNameToBitmap(sensor.name, sensor.isJacdacSensor),
+            // Reflect current selection so reopening the picker shows what's on.
+            style: this.activeIndexForName(sensor.name) >= 0
+              ? SENSOR_SELECTED_STYLE
+              : undefined,
+          }
+        )
+        );
 
       this.modal = new ui.UiPicker<SensorChoice>({
         modalScopeId: SENSOR_PICKER_SCOPE,
@@ -215,15 +210,11 @@ namespace microdata {
         controlStyle: ui.UiButtonStyles.LightShadowedWhite,
         // Stay open so the user can toggle several sensors before backing out.
         closeOnActivate: true,
-        onActivate: (
-          choice: SensorChoice,
-          control: ui.UiControl<SensorChoice>
-        ) => this.toggleSensor(choice, control),
+        onActivate: (choice: SensorChoice, control: ui.UiControl<SensorChoice>) => this.toggleSensor(choice, control),
       });
     }
 
     private openSelectSensorsPicker(): void {
-      this.connectedJacdacSensorSrvs = sensors.getConnectedJacdacSrvs();
       this.rebuildModal();
       this.openModal(this.modal)
     }
@@ -259,21 +250,8 @@ namespace microdata {
         let previousX = 0
         let previousY = 0
         for (let i = 0; i < values.length; i++) {
-          const x =
-            this.graphRect.x +
-            2 +
-            Math.idiv(
-              i * (this.graphRect.width - 4),
-              values.length - 1,
-            )
-          const y =
-            this.graphRect.y +
-            this.graphRect.height -
-            3 -
-            Math.idiv(
-              (values[i] - sensor.min) * (this.graphRect.height - 6),
-              range
-            );
+          const x = this.graphRect.x + 2 + Math.idiv(i * (this.graphRect.width - 4), values.length - 1)
+          const y = this.graphRect.y + this.graphRect.height - 3 - Math.idiv((values[i] - sensor.min) * (this.graphRect.height - 6), range);
 
           if (i > 0)
             surface.drawLine(previousX, previousY, x, y, color)
@@ -287,3 +265,4 @@ namespace microdata {
     }
   }
 }
+

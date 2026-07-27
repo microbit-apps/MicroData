@@ -41,56 +41,51 @@ namespace microdata {
   /**
   * NOTE: Need to add the correct Jacdac logo
   */
-  export function sensorIDToBitmap(id: sensors.MicrobitAndJacdacSensors): Bitmap | undefined {
-    switch (id) {
-      case sensors.MicrobitAndJacdacSensors.AccelerometerX: {
+  export function sensorNameToBitmap(name: string, isJacdacSensor?: boolean): Bitmap | undefined {
+    if (isJacdacSensor) return ui.microbitLogoWhiteBackground
+
+    switch (name) {
+      case "Accel. X": {
         return ui.accelerometer;
       }
-      case sensors.MicrobitAndJacdacSensors.AccelerometerY: {
+      case "Accel. Y": {
         return ui.accelerometer;
       }
-      case sensors.MicrobitAndJacdacSensors.AccelerometerZ: {
+      case "Accel. Z": {
         return ui.accelerometer;
       }
-      case sensors.MicrobitAndJacdacSensors.Pitch: {
+      case "Pitch": {
         return ui.car_right_turn;
       }
-      case sensors.MicrobitAndJacdacSensors.Roll: {
+      case "Roll": {
         return ui.car_right_spin;
       }
-      case sensors.MicrobitAndJacdacSensors.AnalogPin0: {
+      case "A. Pin 0": {
         return ui.pin_0;
       }
-      case sensors.MicrobitAndJacdacSensors.AnalogPin1: {
+      case "A. Pin 1": {
         return ui.pin_1;
       }
-      case sensors.MicrobitAndJacdacSensors.AnalogPin2: {
+      case "A. Pin 2": {
         return ui.pin_2;
       }
-      case sensors.MicrobitAndJacdacSensors.Light: {
+      case "Light": {
         return ui.led_light_sensor;
       }
-      case sensors.MicrobitAndJacdacSensors.Temperature: {
+      case "Temperature": {
         return ui.thermometer;
       }
-      case sensors.MicrobitAndJacdacSensors.Magnetometer: {
+      case "Magnetometer": {
         return ui.magnet;
       }
-      case sensors.MicrobitAndJacdacSensors.Logo: {
+      case "Logo Press": {
         return ui.finger_press;
       }
-      case sensors.MicrobitAndJacdacSensors.Volume: {
+      case "Microphone": {
         return ui.microphone;
       }
-      case sensors.MicrobitAndJacdacSensors.Compass: {
+      case "Compass": {
         return ui.compass;
-      }
-    }
-
-    // Check all jacdac simple sensors:
-    for (let i = 0; i < sensors.JacdacSimpleSensorSrvs.length; i++) {
-      if (id === sensors.JacdacSimpleSensorSrvs[i]) {
-        return ui.microbitLogoWhiteBackground // NOTE: Update bitmap
       }
     }
 
