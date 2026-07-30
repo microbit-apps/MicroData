@@ -38,7 +38,7 @@ namespace microdata {
         this.action("realtime", ui.linearGraph1, "Real-time Data", () =>
           this.runtime.push(new LiveSensorGraph(this.runtime))
         ),
-        this.action("log", ui.largeEditIcon, "Log Data", () => this.runtime.push(new RecordData(this.runtime))),
+        this.action("log", ui.largeEditIcon, "Log Data", () => this.runtime.push(new SensorLoggingSetup(this.runtime))),
         this.action("command", ui.radio_set_group, "Command Mode", () =>
           this.runtime.pop()
         ),

@@ -15,7 +15,9 @@
         "assets.ts",
         "home.ts",
         "liveSensorGraph.ts",
-        "dataRecorder.ts"
+        "dataRecorder.ts",
+        "sensorLoggingSetup.ts",
+        "sensorPicker.ts"
     ],
     "testFiles": [
         "test.ts"

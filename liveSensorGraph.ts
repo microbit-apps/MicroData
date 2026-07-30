@@ -1,8 +1,4 @@
 namespace microdata {
-  interface SensorChoice {
-    sensor: sensors.Sensor;
-  }
-
   type SensorInfo = {
     sensor: sensors.Sensor,
     nameLabel: ui.UiLabel
@@ -12,34 +8,20 @@ namespace microdata {
 
   type SensorAction = "sensors"
 
+  const MAX_SELECTABLE_SENSORS = 3
   const SENSOR_ACTION_SCOPE = "live-graph/actions"
   const SENSOR_ACTION_GAP = 8
   const SENSOR_ACTION_BAND_HEIGHT = 24
   const SENSOR_ACTION_CENTER_Y = 110
-  const MAX_SENSORS = 3
-
-  const SENSOR_PICKER_SCOPE = "select-sensor"
-  const SENSOR_PICKER_COLUMNS = 5
-  const SENSOR_PICKER_ITEM = 28
-  const SENSOR_PICKER_GAP = 4
 
   const SENSOR_READOUT_X = 4
   const SENSOR_READOUT_Y = 1
   const SENSOR_ROW_GAP = 3
   const SENSOR_VALUE_WIDTH = 30
 
-  // Selected sensors get a thick yellow rounded border.
-  const SENSOR_SELECTED_STYLE: ui.UiButtonStyle = {
-    backgroundColor: 1,
-    frame: "roundedRect",
-    borderColor: 5,
-    borderThickness: 3,
-  }
-
   export class LiveSensorGraph extends ui.UiScreen {
     private tick: number
     private graphRect: ui.Rect
-    private modal: ui.UiPicker<SensorChoice>; // now owned
     private sensorInfos: SensorInfo[]
     private readout: ui.UiStack
     private nameColumn: ui.UiStack
@@ -82,8 +64,7 @@ namespace microdata {
         SENSOR_ACTION_BAND_HEIGHT
       );
 
-      this.onJacdacChange = () => this.openSelectSensorsPicker();
-      this.rebuildModal();
+      this.onJacdacChange = () => this.pruneDisconnectedSensors(getAvailableMicrobitAndJacdacSensors())
     }
 
     public activate(): void {
@@ -98,7 +79,20 @@ namespace microdata {
 
     private createActions(): ui.UiControl<SensorAction>[] {
       return [
-        ui.button<SensorAction>("sensors", "Sensors", () => this.openSelectSensorsPicker())
+        ui.button<SensorAction>("sensors", "Sensors", () => openSensorPicker(
+          getAvailableMicrobitAndJacdacSensors,
+          {
+            screen: this,
+            selected: () => this.sensorInfos.map(info => info.sensor),
+            maxSelectableSensorNum: MAX_SELECTABLE_SENSORS,
+            onPick: sensor => this.toggleSensor(sensor),
+            onUnpick: index => {
+              this.sensorInfos.splice(index, 1)
+              this.rebuildReadout()
+            },
+          }
+        )
+        )
       ];
     }
 
@@ -116,37 +110,6 @@ namespace microdata {
           return i
       }
       return -1
-    }
-
-    // Toggles a sensor channel on or off. Selection is keyed by sensor name.
-    private toggleSensor(choice: SensorChoice, control: ui.UiControl<SensorChoice>): void {
-      const idx = this.activeIndexForName(choice.sensor.name)
-      if (idx >= 0) {
-        this.sensorInfos.splice(idx, 1)
-        control.style = undefined
-      } else {
-        // At capacity: leave the cell unselected.
-        if (this.sensorInfos.length >= MAX_SENSORS) return
-
-        const sensor = choice.sensor;
-        const nameLabel = new ui.UiLabel(sensor.name, 1)
-        const valueLabel = new ui.UiLabel({
-          text: "--",
-          color: 1,
-          size: { width: SENSOR_VALUE_WIDTH },
-        })
-        const unitLabel = new ui.UiLabel(`${sensor.unitSymbol}`, 1)
-        nameLabel.setColor(15)
-        unitLabel.setColor(15)
-        this.sensorInfos.push({
-          sensor,
-          nameLabel,
-          valueLabel,
-          unitLabel,
-        })
-        control.style = SENSOR_SELECTED_STYLE
-      }
-      this.rebuildReadout()
     }
 
     // Sets each readout column from the active sensors and assigns each value
@@ -178,45 +141,26 @@ namespace microdata {
       return undefined;
     }
 
-    private rebuildModal(): void {
-      const availableSensors: sensors.Sensor[] =
-        sensors.getAllMicrobitSensors().concat(sensors.getAllConnectedJacdacSimpleSensors());
-
-      this.pruneDisconnectedSensors(availableSensors);
-
-      const sensorControls: ui.UiControl<SensorChoice>[] =
-        availableSensors.map((sensor: sensors.Sensor, i: number) => (
-          {
-            id: `sensor-${i}`,
-            value: { sensor },
-            focusLabel: sensor.name,
-            bitmap: sensorNameToBitmap(sensor.name, sensor.isJacdacSensor),
-            // Reflect current selection so reopening the picker shows what's on.
-            style: this.activeIndexForName(sensor.name) >= 0
-              ? SENSOR_SELECTED_STYLE
-              : undefined,
-          }
-        )
-        );
-
-      this.modal = new ui.UiPicker<SensorChoice>({
-        modalScopeId: SENSOR_PICKER_SCOPE,
-        title: "Sensors",
-        controls: sensorControls,
-        columnCount: SENSOR_PICKER_COLUMNS,
-        controlSize: { width: SENSOR_PICKER_ITEM, height: SENSOR_PICKER_ITEM },
-        columnGap: SENSOR_PICKER_GAP,
-        rowGap: SENSOR_PICKER_GAP,
-        controlStyle: ui.UiButtonStyles.LightShadowedWhite,
-        // Stay open so the user can toggle several sensors before backing out.
-        closeOnActivate: true,
-        onActivate: (choice: SensorChoice, control: ui.UiControl<SensorChoice>) => this.toggleSensor(choice, control),
-      });
-    }
-
-    private openSelectSensorsPicker(): void {
-      this.rebuildModal();
-      this.openModal(this.modal)
+    // Toggles a sensor channel on or off. Selection is keyed by sensor name.
+    private toggleSensor(sensor: sensors.Sensor): void {
+      const idx = this.activeIndexForName(sensor.name)
+      if (idx >= 0) {
+        this.sensorInfos.splice(idx, 1)
+      } else {
+        // The picker locks these out, but guard the array regardless.
+        if (this.sensorInfos.length >= MAX_SELECTABLE_SENSORS) return
+        const nameLabel = new ui.UiLabel(sensor.name, 1)
+        const valueLabel = new ui.UiLabel({
+          text: "--",
+          color: 1,
+          size: { width: SENSOR_VALUE_WIDTH },
+        })
+        const unitLabel = new ui.UiLabel(`${sensor.unitSymbol}`, 1)
+        nameLabel.setColor(15)
+        unitLabel.setColor(15)
+        this.sensorInfos.push({ sensor, nameLabel, valueLabel, unitLabel })
+      }
+      this.rebuildReadout()
     }
 
     public update(): void {
@@ -265,4 +209,3 @@ namespace microdata {
     }
   }
 }
-
