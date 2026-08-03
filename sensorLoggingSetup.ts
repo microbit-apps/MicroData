@@ -10,14 +10,17 @@ namespace microdata {
   const CONFIG_IDS = ["length", "length_unit", "interval", "interval_unit"]
   const CONFIG_LABELS = ["Total recording time", "Units", "Recording interval time", "Units"]
 
-  const ACTION_COLUMNS = 4
   const ACTION_WIDTH = 34
   const ACTION_HEIGHT = 22
-  const ACTION_GAP_H = 4
-  const ACTION_GAP_V = 5
-  const ACTION_ROWS: number[] = [CONFIG_IDS.length, MAX_SENSORS, 1]
-  const ACTION_BAND_HEIGHT = ACTION_ROWS.length * ACTION_HEIGHT + (ACTION_ROWS.length - 1) * ACTION_GAP_V
-  const ACTION_CENTER_Y = ui.STANDARD_DISPLAY_HEIGHT >> 1
+  const ACTION_GAP = 4
+  const DONE_WIDTH = 44
+  const DONE_HEIGHT = 20
+
+  const LABEL_COLOR = 15
+  const ACTION_TOP_Y = 2
+  const GAP_BEFORE_HEADER = 3
+  const GAP_BEFORE_ROW = 4
+  const GAP_BEFORE_DONE = 12
 
   const TIME_UNITS: string[] = ["ms", "sec", "min", "hr"]
   const TIME_UNIT_MS: number[] = [1, 1000, 60000, 3600000]
@@ -34,7 +37,10 @@ namespace microdata {
   export class SensorLoggingSetup extends ui.UiScreen {
     private recordingConfig: RecordingConfig
     private selectedSensors: sensors.Sensor[]
-    private actions: ui.UiGrid<GridActions>
+    private configRow: ui.UiRow<GridActions>
+    private sensorRow: ui.UiRow<GridActions>
+    private doneRow: ui.UiRow<GridActions>
+    private actions: ui.UiStack
 
     constructor(runtime: ui.UiRuntime) {
       super(runtime)
@@ -49,24 +55,39 @@ namespace microdata {
 
       this.selectedSensors = []
 
-      this.actions = new ui.UiGrid<GridActions>({
+      // One row per band, each sized and centered on its own width. The stack
+      // below owns the focus scope and assigns it to all three, so they
+      // navigate as one ragged grid:
+      this.configRow = this.createRow(this.createConfigActions(), ACTION_WIDTH, ACTION_HEIGHT)
+      this.sensorRow = this.createRow(this.createSensorActions(), ACTION_WIDTH, ACTION_HEIGHT)
+      this.doneRow = this.createRow(
+        [{ id: "done", value: "done", onActivate: () => { } }],
+        DONE_WIDTH,
+        DONE_HEIGHT
+      )
+
+      this.actions = new ui.UiStack({
+        orientation: "column",
         scopeId: ACTION_SCOPE,
-        controls: this.createActions(),
-        controlSize: { width: ACTION_WIDTH, height: ACTION_HEIGHT },
-        columnCount: ACTION_COLUMNS,
-        rows: ACTION_ROWS,
-        controlStyle: ui.UiButtonStyles.LightShadowedWhite,
-        rowGap: ACTION_GAP_V,
-        columnGap: ACTION_GAP_H,
+        alignment: "center",
+        wrap: true,
+        gap: 0,
+        children: [
+          { view: new ui.UiLabel({ text: "Data logging setup", color: LABEL_COLOR }) },
+          { view: new ui.UiLabel({ text: "Recording time", color: LABEL_COLOR }), gapBefore: GAP_BEFORE_HEADER },
+          { view: this.configRow, gapBefore: GAP_BEFORE_ROW },
+          { view: new ui.UiLabel({ text: "Sensors", color: LABEL_COLOR }), gapBefore: GAP_BEFORE_HEADER },
+          { view: this.sensorRow, gapBefore: GAP_BEFORE_ROW },
+          { view: this.doneRow, gapBefore: GAP_BEFORE_DONE },
+        ],
       })
 
-      this.add(new ui.UiLabel({ text: "Data logging setup", color: 15 }), { x: 24, y: 4 });
-      this.addCentered(
-        this.actions,
-        ACTION_CENTER_Y,
-        ui.STANDARD_DISPLAY_WIDTH,
-        ACTION_BAND_HEIGHT
-      )
+      this.add(this.actions, {
+        x: 0,
+        y: ACTION_TOP_Y,
+        width: ui.STANDARD_DISPLAY_WIDTH,
+        horizontalAlignment: "center",
+      })
       this.syncActionsWithSelectedSensors()
 
       sensors.onSimpleSensorChange(() => {
@@ -84,9 +105,22 @@ namespace microdata {
       return undefined
     }
 
-    private createActions(): ui.UiControl<GridActions>[] {
+    private createRow(
+      controls: ui.UiControl<GridActions>[],
+      width: number,
+      height: number
+    ): ui.UiRow<GridActions> {
+      return new ui.UiRow<GridActions>({
+        controls,
+        controlSize: { width, height },
+        controlStyle: ui.UiButtonStyles.LightShadowedWhite,
+        gap: ACTION_GAP,
+      })
+    }
+
+    private createConfigActions(): ui.UiControl<GridActions>[] {
       const cfg = this.recordingConfig
-      const controls: ui.UiControl<GridActions>[] = [
+      return [
         {
           id: "length", value: "length",
           onActivate: () => this.editNumber(LENGTH_ENTRY_SCOPE, cfg.length, v => { cfg.length = v }),
@@ -104,11 +138,12 @@ namespace microdata {
           onActivate: () => this.editUnit(INTERVAL_UNIT_SCOPE, "Interval units", u => { cfg.intervalUnit = u }),
         },
       ]
+    }
 
+    private createSensorActions(): ui.UiControl<GridActions>[] {
+      const controls: ui.UiControl<GridActions>[] = []
       for (let i = 0; i < MAX_SENSORS; i++)
         controls.push(this.createSensorAction(i))
-
-      controls.push({ id: "done", value: "done", onActivate: () => { } })
       return controls
     }
 
@@ -121,7 +156,9 @@ namespace microdata {
     }
 
     private action(id: string): ui.UiControl<GridActions> {
-      return this.actions.controls.find(c => c.id === id)
+      const control = this.configRow.controls.find(c => c.id === id)
+        || this.sensorRow.controls.find(c => c.id === id)
+      return control || this.doneRow.controls.find(c => c.id === id)
     }
 
     // Update the text, focusLabel, bitmap, etc for the config and sensors buttons.
@@ -156,14 +193,14 @@ namespace microdata {
           control.bitmap = sensorNameToBitmap(sensor.name, sensor.isJacdacSensor)
       }
 
-      this.syncAction("done", this.selectedSensors.length > 0, "Done", "Done")
+      this.syncAction("done", this.selectedSensors.length > 0, undefined, "Done")
 
       this.actions.invalidateLayout()
       this.actions.registerFocusTargets(this.focus)
       this.actions.registerNavigation(this.focusInput)
     }
 
-    private syncAction(id: string, visible: boolean, label: string, text: string): ui.UiControl<GridActions> {
+    private syncAction(id: string, visible: boolean, label?: string, text?: string): ui.UiControl<GridActions> {
       const control = this.action(id)
       control.visible = visible
       control.focusable = visible
