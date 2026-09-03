@@ -39,14 +39,18 @@ namespace microdata {
 
       this.sensorInfos = []
 
-      this.nameColumn = new ui.UiStack({ orientation: "column", children: [], gap: 0 })
-      this.valueColumn = new ui.UiStack({ orientation: "column", children: [], gap: 0 })
-      this.unitColumn = new ui.UiStack({ orientation: "column", children: [], gap: 0 })
+      this.nameColumn = new ui.UiStack({ orientation: "column", gap: 0 })
+      this.valueColumn = new ui.UiStack({ orientation: "column", gap: 0 })
+      this.unitColumn = new ui.UiStack({ orientation: "column", gap: 0 })
       this.readout = new ui.UiStack({
         orientation: "row",
-        children: [this.nameColumn, this.valueColumn, this.unitColumn],
+        children: [
+          { view: this.nameColumn },
+          { view: this.valueColumn },
+          { view: this.unitColumn },
+        ],
         gap: SENSOR_ROW_GAP,
-      })
+      });
       this.add(this.readout, { x: SENSOR_READOUT_X, y: SENSOR_READOUT_Y })
 
       const actions = new ui.UiRow<SensorAction>({
@@ -115,15 +119,15 @@ namespace microdata {
     // Sets each readout column from the active sensors and assigns each value
     // label's color to match its graph line.
     private rebuildReadout(): void {
-      const names: ui.UiView<any>[] = []
-      const values: ui.UiView<any>[] = []
-      const units: ui.UiView<any>[] = []
+      const names: ui.UiStackChild[] = []
+      const values: ui.UiStackChild[] = []
+      const units: ui.UiStackChild[] = []
       for (let i = 0; i < this.sensorInfos.length; i++) {
         const info = this.sensorInfos[i]
         info.valueLabel.setColor(2 + i)
-        names.push(info.nameLabel)
-        values.push(info.valueLabel)
-        units.push(info.unitLabel)
+        names.push({ view: info.nameLabel })
+        values.push({ view: info.valueLabel })
+        units.push({ view: info.unitLabel })
       }
       this.nameColumn.setChildren(names)
       this.valueColumn.setChildren(values)

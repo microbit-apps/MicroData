@@ -7,7 +7,7 @@
         "radio": "*",
         "microphone": "*",
         "datalogger": "*",
-        "ui-controls": "github:microbit-apps/ui-controls#v0.0.8",
+        "ui-controls": "file:../ui-controls",
         "sensors": "github:microbit-apps/sensors#v0.0.52"
     },
     "files": [
