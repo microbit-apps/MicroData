@@ -1,146 +1,113 @@
 namespace microdata {
-  import Screen = user_interface_base.Screen
-  import CursorScene = user_interface_base.CursorScene
-  import Button = user_interface_base.Button
-  import ButtonStyles = user_interface_base.ButtonStyles
-  import AppInterface = user_interface_base.AppInterface
-  
-  import font = user_interface_base.font
+  type HomeAction = "realtime" | "log" | "command" | "view"
 
-  export class Home extends CursorScene {
-    constructor(app: AppInterface) {
-      super(app)
+  const HOME_ACTION_SCOPE = "home/actions"
+  const HOME_ACTION_SIZE = 30
+  const HOME_ACTION_GAP = 10
+  const HOME_ACTION_CENTER_Y = ui.STANDARD_DISPLAY_HEIGHT - 32
+
+  export class Home extends ui.UiScreen {
+    constructor(runtime: ui.UiRuntime) {
+      super(runtime);
+
+      const actions = new ui.UiRow<HomeAction>({
+        scopeId: HOME_ACTION_SCOPE,
+        controls: this.createActions(),
+        controlSize: { width: HOME_ACTION_SIZE, height: HOME_ACTION_SIZE },
+        gap: HOME_ACTION_GAP,
+        controlStyle: ui.UiButtonStyles.Transparent,
+        labelBounds: new ui.Rect(
+          0,
+          0,
+          ui.STANDARD_DISPLAY_WIDTH,
+          ui.STANDARD_DISPLAY_HEIGHT
+        ),
+        wrap: true,
+      });
+
+      this.addCentered(
+        actions,
+        HOME_ACTION_CENTER_Y,
+        ui.STANDARD_DISPLAY_WIDTH,
+        HOME_ACTION_SIZE
+      );
     }
 
-        /* override */ startup() {
-      super.startup()
-      basic.pause(50);
-
-      const y = 25
-
-      this.navigator.setBtns([[
-        new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "linear_graph_1",
-          ariaId: "Real-time Data",
-          x: -58,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.LiveDataViewer))
-          },
-        }),
-
-        new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "edit_program",
-          ariaId: "Log Data",
-          x: -20,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
-          },
-        }),
-
-        new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "radio_set_group",
-          ariaId: "Command Mode",
-          x: 20,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new DistributedLoggingScreen(this.app))
-          },
-        }),
-
-        new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "largeDisk",
-          ariaId: "View Data & Settings",
-          x: 58,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new DataViewSelect(this.app))
-          },
-        })
-      ]])
+    private createActions(): ui.UiControl<HomeAction>[] {
+      return [
+        this.action("realtime", ui.linearGraph1, "Real-time Data", () =>
+          this.runtime.push(new LiveSensorGraph(this.runtime))
+        ),
+        this.action("log", ui.largeEditIcon, "Log Data", () => this.runtime.push(new SensorLoggingSetup(this.runtime))),
+        this.action("command", ui.radio_set_group, "Command Mode", () =>
+          this.runtime.pop()
+        ),
+        this.action("view", ui.largeDisk, "View Data & Settings", () =>
+          this.runtime.pop()
+        ),
+      ];
     }
 
-    private drawVersion() {
-      const font = bitmaps.font5
-      const text = "v1.7.5"
-      Screen.print(
-        text,
-        Screen.RIGHT_EDGE - (font.charWidth * text.length),
-        Screen.BOTTOM_EDGE - font.charHeight - 2,
-        0xb,
-        font
-      )
+    // The row owns a single focus scope and arranges its controls; left/right
+    // navigation and activation are handled by the focus runtime, so no
+    // handleInput override is needed here.
+    private action(
+      id: HomeAction,
+      bitmap: Bitmap,
+      focusLabel: string,
+      onActivate: () => void
+    ): ui.UiControl<HomeAction> {
+      const control = ui.button<HomeAction>(id, { bitmap }, onActivate);
+      control.focusLabel = focusLabel;
+      return control;
     }
 
-    private yOffset = -Screen.HEIGHT >> 1
-    draw() {
-      Screen.fillRect(
-        Screen.LEFT_EDGE,
-        Screen.TOP_EDGE,
-        Screen.WIDTH,
-        Screen.HEIGHT,
-        0xc
-      )
-
-      const microbitLogo = Icons.get("microbitLogo")
-      const microdataLogo = Icons.get("microdataLogo")
-
+    private yOffset = -ui.STANDARD_DISPLAY_HEIGHT >> 1
+    render(surface: ui.DrawSurface): void {
       this.yOffset = Math.min(0, this.yOffset + 2)
       const t = control.millis()
       const dy = this.yOffset == 0 ? (Math.idiv(t, 800) & 1) - 1 : 0
       const margin = 2
-      const OFFSET = (Screen.HEIGHT >> 1) - microdataLogo.height - margin - 9
-      const y = Screen.TOP_EDGE + OFFSET //+ dy
-      Screen.drawTransparentImage(
-        microdataLogo,
-        Screen.LEFT_EDGE + ((Screen.WIDTH - microdataLogo.width) >> 1)// + dy
-        ,
-        y + this.yOffset
-      )
+      const OFFSET = (ui.STANDARD_DISPLAY_HEIGHT >> 1) - microdataLogo.height - margin - 9
+      const y = OFFSET
 
-      Screen.drawTransparentImage(
-        microbitLogo,
-        Screen.LEFT_EDGE +
-        ((Screen.WIDTH - microbitLogo.width) >> 1) + dy
-        ,
+      surface.clear(0xC);
+
+      surface.drawBitmap(
+        microdataLogo,
+        ((ui.STANDARD_DISPLAY_WIDTH - microdataLogo.width) >> 1) + dy,
+        y + this.yOffset
+      );
+
+      surface.drawBitmap(
+        ui.microbitLogo,
+        ((ui.STANDARD_DISPLAY_WIDTH - ui.microbitLogo.width) >> 1) + dy,
         y - microdataLogo.height + this.yOffset + margin
-      )
+      );
 
       if (!this.yOffset) {
-        Screen.print(
+        const size: ui.Size = surface.measureText("direct", bitmaps.font8)
+        surface.drawText(
           "Mini-measurer",
-          Screen.LEFT_EDGE +
-          ((Screen.WIDTH + microdataLogo.width) >> 1)
-          + dy
-          -
-          font.charWidth * "Mini-measurer".length,
-          Screen.TOP_EDGE +
-          OFFSET +
-          microdataLogo.height +
-          dy +
-          this.yOffset +
-          3,
-          0xb,
-          font
+          ((ui.STANDARD_DISPLAY_WIDTH + microdataLogo.width) >> 1) + dy - (size.width << 1),
+          OFFSET + microdataLogo.height + dy + this.yOffset + 3,
+          { color: 1, font: bitmaps.font8 }
         )
       }
 
-      this.navigator.drawComponents();
-      this.drawVersion()
-      super.draw()
+      // draw version:
+      const font = bitmaps.font5
+      const text = "v1.9.0"
+      const size: ui.Size = surface.measureText("direct", font)
+
+      surface.drawText(
+        text,
+        ui.STANDARD_DISPLAY_WIDTH - size.width,
+        ui.STANDARD_DISPLAY_HEIGHT - size.height - 2,
+        { color: 0xb, font }
+      )
+
+      super.render(surface) // row of action buttons
     }
   }
 }
