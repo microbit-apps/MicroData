@@ -89,26 +89,26 @@ namespace microdata {
       const controls: ui.UiControl<GridActions>[] = [
         {
           id: "length", value: "length",
-          onActivate: () => this.editNumber(LENGTH_ENTRY_SCOPE, cfg.length, v => { cfg.length = v }),
+          onActivate: () => this.editNumber(LENGTH_ENTRY_SCOPE, cfg.length, undefined, v => { cfg.length = v }),
         },
         {
           id: "length_unit", value: "length_unit",
-          onActivate: () => this.editUnit(LENGTH_UNIT_SCOPE, "Total recording time units", u => { cfg.lengthUnit = u }),
+          onActivate: () => this.editUnit(LENGTH_UNIT_SCOPE, "Total recording time units", TIME_UNITS, u => { cfg.lengthUnit = u }),
         },
         {
           id: "interval", value: "interval",
-          onActivate: () => this.editNumber(INTERVAL_ENTRY_SCOPE, cfg.interval, v => { cfg.interval = v }),
+          onActivate: () => this.editNumber(INTERVAL_ENTRY_SCOPE, cfg.interval, this.maxInterval(), v => { cfg.interval = v }),
         },
         {
           id: "interval_unit", value: "interval_unit",
-          onActivate: () => this.editUnit(INTERVAL_UNIT_SCOPE, "Interval units", u => { cfg.intervalUnit = u }),
+          onActivate: () => this.editUnit(INTERVAL_UNIT_SCOPE, "Interval units", this.feasibleIntervalUnits(), u => { cfg.intervalUnit = u }),
         },
       ]
 
       for (let i = 0; i < MAX_SENSORS; i++)
         controls.push(this.createSensorAction(i))
 
-      controls.push({ id: "done", value: "done", onActivate: () => { } })
+      controls.push({ id: "done", value: "done", onActivate: () => this.startRecording() })
       return controls
     }
 
@@ -173,16 +173,26 @@ namespace microdata {
       return control
     }
 
-    private editNumber(scopeId: string, value: number, apply: (value: number) => void): void {
-      this.openModal(new ui.UiNumericEntryModal(scopeId, value, v => {
-        apply(v)
-        this.syncActionsWithSelectedSensors()
+    private editNumber(scopeId: string, value: number, max: number | undefined, apply: (value: number) => void): void {
+      this.openModal(new ui.UiNumericEntryModal({
+        modalScopeId: scopeId,
+        mode: "positiveInteger",
+        initialText: value === undefined ? "" : "" + value,
+        validate: max === undefined ? undefined : (_mode, candidate) =>
+          parseFloat(candidate) > max ? "rejected" : "accepted",
+        onResult: result => {
+          if (result.kind !== "completed") return
+          apply(result.value)
+          this.constrainRecordingConfig()
+          this.syncActionsWithSelectedSensors()
+        },
       }))
     }
 
-    private editUnit(scopeId: string, title: string, apply: (unit: string) => void): void {
-      this.openModal(new ui.UiPicker<string>(scopeId, title, TIME_UNITS, u => {
+    private editUnit(scopeId: string, title: string, units: string[], apply: (unit: string) => void): void {
+      this.openModal(new ui.UiPicker<string>(scopeId, title, units, u => {
         apply(u)
+        this.constrainRecordingConfig()
         this.syncActionsWithSelectedSensors()
       }))
     }
@@ -219,8 +229,59 @@ namespace microdata {
       this.syncActionsWithSelectedSensors()
     }
 
+    private unitMs(unit: string): number {
+      return TIME_UNIT_MS[TIME_UNITS.indexOf(unit)]
+    }
+
     private toMs(value: number, unit: string): number {
-      return value * TIME_UNIT_MS[TIME_UNITS.indexOf(unit)]
+      return value * this.unitMs(unit)
+    }
+
+    private totalMs(): number | undefined {
+      const cfg = this.recordingConfig
+      return (cfg.length === undefined || cfg.lengthUnit === undefined)
+        ? undefined
+        : this.toMs(cfg.length, cfg.lengthUnit)
+    }
+
+    private intervalMs(): number | undefined {
+      const cfg = this.recordingConfig
+      return (cfg.interval === undefined || cfg.intervalUnit === undefined)
+        ? undefined
+        : this.toMs(cfg.interval, cfg.intervalUnit)
+    }
+
+    private maxInterval(): number | undefined {
+      const total = this.totalMs()
+      if (total === undefined) return undefined
+      const intervalUnit = this.recordingConfig.intervalUnit
+      return (intervalUnit === undefined) ? total : Math.floor(total / this.unitMs(intervalUnit))
+    }
+
+    private feasibleIntervalUnits(): string[] {
+      const total = this.totalMs()
+      return (total === undefined) ? TIME_UNITS : TIME_UNITS.filter((_, i) => TIME_UNIT_MS[i] <= total)
+    }
+
+    private constrainRecordingConfig(): void {
+      const cfg = this.recordingConfig
+      const total = this.totalMs()
+      if (total === undefined || cfg.intervalUnit === undefined) return
+      let idx = TIME_UNITS.indexOf(cfg.intervalUnit)
+      while (TIME_UNIT_MS[idx] > total) idx--
+      cfg.intervalUnit = TIME_UNITS[idx]
+      const interval = this.intervalMs()
+      if (interval !== undefined && interval > total)
+        cfg.interval = Math.max(1, Math.idiv(total, TIME_UNIT_MS[idx]))
+    }
+
+    private startRecording(): void {
+      const total = this.totalMs()
+      const period = this.intervalMs()
+      if (total === undefined || period === undefined || period <= 0) return
+      const measurements = Math.max(1, Math.idiv(total, period))
+      this.selectedSensors.forEach(sensor => sensor.setConfig({ measurements, period }))
+      this.runtime.push(new DataRecorder(this.runtime, this.selectedSensors))
     }
   }
 }

@@ -1,132 +1,93 @@
 namespace microdata {
-  import Screen = user_interface_base.Screen
-  import CursorScene = user_interface_base.CursorScene
-  import Button = user_interface_base.Button
-  import ButtonStyles = user_interface_base.ButtonStyles
-  import AppInterface = user_interface_base.AppInterface
+  type DataViewAction = "view" | "reset"
 
-  /**
-   * Choose between:
-   *      Resetting Datalogger
-   *      A tabular view of the recorded data
-   *      Jacdac light experiment
-   */
-  export class DataViewSelect extends CursorScene {
-    private dataloggerEmpty: boolean
+  const DATA_VIEW_SCOPE = "data-view/actions"
+  const DATA_VIEW_COLUMNS = 1
+  const DATA_VIEW_WIDTH = 104
+  const DATA_VIEW_HEIGHT = 24
+  const DATA_VIEW_GAP = 8
 
-    constructor(app: AppInterface) {
-      super(app);
-    }
+  export class DataViewSelect extends ui.UiScreen {
+    private hasData: boolean
+    private actions: ui.UiGrid<DataViewAction>
 
-    /* override */ startup() {
-      super.startup()
-      basic.pause(50);
+    constructor(runtime: ui.UiRuntime) {
+      super(runtime)
 
-      // Includes the header:
-      this.dataloggerEmpty = datalogger.getNumberOfRows() <= 1
+      this.backgroundColor = 6
+      // Reading the log before its filesystem has been mounted returns garbage:
+      datalogger.includeTimestamp(FlashLogTimeStampFormat.Seconds)
+      this.hasData = datalogger.getNumberOfRows() > 1
 
-      const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
-
-      let btns: Button[][] = [[]];
-
-      if (this.dataloggerEmpty) {
-        btns[0].push(new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "edit_program",
-          ariaId: "Log Data",
-          x: -50,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
+      this.actions = new ui.UiGrid<DataViewAction>({
+        scopeId: DATA_VIEW_SCOPE,
+        controls: [
+          {
+            id: "view", value: "view",
+            onActivate: () => this.runtime.push(new TabularDataViewer(this.runtime)),
           },
-        }))
-      } else {
-        btns[0].push(new Button({
-          parent: null,
-          style: ButtonStyles.Transparent,
-          icon: "largeDisk",
-          ariaId: "View Data",
-          x: -50,
-          y,
-          onClick: () => {
-            this.app.popScene()
-            this.app.pushScene(new TabularDataViewer(this.app, () => { this.app.popScene(); this.app.pushScene(new DataViewSelect(this.app)) }))
-          }
-        }))
-      }
+          {
+            id: "reset", value: "reset",
+            onActivate: () => {
+              datalogger.deleteLog()
+              this.hasData = false
+              this.syncActions()
+            },
+          },
+        ],
+        controlSize: { width: DATA_VIEW_WIDTH, height: DATA_VIEW_HEIGHT },
+        columnCount: DATA_VIEW_COLUMNS,
+        controlStyle: ui.UiButtonStyles.LightShadowedWhite,
+        rowGap: DATA_VIEW_GAP,
+      })
 
-      btns[0].push(new Button({
-        parent: null,
-        style: ButtonStyles.Transparent,
-        icon: "linear_graph_1",
-        ariaId: "Jacdac Light Experiment",
-        x: 0,
-        y,
-        onClick: () => {
-          this.app.popScene()
-          this.app.pushScene(new JacdacLightExperiment(this.app))
-        },
-      }))
-
-      btns[0].push(new Button({
-        parent: null,
-        style: ButtonStyles.Transparent,
-        icon: "largeSettingsGear",
-        ariaId: "Reset Datalogger",
-        x: 50,
-        y,
-        onClick: () => {
-          datalogger.deleteLog()
-          this.dataloggerEmpty = true
-
-          context.onEvent(
-            ControllerButtonEvent.Pressed,
-            controller.A.id,
-            () => {
-              this.app.popScene()
-              this.app.pushScene(new SensorSelect(this.app, MicroDataSceneEnum.RecordingConfigSelect))
-            }
-          )
-        },
-      }))
-      this.navigator.setBtns(btns)
-
-      //---------
-      // Control:
-      //---------
-
-      context.onEvent(
-        ControllerButtonEvent.Pressed,
-        controller.B.id,
-        () => {
-          this.app.popScene()
-          this.app.pushScene(new Home(this.app))
-        }
+      this.addCentered(
+        this.actions,
+        ui.STANDARD_DISPLAY_HEIGHT >> 1,
+        ui.STANDARD_DISPLAY_WIDTH,
+        DATA_VIEW_HEIGHT * 2 + DATA_VIEW_GAP
       )
+      this.syncActions()
     }
 
-    draw() {
-      Screen.fillRect(
-        Screen.LEFT_EDGE,
-        Screen.TOP_EDGE,
-        Screen.WIDTH,
-        Screen.HEIGHT,
-        0xC
-      )
-
-      if (this.dataloggerEmpty) {
-        screen().printCenter("No data has been recorded", 5)
-        screen().printCenter("Log Data to collect some!", Screen.HALF_HEIGHT - 30)
+    public handleInput(event: ui.UiInputEvent): undefined | boolean {
+      if (event.action === "cancel" && event.phase === "pressed") {
+        this.runtime.pop()
+        return true
       }
+      return undefined
+    }
 
-      else {
-        screen().printCenter("View Data, Experiment or Clear Data", 5)
-      }
+    private syncActions(): void {
+      this.syncAction("view", this.hasData, "View Data")
+      this.syncAction("reset", true, "Reset datalogger")
 
-      this.navigator.drawComponents();
-      super.draw()
+      this.actions.invalidateLayout()
+      this.actions.registerFocusTargets(this.focus)
+      this.actions.registerNavigation(this.focusInput)
+    }
+
+    private syncAction(id: DataViewAction, visible: boolean, label: string): void {
+      const control = this.actions.controls.find(c => c.id === id)
+      control.visible = visible
+      control.focusable = visible
+      control.text = label
+    }
+
+    public render(surface: ui.DrawSurface): void {
+      surface.clear(0xC)
+
+      this.drawCenteredText(surface, this.hasData ? "View Data or Clear Data" : "No data has been recorded", 5)
+      if (!this.hasData)
+        this.drawCenteredText(surface, "Log Data to collect some!", 20)
+
+      super.render(surface)
+    }
+
+    private drawCenteredText(surface: ui.DrawSurface, text: string, y: number): void {
+      const size = surface.measureText(text)
+      const x = Math.max(0, Math.idiv(ui.STANDARD_DISPLAY_WIDTH - size.width, 2))
+      surface.drawText(text, x, y, { color: 15 })
     }
   }
 }

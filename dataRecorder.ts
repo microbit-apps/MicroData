@@ -135,6 +135,14 @@ namespace microdata {
 
     log() { this.scheduler.start() }
 
+    public handleInput(event: ui.UiInputEvent): undefined | boolean {
+      if (event.action === "cancel" && event.phase === "pressed") {
+        this.runtime.pop()
+        return true
+      }
+      return undefined
+    }
+
     private drawCenteredText(surface: ui.DrawSurface, text: string, y: number, color: number): void {
       const size = surface.measureText(text)
       const x = Math.max(0, Math.idiv(ui.STANDARD_DISPLAY_WIDTH - size.width, 2))

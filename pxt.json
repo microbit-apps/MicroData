@@ -7,7 +7,7 @@
         "radio": "*",
         "microphone": "*",
         "datalogger": "*",
-        "ui-controls": "github:microbit-apps/ui-controls#v0.0.10",
+        "ui-controls": "file:../ui-controls",
         "sensors": "github:microbit-apps/sensors#v0.0.52"
     },
     "files": [
@@ -17,7 +17,9 @@
         "liveSensorGraph.ts",
         "dataRecorder.ts",
         "sensorLoggingSetup.ts",
-        "sensorPicker.ts"
+        "sensorPicker.ts",
+        "dataViewSelect.ts",
+        "tabularDataViewer.ts"
     ],
     "testFiles": [
         "test.ts"

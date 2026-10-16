@@ -43,7 +43,7 @@ namespace microdata {
           this.runtime.pop()
         ),
         this.action("view", ui.largeDisk, "View Data & Settings", () =>
-          this.runtime.pop()
+          this.runtime.push(new DataViewSelect(this.runtime))
         ),
       ];
     }
